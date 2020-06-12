@@ -24,17 +24,20 @@ except:
 #@magics_class
 class Integration(Magics):
     # Static Variables
-    ipy = None        # IPython variable for updating things
-    session = None    # Session if ingeration uses it
-    connected = False # Is the integration connected
-    last_query = ""
+    ipy = None              # IPython variable for updating things
+    session = None          # Session if ingeration uses it
+    connected = False       # Is the integration connected
     name_str = ""
-    debug = False     # Enable debug mode
+    connect_pass = ""       # Connection password is special as we don't want it displayed, so it's a core component
+    proxy_pass = ""         # If a proxy is required, we need a place for a password. It can't be in the opts cause it would be displayed. 
+    debug = False           # Enable debug mode
+    env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point
 
     base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx']
-
+    pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid']
     # Variables Dictionary
     opts = {}
+    global_evars = ['proxy_host', 'proxy_user']
 
     # Option Format: [ Value, Description]
 
@@ -51,12 +54,26 @@ class Integration(Magics):
     pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
     pd.set_option('max_colwidth', opts['pd_max_colwidth'][0])
 
+            
 
     # Class Init function - Obtain a reference to the get_ipython()
     def __init__(self, shell, *args, **kwargs):
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
         self.session = None
+        self.load_env(self.global_evars)
+
+
+#### This won't be overridden
+
+    def load_env(self, evars):
+        for v in evars:
+            try:
+                tvar = os.environ[self.env_pre + v.upper()]
+            except:
+                tvar = ""
+            self.opts[v] = tvar
+            tvar = ""
 
 ##### connect should be overwriittn by custom integrarion
     def connect(self, prompt=False):
@@ -142,7 +159,7 @@ class Integration(Magics):
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
                 else:
-                    print("Number of results (%s) greater than pd_display_max(%s)" % (mycnt, self.opts['pd_display.max_rows'][0]))
+                    print("Number of results (%s) greater than pd_display.max_rows(%s)" % (mycnt, self.opts['pd_display.max_rows'][0]))
         else:
             print(self.name_str.capitalize() + " is not connected: Please see help at %" + self.name_str)
 
@@ -234,7 +251,7 @@ class Integration(Magics):
             tval = True
         if tkey in allowed_opts:
             self.opts[tkey][0] = tval
-            if tkey in pd_set_vars:
+            if tkey in self.pd_set_vars:
                 try:
                     t = int(tval)
                 except:
