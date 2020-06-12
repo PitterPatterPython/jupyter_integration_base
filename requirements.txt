@@ -1,0 +1,4 @@
+jupyterhub>=0.5
+IPython
+pandas
+ipywidgets
