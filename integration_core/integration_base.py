@@ -24,22 +24,31 @@ except:
 #@magics_class
 class Integration(Magics):
     # Static Variables
-    ipy = None              # IPython variable for updating things
-    session = None          # Session if ingeration uses it
-    connected = False       # Is the integration connected
-    name_str = ""
+    ipy = None              # IPython variable for updating and interacting with the User's notebook
+    session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal. 
+    connected = False       # Is the integration connected? This is a simple True/False 
+    name_str = ""           # This is the name of the integraton, and will be prepended with % for the magic, used in variables, uppered() for ENV variables etc. 
     connect_pass = ""       # Connection password is special as we don't want it displayed, so it's a core component
     proxy_pass = ""         # If a proxy is required, we need a place for a password. It can't be in the opts cause it would be displayed. 
     debug = False           # Enable debug mode
-    env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point
+    env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point. If sending in data through a ENV variable this is the prefix
 
-    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx']
-    pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid']
+    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+
+    pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
+
+
     # Variables Dictionary
     opts = {}
-    global_evars = ['proxy_host', 'proxy_user']
+    global_evars = ['proxy_host', 'proxy_user'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
+
 
     # Option Format: [ Value, Description]
+    # The options for both the base and customer integrations are a little obtuse at first. 
+    # This is because they are designed to be self documenting. 
+    # Each option item is actually a list of two length. 
+    # opt['item'][0] is the actual value if opt['item']
+    # p[t['item'][1] is a description of the option and it's use for built in description. 
 
     # Pandas Variables
     opts['pd_display_idx'] = [False, "Display the Pandas Index with output"]
@@ -48,7 +57,6 @@ class Integration(Magics):
     opts['pd_display.max_rows'] = [1000, 'Number of Max Rows']
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
-    opts['pd_beaker_bool_workaround'] = [True, 'Look for Dataframes with bool columns, and make it object for display in BeakerX']
 
     pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
     pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
@@ -57,6 +65,7 @@ class Integration(Magics):
             
 
     # Class Init function - Obtain a reference to the get_ipython()
+    # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
     def __init__(self, shell, *args, **kwargs):
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
@@ -64,16 +73,6 @@ class Integration(Magics):
         self.load_env(self.global_evars)
 
 
-#### This won't be overridden
-
-    def load_env(self, evars):
-        for v in evars:
-            try:
-                tvar = os.environ[self.env_pre + v.upper()]
-            except:
-                tvar = ""
-            self.opts[v] = tvar
-            tvar = ""
 
 ##### connect should be overwriittn by custom integrarion
     def connect(self, prompt=False):
@@ -260,3 +259,13 @@ class Integration(Magics):
         else:
             print("You tried to set variable: %s - Not in Allowed options!" % tkey)
 
+#### Don't alter this, this loads in ENV variables
+
+    def load_env(self, evars):
+        for v in evars:
+            try:
+                tvar = os.environ[self.env_pre + v.upper()]
+            except:
+                tvar = ""
+            self.opts[v] = tvar
+            tvar = ""
