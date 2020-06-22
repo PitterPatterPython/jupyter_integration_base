@@ -25,7 +25,8 @@ except:
 class Integration(Magics):
     # Static Variables
     ipy = None              # IPython variable for updating and interacting with the User's notebook
-    session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal. 
+    session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal.  This could also be a cursor
+    connection = None       # This is a connection object. Separate from a cursor or session it only handles connecting, then the session/cursor stuff is in session. 
     connected = False       # Is the integration connected? This is a simple True/False 
     name_str = ""           # This is the name of the integraton, and will be prepended with % for the magic, used in variables, uppered() for ENV variables etc. 
     connect_pass = ""       # Connection password is special as we don't want it displayed, so it's a core component
