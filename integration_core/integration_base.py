@@ -34,7 +34,7 @@ class Integration(Magics):
     debug = False           # Enable debug mode
     env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point. If sending in data through a ENV variable this is the prefix
 
-    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'qg_defaultColumnWidth'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
 
@@ -54,10 +54,11 @@ class Integration(Magics):
     # Pandas Variables
     opts['pd_display_idx'] = [False, "Display the Pandas Index with output"]
     opts['pd_replace_crlf'] = [True, "Replace extra crlfs in outputs with String representations of CRs and LFs"]
-    opts['pd_max_colwidth'] = [50, 'Max column width to display']
+    opts['pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
     opts['pd_display.max_rows'] = [1000, 'Number of Max Rows']
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
+    opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
 
     pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
     pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
@@ -156,10 +157,10 @@ class Integration(Magics):
                         print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
                     if self.opts['pd_display_grid'][0] == "qgrid":
                         if self.opts['pd_display_idx'][0] == True:
-                            display(qgrid.show_grid(result_df))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': self.opts['qg_defaultColumnWidth'][0]}))
                         else:
                             # Hack to hide the index field
-                            display(qgrid.show_grid(result_df, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': self.opts['qg_defaultColumnWidth'][0]}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
 
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
