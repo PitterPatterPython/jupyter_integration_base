@@ -216,7 +216,7 @@ class Integration(Magics):
         print("Display Properties:")
         print("-----------------------------------")
         for k, v in self.opts.items():
-            if k.find("pd_") == 0:
+            if k.find("pd_") == 0 or k.find("qg_") == 0:
                 try:
                     t = int(v[1])
                 except:
