@@ -157,10 +157,10 @@ class Integration(Magics):
                         print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
                     if self.opts['pd_display_grid'][0] == "qgrid":
                         if self.opts['pd_display_idx'][0] == True:
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': self.opts['qg_defaultColumnWidth'][0]}))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}))
                         else:
                             # Hack to hide the index field
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': self.opts['qg_defaultColumnWidth'][0]}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
 
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
