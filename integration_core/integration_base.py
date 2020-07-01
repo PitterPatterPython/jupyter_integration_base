@@ -34,7 +34,7 @@ class Integration(Magics):
     debug = False           # Enable debug mode
     env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point. If sending in data through a ENV variable this is the prefix
 
-    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'qg_defaultColumnWidth'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    base_allowed_set_opts = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
 
@@ -59,6 +59,8 @@ class Integration(Magics):
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
     opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
+    opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) - while the setting is global, the action is up to the integration']
+    opts['q_replace_crlf_lf'] = [False, 'If this is set, we replace crlf with lf (convert windows to unix line endings) - while the setting is global, the action is up to the integration']
 
     pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
     pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
