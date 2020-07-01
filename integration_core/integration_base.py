@@ -226,7 +226,7 @@ class Integration(Magics):
         print("Display Properties:")
         print("-----------------------------------")
         for k, v in self.opts.items():
-            if k.find("pd_") == 0 or k.find("qg_") == 0:
+            if k.find("pd_") == 0 or k.find("qg_") == 0 or k.find("q_") == 0:
                 try:
                     t = int(v[1])
                 except:
@@ -259,8 +259,9 @@ class Integration(Magics):
         allowed_opts = self.base_allowed_set_opts + self.custom_allowed_set_opts
 
         tline = line.replace('set ', '')
-        tkey = tline.split(' ')[0]
-        tval = tline.split(' ')[1]
+        tkey = tline.split(' ')[0] # Keys can't have spaces, values can
+        tval = tline.replace(tkey + " ")
+#        tval = tline.split(' ')[1]
         if tval == "False":
             tval = False
         if tval == "True":
