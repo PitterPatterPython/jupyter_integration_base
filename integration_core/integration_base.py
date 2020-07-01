@@ -59,8 +59,8 @@ class Integration(Magics):
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
     opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
-    opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) - while the setting is global, the action is up to the integration']
-    opts['q_replace_crlf_lf'] = [False, 'If this is set, we replace crlf with lf (convert windows to unix line endings) - while the setting is global, the action is up to the integration']
+    opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) on queries - This happens on lines and cells']
+    opts['q_replace_crlf_lf'] = [True, 'If this is set, we replace crlf with lf (convert windows to unix line endings) on queries - This only happens on cells not lines']
 
     pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
     pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
@@ -108,6 +108,9 @@ class Integration(Magics):
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
+        if self.opts['q_replace_a0_20'][0] == True:
+            line = line.replace("\xa0", " ")
+
         bMischiefManaged = False
         # Handle all common line items or return back to the custom integration
         if line == "":
@@ -138,6 +141,11 @@ class Integration(Magics):
 
 ##### handleCell should NOT need to be overwritten, however, I guess it could be
     def handleCell(self, cell):
+        if self.opts['q_replace_crlf_lf'][0] == True:
+            cell = cell.replace("\r\n", "\n")
+        if self.opts['q_replace_a0_20'][0] == True:
+            cell = cell.replace("\xa0", " ")
+
         if self.connected == True:
             result_df, qtime, status = self.runQuery(cell)
             if status.find("Failure") == 0:
