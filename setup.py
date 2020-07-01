@@ -11,9 +11,9 @@ if v[:2] < (3, 3):
     sys.exit(1)
 
 
-if os.name in ('nt', 'dos'):
-    error = "ERROR: Windows is not supported"
-    print(error, file=sys.stderr)
+#if os.name in ('nt', 'dos'):
+#    error = "ERROR: Windows is not supported"
+#    print(error, file=sys.stderr)
 
 # At least we're on the python version we need, move on.
 
