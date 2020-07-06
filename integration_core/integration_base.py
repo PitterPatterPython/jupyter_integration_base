@@ -289,7 +289,7 @@ class Integration(Magics):
                 tvar = os.environ[ev]
                 if self.debug:
                     print("Loaded %s as %s" % (ev, tvar))
-                self.opts[v] = tvar
+                self.opts[v][0] = tvar
             else:
                 if self.debug:
                     print("Could not load %s" % ev)
