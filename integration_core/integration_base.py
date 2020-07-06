@@ -70,7 +70,8 @@ class Integration(Magics):
 
     # Class Init function - Obtain a reference to the get_ipython()
     # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
-    def __init__(self, shell, *args, **kwargs):
+    def __init__(self, shell, debug=False, *args, **kwargs):
+        self.debug = debug
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
         self.session = None
@@ -260,7 +261,7 @@ class Integration(Magics):
 
         tline = line.replace('set ', '')
         tkey = tline.split(' ')[0] # Keys can't have spaces, values can
-        tval = tline.replace(tkey + " ")
+        tval = tline.replace(tkey + " ", "")
 #        tval = tline.split(' ')[1]
         if tval == "False":
             tval = False
@@ -281,9 +282,15 @@ class Integration(Magics):
 
     def load_env(self, evars):
         for v in evars:
-            try:
-                tvar = os.environ[self.env_pre + v.upper()]
-            except:
-                tvar = ""
-            self.opts[v] = tvar
-            tvar = ""
+            ev = self.env_pre + v.upper()
+            if self.debug:
+                print("Trying to load: %s" % ev)
+            if ev in os.environ:
+                tvar = os.environ[ev]
+                if self.debug:
+                    print("Loaded %s as %s" % (ev, tvar))
+                self.opts[v] = tvar
+            else:
+                if self.debug:
+                    print("Could not load %s" % ev)
+
