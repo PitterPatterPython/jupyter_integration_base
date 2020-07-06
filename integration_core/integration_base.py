@@ -70,7 +70,7 @@ class Integration(Magics):
 
     # Class Init function - Obtain a reference to the get_ipython()
     # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
-    def __init__(self, shell, debug=False, *args, **kwargs):
+    def __init__(self, shell, debug=False, pd_display_grid="html", *args, **kwargs):
         self.debug = debug
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
