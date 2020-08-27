@@ -31,7 +31,7 @@ with open(pjoin(here,'integration_core', '_version.py')) as f:
 
 setup_args = dict(
     name='jupyter_integration_base',
-    packages=['integration_core'],
+    packages=['integration_core', 'visualization_core'],
     version=version_ns['__version__'],
     description="""An Interface Jupyter Notebooks.""",
     long_description="A core class for working with custom integrations for Python3 based Jupyter Notebooks",
