@@ -163,7 +163,9 @@ class Integration(Magics):
                     mycnt = 0
                 print("%s Records in Approx %s seconds" % (mycnt,qtime))
                 print("")
-                if mycnt <= int(self.opts['pd_display.max_rows'][0]):
+                if mycnt == 0:
+                    pass # No need to display
+                elif mycnt <= int(self.opts['pd_display.max_rows'][0]):
                     if self.debug:
                         print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
                     if self.opts['pd_display_grid'][0] == "qgrid":
@@ -172,7 +174,6 @@ class Integration(Magics):
                         else:
                             # Hack to hide the index field
                             display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
-
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
                 else:
