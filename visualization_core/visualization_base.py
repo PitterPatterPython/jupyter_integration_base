@@ -396,16 +396,19 @@ class Visualization(Magics):
                 cur = tlen
         return chunks
 
-
+    def update_columns(self, df_name):
+        try:
+            self.ourdf = self.ipy.user_ns[df_name]
+            self.sel_cols.options = self.ourdf.columns.tolist()
+        except:
+            if self.show:
+                with self.out_graph:
+                    print("Error changing to %s" % change['new'])
+            
     def df_change(self, change):
         if change['name'] == 'value':
-            try:
-                self.ourdf = self.ipy.user_ns[change['new']]
-                self.sel_cols.options = self.ourdf.columns.tolist()
-            except:
-                if self.show:
-                    with self.out_graph:
-                        print("Error changing to %s" % change['new'])
+            new_df = change['new']
+            self.update_columns(new_df)
 
     def get_fields(self, chart):
         exclude_list = ['title', 'width', 'height', 'data_frame']
