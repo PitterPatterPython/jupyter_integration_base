@@ -175,6 +175,7 @@ class Visualization(Magics):
         self.show = True
         self.drp_charts.value = "line"
         self.set_vis("line")
+        self.df_change(self.sel_df.value)
         self.show = True
         display(self.dg)
 
