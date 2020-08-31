@@ -175,7 +175,7 @@ class Visualization(Magics):
         self.show = True
         self.drp_charts.value = "line"
         self.set_vis("line")
-        self.df_change(self.sel_df.value)
+        self.update_columns(self.sel_df.value)
         self.show = True
         display(self.dg)
 
@@ -248,15 +248,8 @@ class Visualization(Magics):
         if mycol != "" and myfield != "":
             myassigned = myfield + '="' + mycol + '"'
             curopts = deepcopy(list(self.sel_assigned.options))
-            bfound = False
-            for c in curopts:
-                if c.find(myfield) == 0 or c.find('"'+mycol+'"') >= 0:
-                    bfound = True
-                    break
-            if bfound == False:
-                curopts.append(myassigned)
-                self.sel_assigned.options = curopts
-
+            curopts.append(myassigned)
+            self.sel_assigned.options = curopts
 
     def rem_mapping(self, b):
         rem_val = self.sel_assigned.value
@@ -320,9 +313,28 @@ class Visualization(Magics):
     
         out += self.sel_df.value + ', title="%s", ' % self.txt_title.value
         out += "width=%s, height=%s, " % (self.txt_chartw.value, self.txt_charth.value)
+ 
         assigned = deepcopy(list(self.sel_assigned.options))
-        for a in assigned:
-            out+= a + ", "
+
+        chk_dict = {}
+        for x in assigned:
+            l = x.split("=")
+            if l[0] in chk_dict:
+                chk_dict[l[0]].append(l[1])
+            else:
+                chk_dict[l[0]] = [l[1]]
+
+        for k in chk_dict.keys():
+            if len(chk_dict[k]) == 1:
+                out += k + " = " + self.sel_df.value + "[" + chk_dict[k][0] + "], "
+            else:
+                out += k + " = ["
+                for i in chk_dict[k]:
+                    out += self.sel_df.value + "[" + i + "], "
+                out = out[0:-2] + "], "
+    
+    #    for a in assigned:
+    #        out+= a + ", "
         out = out[0:-2] + ")"
         if self.show:
             try:
