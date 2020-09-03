@@ -120,7 +120,7 @@ class Integration(Magics):
             print("Connecting as user %s" % inst['user'])
             print("")
 
-            if (inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True:
+            if ((inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True) and self.req_password(instance):
                 print("Please enter the password for the %s instance that you wish to connect with:" % instance)
                 tpass = ""
                 self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
@@ -142,6 +142,8 @@ class Integration(Magics):
 
         if inst['connected'] != True:
             self.disconnect(instance=instance)
+
+
 
 
 ##### disconnect should not need to be overwritten by customer integration
@@ -191,6 +193,15 @@ class Integration(Magics):
 
 ################################################################
 
+
+
+    def req_password(self, instance):
+        # This is a simple function that can be overwritten by custom integrations. 
+        # The default (this function) says "yes, it requires a password"
+        # however, if a customer integration has an instance parameter like Drill embedded or pyodbc use integrated security, it won't prompt for a password. 
+
+        retval = True
+        return retval
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
@@ -263,7 +274,7 @@ class Integration(Magics):
         if self.opts['q_replace_a0_20'][0] == True:
             cell = cell.replace("\xa0", " ")
         if self.instances[instance]['connected'] == False:
-            if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None:
+            if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None or self.req_password(instance) == False:
                 self.connect(instance)
         if self.instances[instance]['connected'] == True:
             result_df, qtime, status = self.runQuery(cell, instance)
@@ -305,14 +316,20 @@ class Integration(Magics):
         if instance == "":
             instance = self.opts[self.name_str + "_conn_default"][0]
             print("setpass not passed an instance, using conn_default of %s" % instance)
-        print("Please enter the password to save for the %s instance: " % instance)
-        tpass = ""
-        self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
-        tpass = self.ipy.user_ns['tpass']
-        self.instances[instance]['connect_pass'] = tpass
-        self.ipy.user_ns['tpass'] = ""
-        print("Password set for instance %s" % instance)
-        tpass = ""
+
+        if self.req_password(instance):
+
+            print("Please enter the password to save for the %s instance: " % instance)
+            tpass = ""
+            self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
+            tpass = self.ipy.user_ns['tpass']
+            self.instances[instance]['connect_pass'] = tpass
+            self.ipy.user_ns['tpass'] = ""
+            print("Password set for instance %s" % instance)
+            tpass = ""
+        else:
+            print("Password not required for %s instance %s based on options" % (self.name_str.capitalize(), instance))
+
         
         
 ##### Leave runQuery in the base integration - it handles query timing, instead customize customerQuery in actual integration
