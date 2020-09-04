@@ -15,7 +15,7 @@ A module to help interaction with Jupyter Notebooks any dataset. For exmaples se
 --------
 - All integrations will use magic functions
   - Line magics (%) for interacting with the integration (connect, help, etc) 
-  - Cell magics (%%) for submitting most queries. (Some integrations will query on a single line)
+  - Cell magics (%%) for submitting most queries. 
 - Queries will be submited in the dataset's natural language, without quoting or "object handling"
   - Object handling is my term for all the code you have to write in order to submit a query
 
@@ -32,11 +32,17 @@ Integration Example
 %%mysql
 select * from table
 ```
-- Queries results will return to plugable, user defined table in Jupyter. 
+- Integrations have instances, including a default instance.
+  - In the following ENV examples, INSTANCE and INTEGRATION are replaced by the instance and integration names. 
+  - The default instance for integration (if you don't specify instance, it will use this) is specified by the ENV variable JUPYTER_INTEGRATION_CONN_DEFAULT="instance"
+  - URLs for instances are specified by JUPYTER_INTEGRATION_CONN_URL_INSTANCE  Instance is upper case here, where it's lower case when you use it (LOCAL in the ENV is local in the default instance)
+  - CONN_URL is the connection URL in the format: scheme://user@host:port?variable1=variable1val&variable2=variable2val 
+    - Specific variables will be mentioned in the docs for the integrations using this
+- Queries results will return to plugable, user defined display table in Jupyter. 
   - Standard dataframe HTML is an option
-  - We are going to rely on qgrid by default (https://github.com/quantopian/qgrid)
-- Query results will ALSO return as a data frame automatically by the name of prev_integration
-  - If we had an integration named drill for working with Apache Drill, the variable prev_drill would always have the most recent query results, as a data frame
+  - We are going to rely on qgrid by default (https://github.com/quantopian/qgrid) - please install it 
+- Query results will ALSO return as a data frame automatically by the name of prev_integration_instance
+  - If we had an integration named drill, with an instance name of local,  working with Apache Drill, the variable prev_drill_local would always have the most recent query results, as a data frame
   - If you want to save those results to work with them programatically, assign it to a new variable before your next query. 
 - Help for the specfic data integration is custom to that integration
   - Help is currently crude print statements, however, I would like to see it expanded to something that could be provided as part of the integration, but also allow users to add their own per integration help, even describing data sets available etc. 
@@ -50,6 +56,39 @@ select * from table
   - We do allow setting the JUPYTER_PROXY_HOST and JUPYTER_PROXY_USER Variable here, all itegrations that may need user/host for Proxy can access this. 
   - We may want to look through this to solidify it
   - Passwords should NOT be set here, we don't want to encourage setting passwords in ENV variables
+
+
+### Visualizations
+- Basic Visualizations are not included via Plotly.
+  - Make sure it's installed
+  - %vis will display the widget and auto populate with all dataframes that start with prev_
+  - If you want to include a dataframe that exists without prev_ in the name, just call %vis with the dataframe name:
+    - %vis mydf
+
+
+To use: 
+
+```
+ipy = get_ipython()
+from visualization_core import Visualization
+myvis = Visualization(ipy, debug=False)
+ipy.register_magics(myvis)
+
+import plotly.graph_objects as go
+import plotly.express as px
+```
+
+Then use 
+
+```
+%vis
+```
+
+or
+
+```
+%vis mydf
+```
 
 
 
@@ -79,9 +118,50 @@ Yourthing = Yourthing(ipy,  pd_use_beaker=True, other_option=False)
 ipy.register_magics(Yourthing)
 ```
 
+
+A great way to do this is using the ~/.ipython folder. 
+
+In ~/.ipython/profile_default/startup
+
+I create the following files
+
+10_ipy.py
+```
+ipy = get_ipython()
+```
+11_vis.py
+```
+from visualization_core import Visualization
+myvis = Visualization(ipy, debug=False)
+ipy.register_magics(myvis)
+
+import plotly.graph_objects as go
+import plotly.express as px
+```
+
+ Then for each integration I am using,  a file, like if I am using drill and splunk:
+
+12_drill.py
+```
+from drill_core import Drill
+Drill = Drill(ipy, debug=False, pd_display_grid="qgrid")
+ipy.register_magics(Drill)
+```
+
+13_splunk.py
+```
+from splunk_core import Splunk
+Splunk = Splunk(ipy, debug=False, pd_display_grid="qgrid")
+ipy.register_magics(Splunk)
+```
+
+
+    
 ### Class Documentation 
 -------
 I tried to include documentation in the actual class as much as possible. Here are the functions you will absolutely need to override in your custom integration
+
+NOTE as of 2020-09-04 this needs updating
 
 
 #### Class Items to add in a customer integration
