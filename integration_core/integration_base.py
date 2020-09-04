@@ -507,6 +507,16 @@ class Integration(Magics):
 
 #### Don't alter this, this loads in ENV variables
 
+    def remove_ev_quotes(self, val):
+        retval = ""
+        if val[0] == '"' and val[-1] == '"': 
+            retval = val[1:-1]
+        elif val[0] == "'" and val[-1] == "'":
+            retval = val[1:-1]
+        else:
+            retval = val
+        return retval
+
     def load_env(self, evars):
 
         for v in [self.name_str + i for i in self.integration_evars] + evars:
@@ -515,7 +525,7 @@ class Integration(Magics):
                 if self.debug:
                     print("Trying to load: %s" % ev)
                 if ev in os.environ:
-                    tvar = os.environ[ev]
+                    tvar = self.remove_ev_quotes(os.environ[ev])
                     if self.debug:
                         print("Loaded %s as %s" % (ev, tvar))
                     self.opts[v][0] = tvar
@@ -526,7 +536,7 @@ class Integration(Magics):
                 base_var = v[0:-1].replace(self.name_str + "_", "")
                 for e in os.environ:
                     if e.find(ev) == 0:
-                        tval = os.environ[e]
+                        tval = self.remove_ev_quotes(os.environ[e])
                         instance = e.replace(ev, "").lower()
                         if base_var == "conn_url":
                             self.fill_instance(instance, tval)
@@ -556,7 +566,8 @@ class Integration(Magics):
         elif var in self.opts.keys():
             retval = self.opts[var][0]
         else:
-            print("Unknown Variable requested: %s  - Returning None" % var)
+            if self.debug:
+                print("Unknown Variable requested: %s  - Returning None" % var)
         return retval
 
 
@@ -597,13 +608,17 @@ class Integration(Magics):
                         pass
             ret_dict['options'] = options
 
-            if u_h_p.find("@") >= 0:
-                us = u_h_p.split("@")
+            us = u_h_p.split("@")
+            if len(us) == 1:
+                ret_dict['user'] = ""
+                hp = u_h_p
+            elif len(us) == 2:
                 ret_dict['user'] = us[0]
                 hp = us[1]
             else:
-                ret_dict['user'] = ""
-                hp = u_h_p
+                ret_dict['user'] = "@".join(us[0:-1])
+                hp = us[-1]
+
             if parse_success:
                 t_hp = hp.split(":")
                 if len(t_hp) == 1:
