@@ -69,6 +69,7 @@ class Visualization(Magics):
     height = ""
     width = ""
     bDisplayed = False
+    inc_indexes = False
     # Widget Place holders
     out_graph = None 
     out_url = None
@@ -109,6 +110,7 @@ class Visualization(Magics):
     lbl_break = None
 
     lbl_cols = None
+    chk_incidx = None
     lbl_fields = None
     lbl_assigned = None
 
@@ -200,6 +202,7 @@ class Visualization(Magics):
         # Rows, 4, 5, and 6 - Field chooser and buttons
         self.dg[4, 1] = self.lbl_fields
         self.dg[4, 2] = self.lbl_cols
+        self.dg[4, 3] = self.chk_incidx
         self.dg[4, 4] = self.lbl_assigned
         self.dg[5:7, 1] = self.sel_fields
         self.dg[5:7, 2] = self.sel_cols
@@ -220,6 +223,11 @@ class Visualization(Magics):
         # Row 10 - The actual output
         self.dg[12, :] = self.out_graph
 
+    def chk_index(self, change):
+        if change['name'] == 'value':
+            self.inc_indexes = change['new']
+            self.update_columns(self.sel_df.value)
+        
 
     def fill_widgets(self):
         if self.debug:
@@ -233,6 +241,7 @@ class Visualization(Magics):
         # Set on change listeners
         self.sel_df.observe(self.df_change)
         self.drp_charts.observe(self.update_chart_ops)
+        self.chk_incidx.observe(self.chk_index)
         self.btn_gen.on_click(self.gen_vis)
         self.btn_add.on_click(self.add_mapping)
         self.btn_rem.on_click(self.rem_mapping)
@@ -243,10 +252,17 @@ class Visualization(Magics):
     def add_mapping(self, b):
         mycol = ""
         myfield = ""
+        col_quotes = True
         mycol = self.sel_cols.value
         myfield = self.sel_fields.value
+        if mycol.find(".index") >=1:
+            col_quotes = False
         if mycol != "" and myfield != "":
-            myassigned = myfield + '="' + mycol + '"'
+            if col_quotes:
+                myassigned = myfield + '="' + mycol + '"'
+            else:
+                myassigned = myfield + '=' + mycol
+
             curopts = deepcopy(list(self.sel_assigned.options))
             curopts.append(myassigned)
             self.sel_assigned.options = curopts
@@ -276,6 +292,7 @@ class Visualization(Magics):
         self.sel_assigned = widgets.Select(options=[], disabled=False)
 
         self.lbl_cols = widgets.Label(value="Columns")
+        self.chk_incidx = widgets.Checkbox(value=False, description='Inc. Index', disabled=False, indent=False)
         self.lbl_fields = widgets.Label(value="Fields")
         self.lbl_assigned = widgets.Label(value="Assigned")
 
@@ -326,11 +343,18 @@ class Visualization(Magics):
 
         for k in chk_dict.keys():
             if len(chk_dict[k]) == 1:
-                out += k + " = " + self.sel_df.value + "[" + chk_dict[k][0] + "], "
+                v = chk_dict[k][0]
+                if v.find(".index") >= 1:
+                    out += k + " = [" + chk_dict[k][0] + "], "
+                else:
+                    out += k + " = " + self.sel_df.value + "[" + chk_dict[k][0] + "], "
             else:
                 out += k + " = ["
                 for i in chk_dict[k]:
-                    out += self.sel_df.value + "[" + i + "], "
+                    if i.find(".index") >= 1:
+                        out += i + ", "
+                    else:
+                        out += self.sel_df.value + "[" + i + "], "
                 out = out[0:-2] + "], "
     
     #    for a in assigned:
@@ -410,17 +434,22 @@ class Visualization(Magics):
 
     def update_columns(self, df_name):
         try:
+            addar = []
             self.ourdf = self.ipy.user_ns[df_name]
-            self.sel_cols.options = self.ourdf.columns.tolist()
+            if self.inc_indexes == True:
+                addar = [df_name + ".index"]
+            self.sel_cols.options = addar + self.ourdf.columns.tolist()
         except:
             if self.show:
                 with self.out_graph:
-                    print("Error changing to %s" % change['new'])
+                    print("Error changing to %s" % df_name)
             
     def df_change(self, change):
         if change['name'] == 'value':
             new_df = change['new']
             self.update_columns(new_df)
+
+
 
     def get_fields(self, chart):
         exclude_list = ['title', 'width', 'height', 'data_frame']
