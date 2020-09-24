@@ -1,4 +1,3 @@
-print("In strings.py")
 
 def myconcat(val1, val2):
     """Doc Strings baby

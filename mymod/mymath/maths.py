@@ -1,4 +1,3 @@
-print("In maths.py")
 
 def mysum(val1, val2):
     """Doc Strings baby
