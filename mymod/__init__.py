@@ -1,5 +1,5 @@
 print("Example Shared Module for Documentation Demo") 
-
+import mymod
 from mymod.mymath.maths import mysum
 from mymod.mystrings.strings import myconcat
 from mymod.mymath.mymulty.multi import multi_func
