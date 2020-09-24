@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: jupyter-integration-base
+Version: 0.1.0
+Summary: An Interface Jupyter Notebooks.
+Home-page: https://github.com/JohnOmernik/jupyter_integration_base
+Author: John Omernik
+Author-email: mandolinplayer@gmail.comm
+License: Apache
+Description-Content-Type: UNKNOWN
+Description: A core class for working with custom integrations for Python3 based Jupyter Notebooks
+Keywords: Interactive,Interpreter,Shell,Notebook,Jupyter,jupyter_integration_base
+Platform: Linux
+Platform: Mac OS X
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: Apache
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3

@@ -1,5 +1,8 @@
-print("Example Shared Module for Documentation Demo") 
+#import mymod.mymath
+#import mymod.mystrings
 
+#import mymath
+#import mystrings
 from mymod.mymath.maths import mysum
 from mymod.mystrings.strings import myconcat
 
@@ -12,4 +15,3 @@ def doc_funcs():
     returns True
     """
     return True
-

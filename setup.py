@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
-
+import setuptools
 v = sys.version_info
 if v[:2] < (3, 3):
     error = "ERROR: Jupyter Hub requires Python version 3.3 or above."
@@ -28,10 +28,11 @@ version_ns = {}
 with open(pjoin(here,'integration_core', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
+#    packages=['integration_core', 'visualization_core', 'doc_core', 'mymod'],
 
 setup_args = dict(
     name='jupyter_integration_base',
-    packages=['integration_core', 'visualization_core', 'doc_core', 'mymod'],
+    packages=setuptools.find_packages(),
     version=version_ns['__version__'],
     description="""An Interface Jupyter Notebooks.""",
     long_description="A core class for working with custom integrations for Python3 based Jupyter Notebooks",
