@@ -61,6 +61,7 @@ class Doc(Magics):
                 tfuncs = self.recursemod(m)
                 tfuncs_dedupe = self.dedupe_funcs(tfuncs, m)
                 self.documented_funcs[m] = tfuncs_dedupe
+
             else:
                 if self.debug:
                     print("Did not load module: %s as it is not installed or didn't have the proper check functions" % m)
@@ -169,6 +170,81 @@ class Doc(Magics):
 
 
 
+
+    def parse_doc(docstr):
+        ret = OrderedDict({"funcname": "", "shortdesc": "", "desc": "", "writtenby": "", "keywords": [], "callexample": "", "arguments":[], "returns": []})
+
+        myiter = iter(docstr.split("\n"))
+        for l in myiter:
+            myline = l.strip()
+            if ret["funcname"] == "":
+                t = myline.split(" - ")
+                ret["funcname"] = t[0]
+                ret["shortdesc"] = t[1]
+            elif ret["desc"] == "":
+                if myline.find("Description") == 0:
+                    tdesc = ""
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "":
+                        tdesc += mynline + "\n"
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["desc"] = tdesc[0:-1]
+            elif ret["writtenby"] == "":
+                if myline.find("Written by:") == 0:
+                    twrittenby = ""
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "":
+                        twrittenby += mynline + "\n"
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["writtenby"] = twrittenby[0:-1]
+            elif ret["keywords"] == []:
+                if myline.find("Keywords") == 0:
+                    tkeywords = []
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "":
+                        tkeywords += mynline.split(",")
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["keywords"] = tkeywords
+            elif ret["callexample"] == "":
+                if myline.find("Call Example") == 0:
+                    tcallexample = ""
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "":
+                        tcallexample += mynline + "\n"
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["callexample"] = tcallexample[0:-1]
+            elif ret["arguments"] == []:
+                if myline.find("Arguments") == 0:
+                    targuments = []
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "" and mynline != "None":
+                        targ = mynline.split(" - ")
+                        targuments.append(targ)
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["arguments"] = targuments
+            elif ret["returns"] == []:
+                if myline.find("Returns") == 0:
+                    treturns = []
+                    nl = next(myiter)
+                    mynline = nl.strip()
+                    while mynline != "" and mynline != "None":
+                        tret = mynline.split(" - ")
+                        treturns.append(tret)
+                        nl = next(myiter)
+                        mynline = nl.strip()
+                    ret["returns"] = treturns
+        return ret
+
     def dedupe_funcs(self, funcs, modname):
         dfuncs = {}       
         for f in funcs:
@@ -180,6 +256,7 @@ class Doc(Magics):
                 if n != "doc_funcs":
                     fn = f['full_name']
                     d = f['docs']
+                    dd = self.parse_doc(d)
                     if n in dfuncs:
                         if dfuncs[n]['docs'] != d:
                             print("same name different docs")
@@ -188,7 +265,7 @@ class Doc(Magics):
                         else:
                             dfuncs[n]['func_location'] = fn.replace("." + n, "")
                     else:
-                        dfuncs[n] = {"name": n, "docs": d, "call_name": "", "func_location": ""}
+                        dfuncs[n] = {"name": n, "docs": d, "docs_dict": dd, "call_name": "", "func_location": ""}
                         if modname == fn.replace("." + n, ""):
                             dfuncs[n]['call_name'] = fn
                         else:

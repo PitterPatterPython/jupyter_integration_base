@@ -10,6 +10,68 @@ A module to help interaction with Jupyter Notebooks any dataset. For exmaples se
 - Allow users to interact with datasets in a very common way. 
 
 
+## Environment Setup
+-------
+Setting up your environment is important to getting all these pieces working together
+
+- Prereqs
+  - git
+  - npm/node.js
+  - Python 3.6 or greater (Anaconda works)
+    - Anaconda is nice because it includes all the data science packages
+    - List of some packages needed (hoping to make this part of the setup.py):
+      - pandas >= 1.1.2
+      - numpy >= 1.19.0
+      - notebook >= 6.1.4
+      - jupyterlab >= 2.1.5
+      - jupyterlab-server >= 1.1.5
+      - ipython >= 7.16.1
+      - ipywidgets >= 7.5.1
+      - qgrid >= 1.3.1
+      - plotly >= 4.10.0
+      - widgetsnbeextension >= 3.5.1
+      - splunk-sdk >= 1.6.13 
+      - pyodbc >= 4.0.23
+- Extensions
+  - jupyter labextension install @jupyter-widgets/jupyterlab-manager
+  - jupyter labextension install jupyerlab-plotly@4.10.0
+  - jupyter labextension install plotlywidget@4.10.0
+  - jupyter labextension install qgrid2
+- Create ipython default profile
+  - ipython profile create
+- Create jupyter lab config (default)
+  - jupyter lab --generate-config
+
+
+
+
+
+
+## Current Integrations
+-------
+
+Currently Working:
+------
+- jupyter_splunk 
+  - https://github.com/johnomernik/jupyter_splunk
+- jupyter_drill 
+  - https://github.com/johnomernik/jupyter_drill
+- jupyter_mysql
+  - https://github.com/johnomernik/jupyter_mysql
+- jupyter_pyodbc
+  - https://github.com/johnomernik/jupyter_pyodbc
+  - Parent Class to:
+    - jupyter_impala
+      - https://github.com/johnomernik/jupyter_impala
+    - jupyter_tera
+      - https://github.com/johnomernik/jupyter_tera
+
+Planned:
+------
+- jupyter_mysql
+- jupyter_el
+
+
 
 ### Opinionated Items
 --------
