@@ -11,6 +11,49 @@ A module to help interaction with Jupyter Notebooks any dataset. For exmaples se
 
 
 ## Environment Setup
+
+
+
+
+This worked with a recent Conda (3.8 as of 2020-10-24)
+
+```
+conda update --all
+
+conda install -c conda-forge nodejs
+conda install -c conda-forge/label/gcc7 nodejs
+conda install -c plotly plotly=4.12.0
+conda install qgrid=1.3.1
+
+git clone https://github.com/splunk/splunk-sdk-python && cd splunk-sdk-python && python setup.py install && cd .. && rm -rf ./splunk-sdk-python
+
+jupyter labextension install @jupyter-widgets/jupyterlab-manager
+
+jupyter labextension install plotlywidget@4.12.0 
+
+jupyter labextension install jupyterlab-plotly@4.12.0
+
+jupyter labextension install qgrid2
+
+ipython profile create
+
+jupyter lab --generate-config
+
+```
+
+Please go to jupyter config in ~/.jupyter/jupyter_notebook_config.py 
+
+Search for: c.NotebookApp.iopub_data_rate_limit
+Uncomment that line, and add a 0.  We move a lot of data. 
+
+Then run python setup.py install in the jupyter_integrations_base
+
+At this point, you can now start installing other integrations. Download them and run python setup.py install in the repos.  
+
+
+
+
+## Needs upeates use above
 -------
 Setting up your environment is important to getting all these pieces working together
 
