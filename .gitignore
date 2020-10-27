@@ -11,3 +11,4 @@ jupyter_integration_base.egg-info/**
 dist
 dist/*
 dist/**
+build

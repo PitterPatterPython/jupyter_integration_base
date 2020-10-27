@@ -195,7 +195,28 @@ or
 %vis mydf
 ```
 
+### Dataframe visualizaing
+-------
+- We do dataframe profiling with pandas-profiling
 
+
+To use: 
+
+```
+from profile_core import Profile
+myprof = Profile(ipy, debug=False)
+ipy.register_magics(myprof)
+from pandas_profiling import ProfileReport
+
+
+Then type:
+
+%profile
+
+In a cell
+
+```
+ 
 
 ### To do/Wishlist Items
 ----------

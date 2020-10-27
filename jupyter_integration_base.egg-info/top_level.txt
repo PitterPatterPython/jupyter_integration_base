@@ -1,4 +1,5 @@
 doc_core
 integration_core
 mymod
+profile_core
 visualization_core

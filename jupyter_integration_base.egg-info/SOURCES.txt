@@ -12,6 +12,7 @@ integration_core/integration_base.py
 jupyter_integration_base.egg-info/PKG-INFO
 jupyter_integration_base.egg-info/SOURCES.txt
 jupyter_integration_base.egg-info/dependency_links.txt
+jupyter_integration_base.egg-info/requires.txt
 jupyter_integration_base.egg-info/top_level.txt
 mymod/__init__.py
 mymod/base.py
@@ -23,6 +24,9 @@ mymod/mymath/mymulty/__init__.py
 mymod/mymath/mymulty/multi.py
 mymod/mystrings/__init__.py
 mymod/mystrings/strings.py
+profile_core/__init__.py
+profile_core/_version.py
+profile_core/profile_base.py
 visualization_core/__init__.py
 visualization_core/_version.py
 visualization_core/visualization_base.py

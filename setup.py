@@ -28,7 +28,7 @@ version_ns = {}
 with open(pjoin(here,'integration_core', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
-#    packages=['integration_core', 'visualization_core', 'doc_core', 'mymod'],
+#    packages=['integration_core', 'visualization_core', 'doc_core', 'profile_core', 'mymod'],
 
 setup_args = dict(
     name='jupyter_integration_base',
