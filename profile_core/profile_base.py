@@ -136,6 +136,11 @@ class Profile(Magics):
             tval = False
         if tval == "True":
             tval = True
+        try:
+            nval = int(tval)
+            tval = nval
+        except:
+            pass
         if tkey in allowed_opts:
             self.opts[tkey][0] = tval
         else:
