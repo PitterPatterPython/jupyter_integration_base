@@ -7,7 +7,7 @@ import os
 import time
 import pandas as pd
 from copy import deepcopy
-
+import requests
 
 # Plotly
 try:
@@ -18,10 +18,9 @@ except:
 
 # Requests and BeutifulSoup
 try:
-    import requests
     from bs4 import BeautifulSoup
 except:
-    print("Could not import requests or BeutifulSoup")
+    print("Could not import BeutifulSoup")
 
 # Pickle
 try:
@@ -149,10 +148,9 @@ class Visualization(Magics):
         except:
             print("Plotly, and plotly express doesn't seem to be installed - This will cause problems for a plotly based vis helper")
         try:
-            a = type(requests)
             a = type(BeautifulSoup)
         except:
-           print("You need BeautifulSoup and requests as well - make sure these are installed")
+           print("You need BeautifulSoup - make sure this is installed")
 
     
 
