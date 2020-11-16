@@ -111,9 +111,10 @@ class Integration(Magics):
             self.parse_instances(parse_inst=instance)
 
         inst = self.instances[instance]
+        reqpass = self.req_password(instance)
 
         if inst['connected'] == False:
-            if prompt == True or inst['user'] == "":
+            if (prompt == True or inst['user'] == "") and self.req_username(instance):
                 print("User not specified in env %s%s_CONN_URL_%s or user override requested" % (self.env_pre, self.name_str.upper(), instance.upper()))
                 tuser = input("Please type user name if desired: ")
                 inst['user'] = tuser
@@ -198,6 +199,14 @@ class Integration(Magics):
     def req_password(self, instance):
         # This is a simple function that can be overwritten by custom integrations. 
         # The default (this function) says "yes, it requires a password"
+        # however, if a customer integration has an instance parameter like Drill embedded or pyodbc use integrated security, it won't prompt for a password. 
+
+        retval = True
+        return retval
+
+    def req_username(self, instance):
+        # This is a simple function that can be overwritten by custom integrations. 
+        # The default (this function) says "yes, it requires a username"
         # however, if a customer integration has an instance parameter like Drill embedded or pyodbc use integrated security, it won't prompt for a password. 
 
         retval = True
