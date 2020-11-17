@@ -43,7 +43,7 @@ class Integration(Magics):
     
 
 
-    base_allowed_set_opts = ['default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    base_allowed_set_opts = ['default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
 
@@ -71,6 +71,9 @@ class Integration(Magics):
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
     opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
+    opts['qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid']
+    opts['qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid']
+
     opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) on queries - This happens on lines and cells']
     opts['q_replace_crlf_lf'] = [True, 'If this is set, we replace crlf with lf (convert windows to unix line endings) on queries - This only happens on cells not lines']
 
@@ -94,12 +97,18 @@ class Integration(Magics):
 
 ##### connect should not need to be overwritten by custom integration
     def connect(self, instance=None, prompt=False):
-
         if self.debug:
-            print("Connect function - Instance: %s - Prompt: %s" % (instance, prompt))
+            print("Connect function - Instance: %s - Prompt: %s - " % (instance, prompt))
+
 
         if instance is None:
             instance = self.opts[self.name_str + "_conn_default"][0]
+
+        req_pass = self.req_password(instance)
+        req_user = self.req_username(instance)
+
+        if self.debug:
+            print("req_user: %s - req_pass: %s" % (req_user, req_pass))
 
         if instance not in self.instances.keys() or prompt == True:
             print("Instance %s not found or prompt requested, adding and connecting" % instance)
@@ -111,17 +120,16 @@ class Integration(Magics):
             self.parse_instances(parse_inst=instance)
 
         inst = self.instances[instance]
-        reqpass = self.req_password(instance)
 
         if inst['connected'] == False:
-            if (prompt == True or inst['user'] == "") and self.req_username(instance):
+            if (prompt == True or inst['user'] == "") and req_user == True:
                 print("User not specified in env %s%s_CONN_URL_%s or user override requested" % (self.env_pre, self.name_str.upper(), instance.upper()))
                 tuser = input("Please type user name if desired: ")
                 inst['user'] = tuser
             print("Connecting as user %s" % inst['user'])
             print("")
 
-            if ((inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True) and self.req_password(instance):
+            if ((inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True) and req_pass == True:
                 print("Please enter the password for the %s instance that you wish to connect with:" % instance)
                 tpass = ""
                 self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
@@ -307,11 +315,21 @@ class Integration(Magics):
                     if self.debug:
                         print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
                     if self.opts['pd_display_grid'][0] == "qgrid":
+                        def_max_rows = int(self.opts['qg_maxVisibleRows'][0])
+                        def_min_rows = int(self.opts['qg_maxVisibleRows'][0])
+                        max_rows = def_max_rows
+                        min_rows = def_min_rows
+                        if mycnt >= def_max_rows:
+                            max_rows = def_max_rows
+                            min_rows = def_min_rows
+                        elif mycnt + 2 <= def_max_rows:
+                            max_rows = def_max_rows
+                            min_rows = mycnt + 2
                         if self.opts['pd_display_idx'][0] == True:
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}))
                         else:
                             # Hack to hide the index field
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
+                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
                 else:
