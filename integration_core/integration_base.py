@@ -43,7 +43,7 @@ class Integration(Magics):
     
 
 
-    base_allowed_set_opts = ['default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    base_allowed_set_opts = ['qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
 
@@ -66,13 +66,17 @@ class Integration(Magics):
     opts['pd_display_idx'] = [False, "Display the Pandas Index with output"]
     opts['pd_replace_crlf'] = [True, "Replace extra crlfs in outputs with String representations of CRs and LFs"]
     opts['pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
-    opts['pd_display.max_rows'] = [1000, 'Number of Max Rows']
+    opts['pd_display.max_rows'] = [10000, 'Number of Max Rows']
     opts['default_instance_name'] = ['default', "The instance name used as a default"]
     opts['pd_display.max_columns'] = [None, 'Max Columns']
     opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
     opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
     opts['qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid']
     opts['qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid']
+    opts['qg_colmin'] = [75, 'The minimum size a qgrid column will be']
+    opts['qg_colmax'] = [750, 'The maximum size a qgrid column will be']
+    opts['qg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
+    opts['qg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
 
     opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) on queries - This happens on lines and cells']
     opts['q_replace_crlf_lf'] = [True, 'If this is set, we replace crlf with lf (convert windows to unix line endings) on queries - This only happens on cells not lines']
@@ -325,11 +329,32 @@ class Integration(Magics):
                         elif mycnt + 2 <= def_max_rows:
                             max_rows = def_max_rows
                             min_rows = mycnt + 2
+                        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}
+                        mycoldefs = {}
+                        mydispidx = True
                         if self.opts['pd_display_idx'][0] == True:
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}))
+                            mydispidx = True
                         else:
-                            # Hack to hide the index field
-                            display(qgrid.show_grid(result_df, grid_options={'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}, column_definitions={ 'index': { 'maxWidth': 0, 'minWidth': 0, 'width': 0  } }))
+                            mydispidx = False
+                            mycoldefs['index'] = { 'maxWidth': 0, 'minWidth': 0, 'width': 0 }
+
+                        if self.opts['qg_autofit_cols'][0] == True:
+                            maxColumnLenghts = []
+                            for col in range(len(result_df.columns)):
+                                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
+                            dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
+                            text_factor = self.opts['qg_text_factor'][0]
+                            colmin = self.opts['qg_colmin'][0]
+                            colmax = self.opts['qg_colmax'][0]
+                            for k in dict_size.keys():
+                                if mydispidx or k != "index":
+                                    mysize =  text_factor * dict_size[k]
+                                    if mysize < colmin:
+                                        mysize = colmin
+                                    if mysize > colmax:
+                                        mysize = colmax
+                                    mycoldefs[k] = {'width': mysize}
+                        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
                     else:
                         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
                 else:
