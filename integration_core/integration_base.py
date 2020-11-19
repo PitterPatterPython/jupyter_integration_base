@@ -43,7 +43,7 @@ class Integration(Magics):
     
 
 
-    base_allowed_set_opts = ['qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    base_allowed_set_opts = ['qg_header_autofit', 'qg_header_pad', 'qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
 
@@ -77,7 +77,8 @@ class Integration(Magics):
     opts['qg_colmax'] = [750, 'The maximum size a qgrid column will be']
     opts['qg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
     opts['qg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
-
+    opts['qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
+    opts['qg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
     opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) on queries - This happens on lines and cells']
     opts['q_replace_crlf_lf'] = [True, 'If this is set, we replace crlf with lf (convert windows to unix line endings) on queries - This only happens on cells not lines']
 
@@ -346,9 +347,17 @@ class Integration(Magics):
                             text_factor = self.opts['qg_text_factor'][0]
                             colmin = self.opts['qg_colmin'][0]
                             colmax = self.opts['qg_colmax'][0]
+                            header_autofit = self.opts['qg_header_autofit'][0]
+                            header_pad = self.opts['qg_header_pad'][0]
                             for k in dict_size.keys():
                                 if mydispidx or k != "index":
-                                    mysize =  text_factor * dict_size[k]
+                                    if header_autofit:
+                                        col_size = len(str(k)) + int(header_pad)
+                                        if dict_size[k] > col_size :
+                                            col_size = dict_size[k]
+                                    else:
+                                        col_size = dict_size[k]
+                                    mysize =  text_factor * col_size
                                     if mysize < colmin:
                                         mysize = colmin
                                     if mysize > colmax:
