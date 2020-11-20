@@ -302,6 +302,8 @@ class Integration(Magics):
             result_df, qtime, status = self.runQuery(cell, instance)
             if status.find("Failure") == 0:
                 print("Error from instance %s: %s" % (instance, status))
+            elif status.find("Other: ") == 0:
+                print("Non Query Results:\n" + status.replace("Other: ", ""))
             elif status.find("Success - No Results") == 0:
                 print("No Results from instance: %s - returned in %s seconds" % (instance, qtime))
             elif status.find("ValidationError") == 0:
