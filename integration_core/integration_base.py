@@ -286,9 +286,7 @@ class Integration(Magics):
         return bMischiefManaged 
 
 
-    def qgridDisplay(self, result_df):
-
-        mycnt = len(result_df)
+    def qgridDisplay(self, result_df, mycnt):
 
         # Determine the height of the qgrid (number of Visible Rows)
         def_max_rows = int(self.opts['qg_maxVisibleRows'][0])
@@ -343,25 +341,40 @@ class Integration(Magics):
         display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
 
 
-    def htmlDisplay(self, result_df):
+    def htmlDisplay(self, result_df, mycnt):
         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
 
-
-
 # This can now be more easily extended with different display types
-    def displayDF(self, result_df):
+    def displayDF(self, result_df, instance=None, qtime=None):
 
         display_type = self.opts['pd_display_grid'][0]
+        max_display_rows = self.opts['pd_display.max_rows'][0]
+        if result_df is not None:
+            mycnt = len(result_df)
+        else:
+            mycnt = 0
+
+        if qtime is not None:
+            print("%s Records from instance %s in Approx %s seconds" % (mycnt, instance, qtime))
+            print("")
+        else:
+            print("%s Records Returned" % (mycnt))
+            print("")
 
         if self.debug:
             print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
 
-        if display_type == "qgrid":
-            self.qgridDisplay(result_df)
-        elif display_type == "html":
-            display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
+        if mycnt == 0:
+            pass
+        elif mycnt > max_display_rows:
+            print("Number of results (%s) from instance %s greater than pd_display.max_rows(%s)" % (mycnt, instance, max_display_rows))
         else:
-            print("%s display type not supported" % display_type)
+            if display_type == "qgrid":
+                self.qgridDisplay(result_df, mycnt)
+            elif display_type == "html":
+                self.htmlDisplay(result_df, mycnt)
+            else:
+                print("%s display type not supported" % display_type)
 
 
 ##### handleCell should NOT need to be overwritten, however, I guess it could be
@@ -388,18 +401,7 @@ class Integration(Magics):
                 print("Validation Error from instance %s" % instance)
             else:
                 self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
-                if result_df is not None:
-                    mycnt = len(result_df)
-                else:
-                    mycnt = 0
-                print("%s Records from instance %s in Approx %s seconds" % (mycnt, instance, qtime))
-                print("")
-                if mycnt == 0:
-                    pass # No need to display
-                elif mycnt <= int(self.opts['pd_display.max_rows'][0]):
-                    self.displayDF(result_df)
-                else:
-                    print("Number of results (%s) from instance %s greater than pd_display.max_rows(%s)" % (mycnt, instance, self.opts['pd_display.max_rows'][0]))
+                self.displayDF(result_df, instance, qtime)
         else:
             print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
 
