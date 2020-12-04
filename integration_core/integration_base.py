@@ -285,12 +285,90 @@ class Integration(Magics):
             pass
         return bMischiefManaged 
 
+
+    def qgridDisplay(self, result_df):
+
+        mycnt = len(result_df)
+
+        # Determine the height of the qgrid (number of Visible Rows)
+        def_max_rows = int(self.opts['qg_maxVisibleRows'][0])
+        def_min_rows = int(self.opts['qg_maxVisibleRows'][0])
+        max_rows = def_max_rows
+        min_rows = def_min_rows
+        if mycnt >= def_max_rows:
+            max_rows = def_max_rows
+            min_rows = def_min_rows
+        elif mycnt + 2 <= def_max_rows:
+            max_rows = def_max_rows
+            min_rows = mycnt + 2
+
+        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}
+        mycoldefs = {}
+
+        # Determine Index width
+        if self.opts['pd_display_idx'][0] == True:
+            mydispidx = True
+        else:
+            mydispidx = False
+            mycoldefs['index'] = { 'maxWidth': 0, 'minWidth': 0, 'width': 0 }
+
+        # Handle Column Autofit
+        if self.opts['qg_autofit_cols'][0] == True:
+            maxColumnLenghts = []
+            for col in range(len(result_df.columns)):
+                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
+            dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
+            text_factor = self.opts['qg_text_factor'][0]
+            colmin = self.opts['qg_colmin'][0]
+            colmax = self.opts['qg_colmax'][0]
+            header_autofit = self.opts['qg_header_autofit'][0]
+            header_pad = self.opts['qg_header_pad'][0]
+            for k in dict_size.keys():
+                if mydispidx or k != "index":
+                    if header_autofit:
+                        col_size = len(str(k)) + int(header_pad)
+                        if dict_size[k] > col_size :
+                            col_size = dict_size[k]
+                    else:
+                        col_size = dict_size[k]
+                    mysize =  text_factor * col_size
+                    if mysize < colmin:
+                         mysize = colmin
+                    if mysize > colmax:
+                        mysize = colmax
+                    mycoldefs[k] = {'width': mysize}
+
+
+        # Display the QGrid
+        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
+
+
+    def htmlDisplay(self, result_df):
+        display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
+
+
+
+# This can now be more easily extended with different display types
+    def displayDF(self, result_df):
+
+        display_type = self.opts['pd_display_grid'][0]
+
+        if self.debug:
+            print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
+
+        if display_type == "qgrid":
+            self.qgridDisplay(result_df)
+        elif display_type == "html":
+            display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
+        else:
+            print("%s display type not supported" % display_type)
+
+
 ##### handleCell should NOT need to be overwritten, however, I guess it could be
     def handleCell(self, cell, instance=None):
         if instance is None or instance == "":
             instance = self.opts[self.name_str + "_conn_default"][0]
 
-            
         if self.opts['q_replace_crlf_lf'][0] == True:
             cell = cell.replace("\r\n", "\n")
         if self.opts['q_replace_a0_20'][0] == True:
@@ -319,61 +397,13 @@ class Integration(Magics):
                 if mycnt == 0:
                     pass # No need to display
                 elif mycnt <= int(self.opts['pd_display.max_rows'][0]):
-                    if self.debug:
-                        print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
-                    if self.opts['pd_display_grid'][0] == "qgrid":
-                        def_max_rows = int(self.opts['qg_maxVisibleRows'][0])
-                        def_min_rows = int(self.opts['qg_maxVisibleRows'][0])
-                        max_rows = def_max_rows
-                        min_rows = def_min_rows
-                        if mycnt >= def_max_rows:
-                            max_rows = def_max_rows
-                            min_rows = def_min_rows
-                        elif mycnt + 2 <= def_max_rows:
-                            max_rows = def_max_rows
-                            min_rows = mycnt + 2
-                        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}
-                        mycoldefs = {}
-                        mydispidx = True
-                        if self.opts['pd_display_idx'][0] == True:
-                            mydispidx = True
-                        else:
-                            mydispidx = False
-                            mycoldefs['index'] = { 'maxWidth': 0, 'minWidth': 0, 'width': 0 }
-
-                        if self.opts['qg_autofit_cols'][0] == True:
-                            maxColumnLenghts = []
-                            for col in range(len(result_df.columns)):
-                                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
-                            dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
-                            text_factor = self.opts['qg_text_factor'][0]
-                            colmin = self.opts['qg_colmin'][0]
-                            colmax = self.opts['qg_colmax'][0]
-                            header_autofit = self.opts['qg_header_autofit'][0]
-                            header_pad = self.opts['qg_header_pad'][0]
-                            for k in dict_size.keys():
-                                if mydispidx or k != "index":
-                                    if header_autofit:
-                                        col_size = len(str(k)) + int(header_pad)
-                                        if dict_size[k] > col_size :
-                                            col_size = dict_size[k]
-                                    else:
-                                        col_size = dict_size[k]
-                                    mysize =  text_factor * col_size
-                                    if mysize < colmin:
-                                        mysize = colmin
-                                    if mysize > colmax:
-                                        mysize = colmax
-                                    mycoldefs[k] = {'width': mysize}
-                        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
-                    else:
-                        display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
+                    self.displayDF(result_df)
                 else:
                     print("Number of results (%s) from instance %s greater than pd_display.max_rows(%s)" % (mycnt, instance, self.opts['pd_display.max_rows'][0]))
         else:
             print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
 
-        
+
     def setPass(self, line):
         instance = line.replace("setpass", "").strip()
         if instance == "":
@@ -393,8 +423,6 @@ class Integration(Magics):
         else:
             print("Password not required for %s instance %s based on options" % (self.name_str.capitalize(), instance))
 
-        
-        
 ##### Leave runQuery in the base integration - it handles query timing, instead customize customerQuery in actual integration
     def runQuery(self, query, instance):
 

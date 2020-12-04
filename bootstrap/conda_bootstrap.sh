@@ -37,7 +37,7 @@ echo ""
 
 conda install plotly=4.12.0 pandas=1.1.3 numpy=1.19.1 jupyterlab=2.2.6 ipywidgets=7.5.1 ipython=7.18.1 widgetsnbextension=3.5.1 qgrid=1.3.1 pyodbc=4.0.30 beautifulsoup4=4.9.3 lxml=4.6.1
 conda install -c conda-forge/label/gcc7 nodejs
-conda install -c conda-forge pandas-profiling pymysql
+conda install -c conda-forge pandas-profiling pymysql elasticsearch
 
 git clone https://github.com/splunk/splunk-sdk-python && cd splunk-sdk-python && python setup.py install && cd .. && rm -rf ./splunk-sdk-python
 
@@ -81,6 +81,20 @@ echo ""
 git clone $CUR_BASE/${CUR_REPO} && cd ${CUR_REPO} && python setup.py install && cd .. && rm -rf ./${CUR_REPO}
 
 CUR_INT="impala"
+CUR_REPO="jupyter_${CUR_INT}"
+echo ""
+echo "$CUR_REPO"
+echo ""
+git clone $CUR_BASE/${CUR_REPO} && cd ${CUR_REPO} && python setup.py install && cd .. && rm -rf ./${CUR_REPO}
+
+CUR_INT="hive"
+CUR_REPO="jupyter_${CUR_INT}"
+echo ""
+echo "$CUR_REPO"
+echo ""
+git clone $CUR_BASE/${CUR_REPO} && cd ${CUR_REPO} && python setup.py install && cd .. && rm -rf ./${CUR_REPO}
+
+CUR_INT="es"
 CUR_REPO="jupyter_${CUR_INT}"
 echo ""
 echo "$CUR_REPO"
@@ -156,6 +170,24 @@ if [ ! -f "${CUR}" ]; then
     echo "Impala = Impala(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
     echo "ipy.register_magics(Impala)" >> $CUR
 fi
+
+CUR="${SU}15_hive_.py"
+if [ ! -f "${CUR}" ]; then
+    echo "Creating $CUR"
+    echo "from hive_core import Hive" > $CUR
+    echo "Hive = Hive(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(Hive)" >> $CUR
+fi
+
+
+CUR="${SU}16_es_.py"
+if [ ! -f "${CUR}" ]; then
+    echo "Creating $CUR"
+    echo "from es_core import Es" > $CUR
+    echo "Es = Es(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(Es)" >> $CUR
+fi
+
 
 CUR="${SU}20_vis_.py"
 if [ ! -f "${CUR}" ]; then
