@@ -108,6 +108,7 @@ class Integration(Magics):
 
         if instance is None:
             instance = self.opts[self.name_str + "_conn_default"][0]
+        instance = instance.strip().replace('"', '')
 
         req_pass = self.req_password(instance)
         req_user = self.req_username(instance)
@@ -276,7 +277,7 @@ class Integration(Magics):
             if self.debug:
                 print("Search inst: %s" % inst)
             myinstance = inst
-            self.connect(instance=myinstance, prompt=bprompt)                
+            self.connect(instance=myinstance, prompt=bprompt)
             bMischiefManaged = True
         elif line.lower().find('set ') == 0:
             self.setvar(line)
