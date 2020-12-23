@@ -124,7 +124,7 @@ class Sharedfunc(Magics):
         scope_cnt = len([i for i in sScope.keys() if sScope[i]])
         if self.debug:
             print("Scope Count: %s" % scope_cnt)
-        for f in ff:
+        for f in ff.keys():
             for s in sScope.keys():
                 if sScope[s]:
                     if s in ['fullname', 'description', 'usage']:
@@ -155,6 +155,8 @@ class Sharedfunc(Magics):
             print("Line: %s" % l)
             print("Cell: %s" % c)
         myScore = self.searchFuncs(l, c)
+        if self.debug:
+            print("Raw myScore: %s" % myScore)
         sortedScore = dict(sorted(myScore.items(), key=lambda item: item[1][1], reverse=True))
         pFull = True
         if len(sortedScore.keys()) > self.max_full_results:
@@ -170,7 +172,7 @@ class Sharedfunc(Magics):
         for f in troot['funcs']:
             n = f['name']
             tn = basename + "." + n
-            tret[tn] = f
+            tret[tn] = {**f}
             tret[tn]['fullname'] = tn
         for c in troot['children'].keys():
             tb = basename + "." + c
