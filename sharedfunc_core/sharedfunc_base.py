@@ -6,6 +6,7 @@ import sys
 import os
 import time
 from collections import OrderedDict
+import requests
 from copy import deepcopy
 import importlib
 
@@ -37,7 +38,8 @@ class Sharedfunc(Magics):
 
     gflat = {}
 
-#    modgitver = "mymod@https://raw.githubusercontent.com/JohnOmernik/sharedmod/main/mymod/_funcdocs.py"
+    ver_check_delta = 86400 # Number of seconds between version checks - 86400 is one day. We only check automatically once per day
+
 
  #   JUPYTER_SHAREDFUNC_URL_MM="mymod@https://raw.githubusercontent.com/JohnOmernik/sharedmod/main/mymod/_funcdocs.py"
 
@@ -48,11 +50,11 @@ class Sharedfunc(Magics):
     # with the base_allowed_set_opts from the integration base
 
     # Option Format: [ Value, Description]
-    # The options for both the base and customer integrations are a little obtuse at first. 
-    # This is because they are designed to be self documenting. 
-    # Each option item is actually a list of two length. 
+    # The options for both the base and customer integrations are a little obtuse at first.
+    # This is because they are designed to be self documenting.
+    # Each option item is actually a list of two length.
     # opt['item'][0] is the actual value if opt['item']
-    # p[t['item'][1] is a description of the option and it's use for built in description. 
+    # p[t['item'][1] is a description of the option and it's use for built in description.
 
     dg = None # The main display grid
 
@@ -94,6 +96,92 @@ class Sharedfunc(Magics):
                     str_err = str(e)
                     load_error += "Module import success - No Defined __version__ or fuctdict: %s\n" % str_err
             self.mods[m]['import_msg'] = load_error
+
+
+  #      print("")
+  #      print("Modules defined for documentation:")
+  #      print("----------------------------------")#
+
+  #      for m in self.mods.keys():
+  #          cmod = self.mods[m]
+  #          print("Module %s requested to be loade as %s" % (cmod['realname'], m))
+  #          print("\tImported: %s" % cmod['imported'])
+  #          print("\tImport Message: %s" % cmod['import_msg'])
+  #          print("\tImport Version: %s" % cmod['import_ver'])
+  #          print("\tgit url: %s" % cmod['url'])
+  #          print("\tgit version: %s" % cmod['url_ver'])
+  #          print("")
+  #          print("")
+
+
+    def check_mod_ver(mod):
+
+
+        user_path = ""
+        sharedmod_cache = "/.ipython/.sharedmod_ver.cache"
+        try:
+            user_path = os.environ['HOME']
+        except:
+            if self.debug:
+                print("No HOME Env Variable")
+        if user_path == "":
+            try:
+                user_path = os.environ['USERPROFILE']
+            except:
+                if self.debug:
+                    print("No HOME or USERPROFILE variables")
+        if user_path == "":
+            user_path = "."
+
+        cache_file = user_path + sharedmod_cache
+
+        if os.path.isfile(cache_file):
+            cache = self.load_cache(cache_file)
+        else:
+            pass
+
+    def seed_cache(self, cache_file):
+        lookup_time = int(time.time())
+        for m in self.mods(keys):
+            cmod = self.mods[m]
+            modname = cmod['realname']
+            url = mod['url']
+            urlver = self.get_mod_url_ver(url)
+
+
+
+    # Needs to check certs someday
+    def get_mod_url_ver(self, url):
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        results = requests.get(url, verify=False)
+        retver = "0.0.0"
+        if results.status_code != 200:
+            print("Error getting mod current version")
+            if debug:
+                print("Status Code: %s" % results.status_code)
+                print("Error: %s" % results.text)
+            retver = "0.0.0"
+        else:
+            try:
+                j = results.json()
+                retver = j['modvers']
+            except:
+                print("Error getting json")
+                retver = "0.0.0"
+        return retver
+
+
+    def load_cache(self, cache_file):
+        r = open(cachefile, "r")
+        rall = r.readall()
+        r.close()
+        mlist = rall.split("\n")
+        mymod,2335424243,version
+        retmods = {}
+        for m in mlist:
+            mdata = m.split(",")
+            retmods[m[0]] = {"lastcheck": m[1], "version": m[2]}
+        return retmods
 
 
     def retScope(self, sIn):

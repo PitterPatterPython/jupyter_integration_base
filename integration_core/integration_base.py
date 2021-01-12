@@ -233,7 +233,7 @@ class Integration(Magics):
 
         bMischiefManaged = False
         # Handle all common line items or return back to the custom integration
-        if line == "":
+        if line == "" or line.lower().find("help") == 0:
             self.displayHelp()
             bMischiefManaged = True
         elif line.lower() == "status":
