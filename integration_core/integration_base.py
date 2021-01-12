@@ -465,6 +465,8 @@ class Integration(Magics):
         print("")
         self.customHelp()
 
+
+    # displayIntegrationHelp is a helperfunction only. Not a class function Consider moving to utlities
     def displayIntegrationHelp(self):
         n = self.name_str
         m = "%" + self.name_str
@@ -489,7 +491,7 @@ class Integration(Magics):
         print("{: <30} {: <80}".format(*[m + " set <instance> %variable% %value%", "Set the variable %variable% to the value %value% - Instance is optional - defaults to conn_default"]))
         print("{: <30} {: <80}".format(*[m + " debug", "Sets an internal debug variable to True (False by default) to see more verbose info about connections"]))
 
-
+    # displayQueryHelp is a helperfunction only. Consider moving this to utilities.
     def displayQueryHelp(self, q_example):
         n = self.name_str
         m = "%" + self.name_str
@@ -528,7 +530,6 @@ class Integration(Magics):
 
         print("Current State of %s Interface:" % self.name_str.capitalize())
         print("")
-        print("{: <30} {: <50}".format(*["Connected:", str(self.connected)]))
         print("{: <30} {: <50}".format(*["Debug Mode:", str(self.debug)]))
 
         print("")
