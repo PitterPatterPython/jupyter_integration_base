@@ -143,40 +143,40 @@ CUR="${SU}11_drill_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from drill_core import Drill" > $CUR
-    echo "Drill = Drill(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Drill)" >> $CUR
+    echo "myDrill = Drill(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(myDrill)" >> $CUR
 fi
 
 CUR="${SU}12_splunk_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from splunk_core import Splunk" > $CUR
-    echo "Splunk = Splunk(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Splunk)" >> $CUR
+    echo "mySplunk = Splunk(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(mySplunk)" >> $CUR
 fi
 
 CUR="${SU}13_mysql_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from mysql_core import Mysql" > $CUR
-    echo "Mysql = Mysql(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Mysql)" >> $CUR
+    echo "myMysql = Mysql(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(myMysql)" >> $CUR
 fi
 
 CUR="${SU}14_impala_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from impala_core import Impala" > $CUR
-    echo "Impala = Impala(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Impala)" >> $CUR
+    echo "myImpala = Impala(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(myImpala)" >> $CUR
 fi
 
 CUR="${SU}15_hive_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from hive_core import Hive" > $CUR
-    echo "Hive = Hive(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Hive)" >> $CUR
+    echo "myHive = Hive(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(myHive)" >> $CUR
 fi
 
 
@@ -184,8 +184,8 @@ CUR="${SU}16_es_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from es_core import Es" > $CUR
-    echo "Es = Es(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
-    echo "ipy.register_magics(Es)" >> $CUR
+    echo "myEs = Es(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
+    echo "ipy.register_magics(myEs)" >> $CUR
 fi
 
 
@@ -193,8 +193,8 @@ CUR="${SU}20_vis_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from visualization_core import Visualization" > $CUR
-    echo "myviz = Visualization(ipy, debug=False)" >> $CUR
-    echo "ipy.register_magics(myviz)" >> $CUR
+    echo "myViz = Visualization(ipy, debug=False)" >> $CUR
+    echo "ipy.register_magics(myViz)" >> $CUR
     echo "" >> $CUR
     echo "import plotly.graph_objects as go" >> $CUR
     echo "import plotly.express as px" >> $CUR
@@ -204,8 +204,8 @@ CUR="${SU}25_profile_.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from profile_core import Profile" > $CUR
-    echo "myprof = Profile(ipy, debug=False)" >> $CUR
-    echo "ipy.register_magics(myprof)" >> $CUR
+    echo "myProf = Profile(ipy, debug=False)" >> $CUR
+    echo "ipy.register_magics(myProf)" >> $CUR
     echo "from pandas_profiling import ProfileReport" >> $CUR
 fi
 

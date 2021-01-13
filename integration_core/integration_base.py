@@ -249,6 +249,22 @@ class Integration(Magics):
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
             self.setPass(line)
+        elif line.lower().find("display") == 0:
+            bMischiefManaged = True
+            varname = line.replace("display", "").strip()
+            mydf = None
+            try:
+                mydf = self.ipy.user_ns[varname]
+                if isinstance(mydf, pd.DataFrame):
+                    pass
+                else:
+                    print("%s exists but is not a Pandas Data frame - Not Displaying" % varname)
+                    mydf = None
+            except:
+                print("%s does not exist in user namespace - Not Displaying" % varname)
+                mydf = None
+            if mydf is not None:
+                self.displayDF(mydf)
         elif line.lower().strip().find("disconnect") == 0:
             myinstance = None
             instcheck = line.lower().strip().replace("disconnect", "").strip()
@@ -482,6 +498,7 @@ class Integration(Magics):
         print("###############################################################################################")
         print("")
         print("{: <30} {: <80}".format(*[m, "This help screen"]))
+        print("{: <30} {: <80}".format(*[m + " display <dataframe>", "Use the current display settings of the %s integration and display the dataframe provided (regardless of source)" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " status", "Print the status of the %s connection and variables used for output" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " instances", "Print the status of the %s instances currently defined" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " setpass <instance>", "Sets the password for the specified instance (or conn_default instance if not defined) - Does not connect"]))
