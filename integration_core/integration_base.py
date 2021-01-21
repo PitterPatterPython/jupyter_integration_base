@@ -18,7 +18,7 @@ import ipywidgets as widgets
 try:
     import qgrid
 except:
-    pass    
+    pass
 
 
 #@magics_class
@@ -30,7 +30,7 @@ class Integration(Magics):
 #    instance['name'] = {"url": "source://user@host:port?option1=1&option2=2", connected: False} 
 
     session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal.  This could also be a cursor
-    
+
     connection = None       # This is a connection object. Separate from a cursor or session it only handles connecting, then the session/cursor stuff is in session. 
     connected = False       # Is the integration connected? This is a simple True/False 
     name_str = ""           # This is the name of the integraton, and will be prepended with % for the magic, used in variables, uppered() for ENV variables etc. 
@@ -40,13 +40,20 @@ class Integration(Magics):
     env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point. If sending in data through a ENV variable this is the prefix
 
 
-    
 
 
-    base_allowed_set_opts = ['qg_header_autofit', 'qg_header_pad', 'qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'default_instance_name', 'pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid', 'pd_display_idx', 'q_replace_a0_20', 'q_remove_cr', 'qg_defaultColumnWidth', 'qg_maxVisibleRows', 'qg_minVisibleRows'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
+    # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
-    pd_set_vars = ['pd_display.max_columns', 'pd_display.max_rows', 'pd_max_colwidth', 'pd_display_grid'] # These are a list of the custom pandas items that update a pandas object
+    base_allowed_set_opts = [
+                              'pd_display_idx', 'pd_max_colwidth', 'pd_display.max_columns', 'pd_display_grid',
+                              'display_max_rows', 'default_instance_name',
+                              'qg_header_autofit', 'qg_header_pad', 'qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'qg_defaultColumnWidth', 'qg_minVisibleRows', 'qg_maxVisibleRows', 'qg_display_idx',
+                              'm_replace_a0_20', 'm_replace_crlf_lf'
+                            ]
 
+
+    # These are a list of the custom pandas items that update a pandas object for html display only
+    pd_set_vars = ['pd_display.max_columns', 'pd_max_colwidth']
 
     # Variables Dictionary
     opts = {}
@@ -56,37 +63,38 @@ class Integration(Magics):
 
 
     # Option Format: [ Value, Description]
-    # The options for both the base and customer integrations are a little obtuse at first. 
-    # This is because they are designed to be self documenting. 
-    # Each option item is actually a list of two length. 
+    # The options for both the base and customer integrations are a little obtuse at first.
+    # This is because they are designed to be self documenting.
+    # Each option item is actually a list of two length.
     # opt['item'][0] is the actual value if opt['item']
-    # p[t['item'][1] is a description of the option and it's use for built in description. 
+    # p[t['item'][1] is a description of the option and it's use for built in description.
 
     # Pandas Variables
-    opts['pd_display_idx'] = [False, "Display the Pandas Index with output"]
-    opts['pd_replace_crlf'] = [True, "Replace extra crlfs in outputs with String representations of CRs and LFs"]
+    opts['pd_display_idx'] = [False, "Display the Pandas Index with html output"]
     opts['pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
-    opts['pd_display.max_rows'] = [10000, 'Number of Max Rows']
-    opts['default_instance_name'] = ['default', "The instance name used as a default"]
     opts['pd_display.max_columns'] = [None, 'Max Columns']
-    opts['pd_display_grid'] = ["html", 'How pandas DF should be displayed']
-    opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
-    opts['qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid']
-    opts['qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid']
+    opts['pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid)']
+
+    opts['display_max_rows'] = [10000, 'Number of Max Rows displayed']
+    opts['default_instance_name'] = ['default', "The instance name used as a default"]
+
+    opts['qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
+    opts['qg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
     opts['qg_colmin'] = [75, 'The minimum size a qgrid column will be']
     opts['qg_colmax'] = [750, 'The maximum size a qgrid column will be']
     opts['qg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
     opts['qg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
-    opts['qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
-    opts['qg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
-    opts['q_replace_a0_20'] = [False, 'If this is set, we will run a replace for hex a0 replace with space (hex 20) on queries - This happens on lines and cells']
-    opts['q_replace_crlf_lf'] = [True, 'If this is set, we replace crlf with lf (convert windows to unix line endings) on queries - This only happens on cells not lines']
+    opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
+    opts['qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid - This affects the height of the widget']
+    opts['qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid - This affects the height of the widget']
+    opts['qg_display_idx'] = [False, "Display the Pandas Index with qgrid output"]
+
+    opts['m_replace_a0_20'] = [False, 'Replace hex(a0) with space (hex(20)) on magic submission - On lines and cells']
+    opts['m_replace_crlf_lf'] = [True, 'Replace crlf with lf (convert windows to unix line endings) on magic submission - Only on cells, not lines']
 
     pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
-    pd.set_option('display.max_rows', opts['pd_display.max_rows'][0])
     pd.set_option('max_colwidth', opts['pd_max_colwidth'][0])
 
-            
 
     # Class Init function - Obtain a reference to the get_ipython()
     # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
@@ -95,7 +103,7 @@ class Integration(Magics):
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
         self.session = None
-        
+
         self.load_env(self.global_evars)
 
 
@@ -228,7 +236,7 @@ class Integration(Magics):
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
-        if self.opts['q_replace_a0_20'][0] == True:
+        if self.opts['m_replace_a0_20'][0] == True:
             line = line.replace("\xa0", " ")
 
         bMischiefManaged = False
@@ -321,11 +329,13 @@ class Integration(Magics):
         mycoldefs = {}
 
         # Determine Index width
-        if self.opts['pd_display_idx'][0] == True:
+        if int(self.opts['qg_display_idx'][0]) == 1:
             mydispidx = True
         else:
             mydispidx = False
             mycoldefs['index'] = { 'maxWidth': 0, 'minWidth': 0, 'width': 0 }
+        if self.debug:
+            print("mydispidx: %s" % mydispidx)
 
         # Handle Column Autofit
         if self.opts['qg_autofit_cols'][0] == True:
@@ -354,18 +364,32 @@ class Integration(Magics):
                     mycoldefs[k] = {'width': mysize}
 
 
+        if self.debug:
+            print("mygridopts: %s" % mygridopts)
+            print("")
+            print("mycoldefs: %s" % mycoldefs)
+
         # Display the QGrid
+
+
+
         display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
 
 
     def htmlDisplay(self, result_df, mycnt):
+
+        # Set PD Values for html display
+        for tkey in self.pd_set_vars:
+            tval = self.opts[tkey][0]
+            pd.set_option(tkey.replace('pd_', ''), tval)
+
         display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
 
 # This can now be more easily extended with different display types
     def displayDF(self, result_df, instance=None, qtime=None):
 
         display_type = self.opts['pd_display_grid'][0]
-        max_display_rows = self.opts['pd_display.max_rows'][0]
+        max_display_rows = self.opts['display_max_rows'][0]
         if result_df is not None:
             mycnt = len(result_df)
         else:
@@ -384,7 +408,7 @@ class Integration(Magics):
         if mycnt == 0:
             pass
         elif mycnt > max_display_rows:
-            print("Number of results (%s) from instance %s greater than pd_display.max_rows(%s)" % (mycnt, instance, max_display_rows))
+            print("Number of results (%s) from instance %s greater than display_max_rows(%s)" % (mycnt, instance, max_display_rows))
         else:
             if display_type == "qgrid":
                 self.qgridDisplay(result_df, mycnt)
@@ -399,9 +423,9 @@ class Integration(Magics):
         if instance is None or instance == "":
             instance = self.opts[self.name_str + "_conn_default"][0]
 
-        if self.opts['q_replace_crlf_lf'][0] == True:
+        if self.opts['m_replace_crlf_lf'][0] == True:
             cell = cell.replace("\r\n", "\n")
-        if self.opts['q_replace_a0_20'][0] == True:
+        if self.opts['m_replace_a0_20'][0] == True:
             cell = cell.replace("\xa0", " ")
         if self.instances[instance]['connected'] == False:
             if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None or self.req_password(instance) == False:
@@ -526,8 +550,8 @@ class Integration(Magics):
         print(q_example)
         print("")
         print("Some query notes:")
-        print("- If the number of results is less than pd_display.max_rows, then the results will be diplayed in your notebook")
-        print("- You can change pd_display.max_rows with %s set pd_display.max_rows 2000" % m)
+        print("- If the number of results is less than display_max_rows, then the results will be diplayed in your notebook")
+        print("- You can change display_max_rows with %s set display_max_rows 2000" % m)
         print("- The results, regardless of being displayed will be placed in a Pandas Dataframe variable called prev_%s_<instance>" % n)
         print("- prev_%s_<instance> is overwritten every time a successful query is run. If you want to save results assign it to a new variable" % n)
         
@@ -554,7 +578,7 @@ class Integration(Magics):
         print("Display Properties:")
         print("-----------------------------------")
         for k, v in self.opts.items():
-            if k.find("pd_") == 0 or k.find("qg_") == 0 or k.find("q_") == 0:
+            if k.find("pd_") == 0 or k.find("qg_") == 0 or k.find("m_") == 0 or k.find("display_") == 0:
                 try:
                     t = int(v[1])
                 except:
@@ -604,16 +628,19 @@ class Integration(Magics):
         if tval == "True":
             tval = True
         if tkey in allowed_opts:
+
             if instance is not None:
+                oldval = self.instances[instance]['options'][tkey]
                 self.instances[instance]['options'][tkey] = tval
-            else:   
-                self.opts[tkey][0] = tval
-                if tkey in self.pd_set_vars:
-                    try:
-                        t = int(tval)
-                    except:
-                        t = tval
-                    pd.set_option(tkey.replace('pd_', ''), t)
+                print("Set Instance Variable %s to %s - Previous Value: %s" % (tkey, tval, oldval))
+            else:
+                oldval = self.opts[tkey][0]
+                try:
+                    t = int(tval)
+                except:
+                    t = tval
+                self.opts[tkey][0] = t
+                print("Set Integration Variable %s to %s - Previous Value: %s" % (tkey, t, oldval))
         else:
             print("You tried to set variable: %s - Not in Allowed options!" % tkey)
 
