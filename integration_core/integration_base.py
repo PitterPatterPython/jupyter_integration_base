@@ -20,6 +20,14 @@ try:
 except:
     pass
 
+# nameing code
+import traceback, threading, time
+# end naming code
+
+class InstanceCreationError(Exception):
+    pass
+
+
 
 #@magics_class
 class Integration(Magics):
@@ -98,13 +106,72 @@ class Integration(Magics):
 
     # Class Init function - Obtain a reference to the get_ipython()
     # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
+
+
+
+
     def __init__(self, shell, debug=False, pd_display_grid="html", *args, **kwargs):
         self.debug = debug
         super(Integration, self).__init__(shell)
         self.ipy = get_ipython()
         self.session = None
-
         self.load_env(self.global_evars)
+
+        # Begin Name Code
+        for frame, line in traceback.walk_stack(None):
+            varnames = frame.f_code.co_varnames
+            if varnames == ():
+                break
+            if frame.f_locals[varnames[0]] not in (self, self.__class__):
+                break
+                # if the frame is inside a method of this instance,
+                # the first argument usually contains either the instance or
+                #  its class
+                # we want to find the first frame, where this is not the case
+        else:
+            raise InstanceCreationError("No suitable outer frame found.")
+        self._outer_frame = frame
+        self.creation_module = frame.f_globals["__name__"]
+        self.creation_file, self.creation_line, self.creation_function, \
+            self.creation_text = \
+            traceback.extract_stack(frame, 1)[0]
+        self.creation_name = self.creation_text.split("=")[0].strip()
+#        super().__init__()
+        threading.Thread(target=self._check_existence_after_creation).start()
+
+    def _check_existence_after_creation(self):
+        while self._outer_frame.f_lineno == self.creation_line:
+            time.sleep(0.01)
+        # this is executed as soon as the line number changes
+        # now we can be sure the instance was actually created
+        error = InstanceCreationError(
+                "\nCreation name not found in creation frame.\ncreation_file: "
+                "%s \ncreation_line: %s \ncreation_text: %s\ncreation_name ("
+                "might be wrong): %s" % (
+                    self.creation_file, self.creation_line, self.creation_text,
+                    self.creation_name))
+        nameparts = self.creation_name.split(".")
+        try:
+            var = self._outer_frame.f_locals[nameparts[0]]
+        except KeyError:
+            raise error
+        finally:
+            del self._outer_frame
+        # make sure we have no permament inter frame reference
+        # which could hinder garbage collection
+        try:
+            for name in nameparts[1:]: var = getattr(var, name)
+        except AttributeError:
+            raise error
+        if var is not self: raise error
+
+    def print_creation_info(self):
+        print(self.creation_name, self.creation_module, self.creation_function,
+                self.creation_line, self.creation_text, sep=", ")
+
+
+#### End Name code
+
 
 
 
@@ -246,6 +313,9 @@ class Integration(Magics):
             bMischiefManaged = True
         elif line.lower() == "status":
             self.retStatus()
+            bMischiefManaged = True
+        elif line.lower() == "progquery":
+            self.displayProgQueryHelp()
             bMischiefManaged = True
         elif line.lower() == "debug":
             print("Toggling Debug from %s to %s" % (self.debug, not self.debug))
@@ -506,6 +576,36 @@ class Integration(Magics):
         self.customHelp()
 
 
+    def displayProgQueryHelp(self):
+
+        n = self.name_str
+        m = "%" + self.name_str
+        mq = "%" + m
+
+        myname = self.creation_name
+
+        print("As an alternative to interactive queries with magic functions, Jupyter Integrations also has the ability to perform programmatic queries after you connect")
+        print("This feature is designed to allow an analyst to connect using the %integration connect magic,and then write python code that can build queries based on results")
+        print("")
+        print("Note: If you want to script the whole operation, you should just be writing a python script at this point and will have to handle secrets")
+        print("")
+        print("Here is normal query:")
+        print("")
+        print("%s default\nselect * from table" % (mq))
+        print("")
+        print("This query is run on the default instace for the %s integration " % n)
+        print("")
+        print("To make this programatic:")
+        print("")
+        print("results_df, query_time, result_str = %s.runQuery('select * from table', 'default')" % myname)
+        print("")
+        print("The results_df variable will have the results in a dataframe. (you can display through %s.displayDF(results_df))" % myname)
+        print("The query_time variable will have the time it took to run the query")
+        print("The result_str variable will have a status of the results, if it starts with Success, it worked, if Failure, (with more info) it did not)")
+        print("")
+
+
+
     # displayIntegrationHelp is a helperfunction only. Not a class function Consider moving to utlities
     def displayIntegrationHelp(self):
         n = self.name_str
@@ -522,6 +622,7 @@ class Integration(Magics):
         print("###############################################################################################")
         print("")
         print("{: <30} {: <80}".format(*[m, "This help screen"]))
+        print("{: <30} {: <80}".format(*[m + " progquery", "Display help on programmetic queries with integrations"]))
         print("{: <30} {: <80}".format(*[m + " display <dataframe>", "Use the current display settings of the %s integration and display the dataframe provided (regardless of source)" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " status", "Print the status of the %s connection and variables used for output" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " instances", "Print the status of the %s instances currently defined" % n.capitalize()]))
