@@ -15,10 +15,6 @@ from IPython.core.display import HTML
 from IPython.display import display_html, display, Javascript, FileLink, FileLinks, Image
 import ipywidgets as widgets
 
-try:
-    import qgrid
-except:
-    pass
 
 # nameing code
 import traceback, threading, time
@@ -53,18 +49,15 @@ class Integration(Magics):
     # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
     base_allowed_set_opts = [
-                              'pd_display_idx', 'pd_max_colwidth', 'pd_display.max_columns', 'pd_display_grid',
-                              'display_max_rows', 'default_instance_name',
-                              'qg_header_autofit', 'qg_header_pad', 'qg_colmin', 'qg_colmax', 'qg_text_factor', 'qg_autofit_cols', 'qg_defaultColumnWidth', 'qg_minVisibleRows', 'qg_maxVisibleRows', 'qg_display_idx',
+                              'default_instance_name',
                               'm_replace_a0_20', 'm_replace_crlf_lf'
                             ]
 
 
-    # These are a list of the custom pandas items that update a pandas object for html display only
-    pd_set_vars = ['pd_display.max_columns', 'pd_max_colwidth']
 
     # Variables Dictionary
     opts = {}
+    req_addons = ['display', 'persist', 'profile', 'sharedfunc', 'vis']
     integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
 
     global_evars = ['proxy_host', 'proxy_user'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
@@ -78,30 +71,12 @@ class Integration(Magics):
     # p[t['item'][1] is a description of the option and it's use for built in description.
 
     # Pandas Variables
-    opts['pd_display_idx'] = [False, "Display the Pandas Index with html output"]
-    opts['pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
-    opts['pd_display.max_columns'] = [None, 'Max Columns']
-    opts['pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid)']
-
-    opts['display_max_rows'] = [10000, 'Number of Max Rows displayed']
     opts['default_instance_name'] = ['default', "The instance name used as a default"]
-
-    opts['qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
-    opts['qg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
-    opts['qg_colmin'] = [75, 'The minimum size a qgrid column will be']
-    opts['qg_colmax'] = [750, 'The maximum size a qgrid column will be']
-    opts['qg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
-    opts['qg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
-    opts['qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
-    opts['qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid - This affects the height of the widget']
-    opts['qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid - This affects the height of the widget']
-    opts['qg_display_idx'] = [False, "Display the Pandas Index with qgrid output"]
+    opts['pd_display_grid'] = ['na', "This is legacy, and needs to be removed once all integrations that reference it stop using it - It is not used"]
 
     opts['m_replace_a0_20'] = [False, 'Replace hex(a0) with space (hex(20)) on magic submission - On lines and cells']
     opts['m_replace_crlf_lf'] = [True, 'Replace crlf with lf (convert windows to unix line endings) on magic submission - Only on cells, not lines']
 
-    pd.set_option('display.max_columns', opts['pd_display.max_columns'][0])
-    pd.set_option('max_colwidth', opts['pd_max_colwidth'][0])
 
 
     # Class Init function - Obtain a reference to the get_ipython()
@@ -109,13 +84,12 @@ class Integration(Magics):
 
 
 
-
-    def __init__(self, shell, debug=False, pd_display_grid="html", *args, **kwargs):
+    def __init__(self, shell, debug=False, *args, **kwargs):
         self.debug = debug
         super(Integration, self).__init__(shell)
-        self.ipy = get_ipython()
-        self.session = None
+        self.ipy = shell
         self.load_env(self.global_evars)
+        self.check_req_addons()
 
         # Begin Name Code
         for frame, line in traceback.walk_stack(None):
@@ -136,8 +110,8 @@ class Integration(Magics):
             self.creation_text = \
             traceback.extract_stack(frame, 1)[0]
         self.creation_name = self.creation_text.split("=")[0].strip()
-#        super().__init__()
         threading.Thread(target=self._check_existence_after_creation).start()
+
 
     def _check_existence_after_creation(self):
         while self._outer_frame.f_lineno == self.creation_line:
@@ -171,6 +145,23 @@ class Integration(Magics):
 
 
 #### End Name code
+
+    def check_req_addons(self):
+        for addon in self.req_addons:
+            chk = addon + "_var"
+            if chk not in self.ipy.user_ns:
+                if self.debug:
+                    print("%s not found in user_ns - Running" % chk)
+                objname = addon.capitalize()
+                corename = addon + "_core"
+                varobjname = "my" + addon
+                runcode = "from %s import %s\n%s = %s(ipy, debug=%s)\nipy.register_magics(%s)\n" % (corename, objname, varobjname, objname, str(self.debug), varobjname)
+                if self.debug:
+                    print(runcode)
+                res = self.ipy.run_cell(runcode)
+            else:
+                if self.debug:
+                    print("%s found in user_ns - Not starting" % chk)
 
 
 
@@ -225,6 +216,8 @@ class Integration(Magics):
                 inst["connected"] = True
                 print("%s - %s Connected!" % (self.name_str.capitalize(), inst['conn_url']))
             else:
+                inst['connect_pass'] = None
+                print("")
                 print("Connection Error - Perhaps Bad Usename/Password?")
 
         elif inst['connected'] == True:
@@ -275,14 +268,12 @@ class Integration(Magics):
 ##### customQuery should be overwriittn by custom integrarion
     def customQuery(self, query, instance):
         return None, 0, "Failure - Not written"
-    
+
 ##### Override this in an actual integration
     def customHelp(self):
         print("This would be custom help for the integration")
 
-
 ################################################################
-
 
 
     def req_password(self, instance):
@@ -327,22 +318,6 @@ class Integration(Magics):
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
             self.setPass(line)
-        elif line.lower().find("display") == 0:
-            bMischiefManaged = True
-            varname = line.replace("display", "").strip()
-            mydf = None
-            try:
-                mydf = self.ipy.user_ns[varname]
-                if isinstance(mydf, pd.DataFrame):
-                    pass
-                else:
-                    print("%s exists but is not a Pandas Data frame - Not Displaying" % varname)
-                    mydf = None
-            except:
-                print("%s does not exist in user namespace - Not Displaying" % varname)
-                mydf = None
-            if mydf is not None:
-                self.displayDF(mydf)
         elif line.lower().strip().find("disconnect") == 0:
             myinstance = None
             instcheck = line.lower().strip().replace("disconnect", "").strip()
@@ -378,120 +353,45 @@ class Integration(Magics):
             bMischiefManaged = True
         else:
             pass
-        return bMischiefManaged 
+        return bMischiefManaged
 
 
-    def qgridDisplay(self, result_df, mycnt):
-
-        # Determine the height of the qgrid (number of Visible Rows)
-        def_max_rows = int(self.opts['qg_maxVisibleRows'][0])
-        def_min_rows = int(self.opts['qg_maxVisibleRows'][0])
-        max_rows = def_max_rows
-        min_rows = def_min_rows
-        if mycnt >= def_max_rows:
-            max_rows = def_max_rows
-            min_rows = def_min_rows
-        elif mycnt + 2 <= def_max_rows:
-            max_rows = def_max_rows
-            min_rows = mycnt + 2
-
-        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['qg_defaultColumnWidth'][0])}
-        mycoldefs = {}
-
-        # Determine Index width
-        if int(self.opts['qg_display_idx'][0]) == 1:
-            mydispidx = True
-        else:
-            mydispidx = False
-            mycoldefs['index'] = { 'maxWidth': 0, 'minWidth': 0, 'width': 0 }
-        if self.debug:
-            print("mydispidx: %s" % mydispidx)
-
-        # Handle Column Autofit
-        if self.opts['qg_autofit_cols'][0] == True:
-            maxColumnLenghts = []
-            for col in range(len(result_df.columns)):
-                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
-            dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
-            text_factor = self.opts['qg_text_factor'][0]
-            colmin = self.opts['qg_colmin'][0]
-            colmax = self.opts['qg_colmax'][0]
-            header_autofit = self.opts['qg_header_autofit'][0]
-            header_pad = self.opts['qg_header_pad'][0]
-            for k in dict_size.keys():
-                if mydispidx or k != "index":
-                    if header_autofit:
-                        col_size = len(str(k)) + int(header_pad)
-                        if dict_size[k] > col_size :
-                            col_size = dict_size[k]
-                    else:
-                        col_size = dict_size[k]
-                    mysize =  text_factor * col_size
-                    if mysize < colmin:
-                         mysize = colmin
-                    if mysize > colmax:
-                        mysize = colmax
-                    mycoldefs[k] = {'width': mysize}
-
-
-        if self.debug:
-            print("mygridopts: %s" % mygridopts)
-            print("")
-            print("mycoldefs: %s" % mycoldefs)
-
-        # Display the QGrid
-
-
-
-        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
-
-
-    def htmlDisplay(self, result_df, mycnt):
-
-        # Set PD Values for html display
-        for tkey in self.pd_set_vars:
-            tval = self.opts[tkey][0]
-            pd.set_option(tkey.replace('pd_', ''), tval)
-
-        display(HTML(result_df.to_html(index=self.opts['pd_display_idx'][0])))
-
-# This can now be more easily extended with different display types
-    def displayDF(self, result_df, instance=None, qtime=None):
-
-        display_type = self.opts['pd_display_grid'][0]
-        max_display_rows = self.opts['display_max_rows'][0]
-        if result_df is not None:
-            mycnt = len(result_df)
-        else:
-            mycnt = 0
-
-        if qtime is not None:
-            print("%s Records from instance %s in Approx %s seconds" % (mycnt, instance, qtime))
-            print("")
-        else:
-            print("%s Records Returned" % (mycnt))
-            print("")
-
-        if self.debug:
-            print("Testing max_colwidth: %s" %  pd.get_option('max_colwidth'))
-
-        if mycnt == 0:
-            pass
-        elif mycnt > max_display_rows:
-            print("Number of results (%s) from instance %s greater than display_max_rows(%s)" % (mycnt, instance, max_display_rows))
-        else:
-            if display_type == "qgrid":
-                self.qgridDisplay(result_df, mycnt)
-            elif display_type == "html":
-                self.htmlDisplay(result_df, mycnt)
-            else:
-                print("%s display type not supported" % display_type)
 
 
 ##### handleCell should NOT need to be overwritten, however, I guess it could be
-    def handleCell(self, cell, instance=None):
-        if instance is None or instance == "":
+    def handleCell(self, cell, line=None):
+        bPersist = False
+        sPersist = ""
+        tPersist = ""
+        instance = ""
+        integration = self.name_str
+        if line is None or line == "":
             instance = self.opts[self.name_str + "_conn_default"][0]
+            bPersist = False
+        else:
+            arline = line.split(" ")
+            if len(arline) == 1:
+                tline = arline[0].strip()
+                if tline.find("p:") == 0:
+                    instance = self.opts[self.name_str + "_conn_default"][0]
+                    bPersist = True
+                    sPersist = tline.replace("p:", "")
+                else:
+                    instance = tline
+                    bPersist = False
+            else:
+                if arline[0].strip().find("p:") == 0:
+                    tPersist = line
+                    instance = self.opts[self.name_str + "_conn_default"][0]
+                else:
+                    instance = arline[0].strip()
+                    tPersist = line.replace(instance, "").strip()
+                if tPersist.find("p:") >= 0:
+                    sPersist = tPersist.replace("p:", "").strip()
+                    bPersist = True
+                else:
+                    print("Unknown line data beyond instance name, ignoring")
+
 
         if self.opts['m_replace_crlf_lf'][0] == True:
             cell = cell.replace("\r\n", "\n")
@@ -512,7 +412,15 @@ class Integration(Magics):
                 print("Validation Error from instance %s" % instance)
             else:
                 self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
-                self.displayDF(result_df, instance, qtime)
+                if bPersist:
+                    if "persist_var" in self.ipy.user_ns:
+                        persisted_id = self.ipy.user_ns[self.ipy.user_ns["persist_var"]].persistData(result_df, notes=sPersist, integration=integration, instance=instance, query=cell, confirm=True)
+                        print("Query Persisted with ID: %s" % persisted_id)
+                    else:
+                        print("persist_var is not found in the ipy user name space, you will need to instantiate the persistance core for this to work")
+                        print("Warning: Your query was NOT persisted")
+                display_var = self.ipy.user_ns['display_var']
+                self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
         else:
             print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
 
@@ -571,7 +479,17 @@ class Integration(Magics):
         return mydf, query_time, status
 ##### displayHelp should only be in base. It allows a global level of customization, and then calls the custom help in each integration that's unique
     def displayHelp(self):
-        print("***** Jupyter Integtations Help System")
+        print("***** Jupyter Integrations Help System")
+        print("")
+        print("Required Addon Status:")
+        print("{: <30} {: <30}".format(*["Addon", "Addon Loaded"]))
+        for addon in self.req_addons:
+            chk = addon + "_var"
+            bFound = False
+            if chk in self.ipy.user_ns:
+                m = '%' + self.ipy.user_ns[self.ipy.user_ns[chk]].magic_name
+                bFound = True
+                print("{: <30} {: <30}".format(*[m, str(bFound)]))
         print("")
         self.customHelp()
 

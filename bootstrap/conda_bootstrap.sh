@@ -37,7 +37,9 @@ echo ""
 
 conda install plotly=4.12.0 pandas=1.1.3 numpy=1.19.1 jupyterlab=2.2.6 ipywidgets=7.5.1 ipython=7.18.1 widgetsnbextension=3.5.1 qgrid=1.3.1 pyodbc=4.0.30 beautifulsoup4=4.9.3 lxml=4.6.1
 conda install -c conda-forge/label/gcc7 nodejs
-conda install -c conda-forge pandas-profiling pymysql elasticsearch
+conda install -c conda-forge pandas-profiling pymysql=0.10.1 elasticsearch
+
+
 
 git clone https://github.com/splunk/splunk-sdk-python && cd splunk-sdk-python && python setup.py install && cd .. && rm -rf ./splunk-sdk-python
 
@@ -132,14 +134,14 @@ fi
 
 SU="$HOME/.ipython/profile_default/startup/"
 
-CUR="${SU}10_ipy_.py"
+CUR="${SU}10_ipy.py"
 
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "ipy = get_ipython()" > ${CUR}
 fi
 
-CUR="${SU}11_drill_.py"
+CUR="${SU}11_drill.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from drill_core import Drill" > $CUR
@@ -147,7 +149,7 @@ if [ ! -f "${CUR}" ]; then
     echo "ipy.register_magics(myDrill)" >> $CUR
 fi
 
-CUR="${SU}12_splunk_.py"
+CUR="${SU}12_splunk.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from splunk_core import Splunk" > $CUR
@@ -155,7 +157,7 @@ if [ ! -f "${CUR}" ]; then
     echo "ipy.register_magics(mySplunk)" >> $CUR
 fi
 
-CUR="${SU}13_mysql_.py"
+CUR="${SU}13_mysql.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from mysql_core import Mysql" > $CUR
@@ -163,7 +165,7 @@ if [ ! -f "${CUR}" ]; then
     echo "ipy.register_magics(myMysql)" >> $CUR
 fi
 
-CUR="${SU}14_impala_.py"
+CUR="${SU}14_impala.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from impala_core import Impala" > $CUR
@@ -171,7 +173,7 @@ if [ ! -f "${CUR}" ]; then
     echo "ipy.register_magics(myImpala)" >> $CUR
 fi
 
-CUR="${SU}15_hive_.py"
+CUR="${SU}15_hive.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from hive_core import Hive" > $CUR
@@ -180,35 +182,13 @@ if [ ! -f "${CUR}" ]; then
 fi
 
 
-CUR="${SU}16_es_.py"
+CUR="${SU}16_es.py"
 if [ ! -f "${CUR}" ]; then
     echo "Creating $CUR"
     echo "from es_core import Es" > $CUR
     echo "myEs = Es(ipy, debug=False, pd_display_grid='qgrid')" >> $CUR
     echo "ipy.register_magics(myEs)" >> $CUR
 fi
-
-
-CUR="${SU}20_vis_.py"
-if [ ! -f "${CUR}" ]; then
-    echo "Creating $CUR"
-    echo "from visualization_core import Visualization" > $CUR
-    echo "myViz = Visualization(ipy, debug=False)" >> $CUR
-    echo "ipy.register_magics(myViz)" >> $CUR
-    echo "" >> $CUR
-    echo "import plotly.graph_objects as go" >> $CUR
-    echo "import plotly.express as px" >> $CUR
-fi
-
-CUR="${SU}25_profile_.py"
-if [ ! -f "${CUR}" ]; then
-    echo "Creating $CUR"
-    echo "from profile_core import Profile" > $CUR
-    echo "myProf = Profile(ipy, debug=False)" >> $CUR
-    echo "ipy.register_magics(myProf)" >> $CUR
-    echo "from pandas_profiling import ProfileReport" >> $CUR
-fi
-
 
 
 echo ""
@@ -225,8 +205,10 @@ source activate $JUPENV
 # We try to load a file at $HOME/.jupyter_integration_data_sources
 # This is a shell script just like this one, but allows for a shared list of data sources 
 
-. $HOME/.jupyter_integration_data_sources
+export JUPYTER_DISPLAY_PD_DISPLAY_GRID="qgrid"
 
+
+. $HOME/.jupyter_integration_data_sources
 # Example Drill
 # The Instance name is embed
 # And we set the Drill integration default to be embded

@@ -5,16 +5,17 @@ import json
 import sys
 import os
 import time
-import pandas as pd
-from copy import deepcopy
+import asyncio
+from pathlib import Path
+from collections import OrderedDict
 import requests
-
-# Plotly
-try:
-    import plotly.graph_objects as go
-    import plotly.express as px
-except:
-    print("Could not import plotly go or px")
+from copy import deepcopy
+from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
+from IPython.core.display import HTML
+from IPython.display import display_html, display, Javascript, FileLink, FileLinks, Image
+import pandas as pd
+# Widgets
+from ipywidgets import GridspecLayout, widgets
 
 # Requests and BeutifulSoup
 try:
@@ -28,42 +29,40 @@ try:
 except:
     print("Could not import pickle")
 
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+except:
+    print("Error loading plotly")
 
-from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
-from IPython.core.display import HTML
-from IPython.display import display_html, display, Javascript, FileLink, FileLinks, Image
-
-# Widgets
-from ipywidgets import GridspecLayout, widgets
-
+from addon_core import Addon
 
 @magics_class
-class Visualization(Magics):
+class Vis(Addon):
     # Static Variables
+
+    magic_name = "vis"
+    name_str = "vis"
+
     ourdf = None            # The df we are working with
-    ipy = None              # IPython variable for updating and interacting with the User's notebook
-    debug = False           # Enable debug mode
     all_charts = None       # Chart doc data
     show = False            # Should we write output
-    base_allowed_set_opts = ['vis_search_prefix'] # These are the variables we allow users to set no matter the inegration (we should allow this to be a customization)
 
-    # Variables Dictionary
-    opts = {}
+    custom_evars = []
 
+    input_watch_running = False
 
-    # Option Format: [ Value, Description]
-    # The options for both the base and customer integrations are a little obtuse at first. 
-    # This is because they are designed to be self documenting. 
-    # Each option item is actually a list of two length. 
-    # opt['item'][0] is the actual value if opt['item']
-    # p[t['item'][1] is a description of the option and it's use for built in description. 
+    last_chart_code = ""
 
-    opts['vis_search_prefix'] = ["prev_", "The Variable prefix to look for when showing availble dataframes"]
-    opts['plotly_doc_cache_enabled'] = [True, "Use a cache file for plotly"]
-    opts['plotly_doc_cache_file'] = ["/.ipython/.plotly_doc.pkl", "A cache file to speed up lookups - TEMP"]
-    opts['plotly_custom_exclude_list'] = ["", "A list of fields that show up in plotly functions that you may want to exclude in the vis widgets - Comma sep values here, no spaces"] 
+    custom_allowed_set_opts = ['vis_search_prefix']
 
-    dg = None # The main display grid
+    myopts = {}
+    myopts['vis_search_prefix'] = ["prev_", "The Variable prefix to look for when showing availble dataframes"]
+    myopts['vis_plotly_doc_cache_enabled'] = [True, "Use a cache file for plotly"]
+    myopts['vis_addon_dir'] = ['~/.ipython/integrations/' + name_str, "Directory for Visualization caching/configs"]
+    myopts['vis_plotly_doc_cache_file'] = ["plotly_doc.pkl", "A cache file to speed up lookups - TEMP"]
+    myopts['vis_plotly_custom_exclude_list'] = [[], "A list of fields that show up in plotly functions that you may want to exclude in the vis widgets - Comma sep values here, no spaces"] 
+
     avail_dfs = []
     height = ""
     width = ""
@@ -121,56 +120,60 @@ class Visualization(Magics):
     drp_charts = None
 
 
+
+
+
     # Class Init function - Obtain a reference to the get_ipython()
-    # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
-    def __init__(self, shell, debug=False, width="1500px", height="750px", refresh_plotly_docs=False, plotly_custom_exclude_list="", *args, **kwargs):
+    # We get the self ipy, we set session to None, and we load base_integration level environ variables.
+    def __init__(self, shell, debug=False, width="1500px", height="750px", *args, **kwargs):
+        super(Vis, self).__init__(shell, debug=debug)
         self.debug = debug
         self.width = width
         self.height = height
-        super(Visualization, self).__init__(shell)
-        self.ipy = get_ipython()
+
+
+        #Add local variables to opts dict
+        for k in self.myopts.keys():
+            self.opts[k] = self.myopts[k]
+        self.load_env(self.custom_evars)
+        shell.user_ns['vis_var'] = self.creation_name
+        # Run the Plotly code in the user_ns
+        runcode = "try:\n    import plotly.graph_objects as go\n    import plotly.express as px\nexcept:\n    pass\n"
+        shell.ex(runcode)
+
         try:
             a = type(pickle)
         except:
             print("Pickle not installed, caching won't work")
-        self.all_charts = self.get_charts(refresh_plotly_docs)
 
-        if plotly_custom_exclude_list != "":
-            try:
-                arex = plotly_custom_exclude_list.split(",")
-                for e in arex:
-                    self.opts['plotly_custom_exclude_list'][0].append(e)
-            except:
-                print("load of exclude list failed")
+
+        self.all_charts = self.get_charts()
 
         try:
             a = type(px)
         except:
-            print("Plotly, and plotly express doesn't seem to be installed - This will cause problems for a plotly based vis helper")
+            print("Plotly, and plotly express doesn't seem to be installed - This will cause problems for a plotly based visualization helper")
         try:
             a = type(BeautifulSoup)
         except:
            print("You need BeautifulSoup - make sure this is installed")
 
-    
 
 
-    @line_magic
-    def vis(self, line=None):
+
+    def showVisWidget(self, line):
         if self.bDisplayed == False:
             self.instantiate_objects()
             self.fill_widgets()
             self.layout_grid()
             self.bDisplayed = True
-        
         self.refresh_avail_dfs()
 
-        if self.debug:
-            print("Running line magic: value: %s" % line)
-        if line.strip() == "" :
+        if line == "" :
             pass
         else:
-            self.avail_dfs.append(line.strip())
+            if line.strip() != "vis":
+                self.avail_dfs.append(line)
 
         self.sel_df.options = self.avail_dfs
         self.show = True
@@ -178,7 +181,86 @@ class Visualization(Magics):
         self.set_vis("line")
         self.update_columns(self.sel_df.value)
         self.show = True
+#        if self.debug:
+#            print("Starting watch before async submission")
+#        if self.input_watch_running == False:
+#            asyncio.create_task(self.check_and_set_next_chart_input("nextinput"), name="nextinput")
+#            self.input_watch_running = True
+#        else:
+#            print("Can't start next input watcher due to it already running")
         display(self.dg)
+
+#    async def check_and_set_next_chart_input(self, taskname):
+#        if self.debug:
+#            print("In Watch thread - started")
+#        myvar = 0
+#        sleeptime = 1
+#        while True:
+#            myvar += sleeptime
+#            if self.debug:
+#                print("Loop: %s" % myvar)
+
+#            if self.last_chart_code != "":
+#                for task in asyncio.all_tasks():
+#                    if task.get_name() == taskname:
+#                        mytask = task
+#                        break
+#                mytask.cancel()
+#                self.ipy.set_next_input(self.last_chart_code)
+#                self.last_chart_code = ""
+#                self.input_watch_running = False
+
+ #           await asyncio.sleep(sleeptime)
+
+#        if self.debug:
+#            print("We are done now: %s" % self.last_chart_code)
+
+
+    # This is the magic name.
+    @line_cell_magic
+    def vis(self, line, cell=None):
+        if self.debug:
+           print("line: %s" % line)
+           print("cell: %s" % cell)
+        #line = line.replace("\r", "")
+        if cell is None:
+            if line is None or line.strip() == "":
+                line = "vis"
+            line_handled = self.handleLine(line)
+            if not line_handled: # We based on this we can do custom things for integrations. 
+                if line.lower().find("vis") == 0:
+                    newline = line.replace("vis ", "").strip()
+                    self.showVisWidget(newline)
+                elif line.strip().split(" ")[0] in self.ipy.user_ns:
+                    self.vis("vis " + line.strip())
+                else:
+                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
+        else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
+            print("No Cell Magic for %s" % self.name_str)
+
+    def customStatus(self):
+        # Todo put in information about the persisted information
+        print("Vis Addon Subsystem: Installed")
+
+
+# Display Help can be customized
+    def customHelp(self):
+        n = self.name_str
+        m = "%" + self.name_str
+        mq = "%" + m
+
+        curoutput = self.displayAddonHelp()
+        curoutput += "\n"
+        curoutput += "Visulaization Helper Functions\n"
+        curoutput += "\n"
+        curoutput += "This addon helps to facilitate Visualizations within your Jupyter Notebooks"
+        curoutput += "\n"
+        curoutput += "{: <35} {: <80}\n".format(*[m, "Bring up Visualization Widget for all dataframes that start with " + self.opts['vis_search_prefix'][0] ])
+        curoutput += "{: <35} {: <80}\n".format(*[m + " <yourdf>", "Bring up Visualization Widget, but add in your custom dataframe yourdf"])
+        curoutput += "\n"
+
+        return curoutput
+
 
     def layout_grid(self):
         if self.debug:
@@ -226,7 +308,6 @@ class Visualization(Magics):
         if change['name'] == 'value':
             self.inc_indexes = change['new']
             self.update_columns(self.sel_df.value)
-        
 
     def fill_widgets(self):
         if self.debug:
@@ -248,6 +329,7 @@ class Visualization(Magics):
 
     def clear_assigned(self, b):
         self.sel_assigned.options = []
+
     def add_mapping(self, b):
         mycol = ""
         myfield = ""
@@ -309,7 +391,7 @@ class Visualization(Magics):
         self.lbl_chartw = widgets.Label(value="Chart Width:")
         self.txt_charth = widgets.Text(value="750")
         self.txt_chartw = widgets.Text(value="2000")
-       
+
         self.lbl_break = widgets.Label(value="---------------------------------------------------------------------------------")
 
         self.sel_df = widgets.Select(options=[], description='Data Frame:', disabled=False)
@@ -326,10 +408,10 @@ class Visualization(Magics):
         out = ""
         mychart = self.drp_charts.value
         out = "px.%s(" % mychart
-    
+
         out += self.sel_df.value + ', title="%s", ' % self.txt_title.value
         out += "width=%s, height=%s, " % (self.txt_chartw.value, self.txt_charth.value)
- 
+
         assigned = deepcopy(list(self.sel_assigned.options))
 
         chk_dict = {}
@@ -355,19 +437,26 @@ class Visualization(Magics):
                     else:
                         out += self.sel_df.value + "[" + i + "], "
                 out = out[0:-2] + "], "
-    
+
     #    for a in assigned:
     #        out+= a + ", "
         out = out[0:-2] + ")"
+        my_chart_code = "fig = " + out + "\nfig.show()"
         if self.show:
             try:
                 self.out_graph.clear_output()
                 with self.out_graph:
-                    print("fig = " + out + "\nfig.show()")
+                    print(my_chart_code)
             except:
                 print("Out graph error")
+        self.last_chart_code = my_chart_code
+
+
+
     # I wish this worked
-    #ipy.set_next_input("fig = " + out + "\nfig.show()") # Doesn't work until the NEXT cell is run. 
+    # Maybe threading to check for a value?
+    #     self.ipy.set_next_input("fig = " + out + "\nfig.show()") # Doesn't work until the NEXT cell is run. 
+
 
 
     def update_chart_ops(self, change):
@@ -382,10 +471,10 @@ class Visualization(Magics):
     def set_vis(self, chart_type):
         if self.show:
             cfields = self.get_fields(chart_type)
-            self.sel_fields.options = cfields            
+            self.sel_fields.options = cfields
             try:
                 self.out_url.clear_output()
-                with self.out_url:  
+                with self.out_url:
                     print("%s - %s" %(self.all_charts[chart_type]['name'], self.all_charts[chart_type]['url']))
             except:
                 print("URL Print error")
@@ -442,17 +531,15 @@ class Visualization(Magics):
             if self.show:
                 with self.out_graph:
                     print("Error changing to %s" % df_name)
-            
+
     def df_change(self, change):
         if change['name'] == 'value':
             new_df = change['new']
             self.update_columns(new_df)
 
-
-
     def get_fields(self, chart):
         exclude_list = ['title', 'width', 'height', 'data_frame']
-        for e in self.opts['plotly_custom_exclude_list'][0]:
+        for e in self.opts['vis_plotly_custom_exclude_list'][0]:
             exclude_list.append(e)
 
         func = self.all_charts[chart]['func']
@@ -463,31 +550,26 @@ class Visualization(Magics):
 
         return arfiltered
 
-
-
-
-
-
     def get_charts(self, refresh_charts=False):
 
-        user_path = ""
-        try:
-            user_path = os.environ['HOME']
-        except:
+        tstorloc = self.opts['vis_addon_dir'][0]
+        if tstorloc[0] == "~":
+            myhome = self.getHome()
+            thome = tstorloc.replace("~", myhome)
             if self.debug:
-                print("No HOME Env Variable")
-        if user_path == "":
-            try:
-                user_path = os.environ['USERPROFILE']
-            except:
-                if self.debug:
-                    print("No HOME or USERPROFILE variables")
-        if user_path == "":
-            user_path = "."
+                print(thome)
+            tpdir = Path(thome)
+        else:
+            tpdir = Path(tstorloc)
+        if self.debug:
+            print(tpdir)
+        self.vis_dir = tpdir
 
-       
-        use_cache = self.opts['plotly_doc_cache_enabled'][0]
-        cache_file = user_path + self.opts['plotly_doc_cache_file'][0]
+        if not os.path.isdir(self.vis_dir):
+            os.makedirs(self.vis_dir)
+        cache_file = self.vis_dir / self.opts['vis_plotly_doc_cache_file'][0]
+        use_cache = self.opts['vis_plotly_doc_cache_enabled'][0]
+
         chart_dict = None
         get_docs = False
         if use_cache:
@@ -507,7 +589,7 @@ class Visualization(Magics):
         if refresh_charts == True:
             get_docs = True
 
-        if get_docs == True:        
+        if get_docs == True:
             if self.debug:
                 print("Getting plotly docs from online")
             base_url = "https://plotly.com/python-api-reference/"
@@ -553,22 +635,6 @@ class Visualization(Magics):
         return chart_dict
 
 
-##### setvar should only exist in the base_integration
-    def setvar(self, line):
-
-        allowed_opts = self.base_allowed_set_opts
-
-        tline = line.replace('set ', '')
-        tkey = tline.split(' ')[0] # Keys can't have spaces, values can
-        tval = tline.replace(tkey + " ", "")
-        if tval == "False":
-            tval = False
-        if tval == "True":
-            tval = True
-        if tkey in allowed_opts:
-            self.opts[tkey][0] = tval
-        else:
-            print("You tried to set variable: %s - Not in Allowed options!" % tkey)
 
     def ret_static_charts(self):
         scharts = """{'scatter': {'name': 'plotly.express.scatter', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter.html', 'func': "plotly.express.scatter(data_frame=None, x=None, y=None, color=None, symbol=None, size=None, hover_name=None, hover_data=None, custom_data=None, text=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, error_x=None, error_x_minus=None, error_y=None, error_y_minus=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, orientation=None, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, symbol_sequence=None, symbol_map={}, opacity=None, size_max=None, marginal_x=None, marginal_y=None, trendline=None, trendline_color_override=None, log_x=False, log_y=False, range_x=None, range_y=None, render_mode='auto', title=None, template=None, width=None, height=None)"}, 'scatter_3d': {'name': 'plotly.express.scatter_3d', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_3d.html', 'func': 'plotly.express.scatter_3d(data_frame=None, x=None, y=None, z=None, color=None, symbol=None, size=None, text=None, hover_name=None, hover_data=None, custom_data=None, error_x=None, error_x_minus=None, error_y=None, error_y_minus=None, error_z=None, error_z_minus=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, size_max=None, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, symbol_sequence=None, symbol_map={}, opacity=None, log_x=False, log_y=False, log_z=False, range_x=None, range_y=None, range_z=None, title=None, template=None, width=None, height=None)'}, 'scatter_polar': {'name': 'plotly.express.scatter_polar', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_polar.html', 'func': "plotly.express.scatter_polar(data_frame=None, r=None, theta=None, color=None, symbol=None, size=None, hover_name=None, hover_data=None, custom_data=None, text=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, symbol_sequence=None, symbol_map={}, opacity=None, direction='clockwise', start_angle=90, size_max=None, range_r=None, range_theta=None, log_r=False, render_mode='auto', title=None, template=None, width=None, height=None)"}, 'scatter_ternary': {'name': 'plotly.express.scatter_ternary', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_ternary.html', 'func': 'plotly.express.scatter_ternary(data_frame=None, a=None, b=None, c=None, color=None, symbol=None, size=None, text=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, symbol_sequence=None, symbol_map={}, opacity=None, size_max=None, title=None, template=None, width=None, height=None)'}, 'scatter_mapbox': {'name': 'plotly.express.scatter_mapbox', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_mapbox.html', 'func': 'plotly.express.scatter_mapbox(data_frame=None, lat=None, lon=None, color=None, text=None, hover_name=None, hover_data=None, custom_data=None, size=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, size_max=None, zoom=8, center=None, mapbox_style=None, title=None, template=None, width=None, height=None)'}, 'scatter_geo': {'name': 'plotly.express.scatter_geo', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_geo.html', 'func': 'plotly.express.scatter_geo(data_frame=None, lat=None, lon=None, locations=None, locationmode=None, color=None, text=None, hover_name=None, hover_data=None, custom_data=None, size=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, size_max=None, projection=None, scope=None, center=None, title=None, template=None, width=None, height=None)'}, 'line': {'name': 'plotly.express.line', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line.html', 'func': "plotly.express.line(data_frame=None, x=None, y=None, line_group=None, color=None, line_dash=None, hover_name=None, hover_data=None, custom_data=None, text=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, error_x=None, error_x_minus=None, error_y=None, error_y_minus=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, orientation=None, color_discrete_sequence=None, color_discrete_map={}, line_dash_sequence=None, line_dash_map={}, log_x=False, log_y=False, range_x=None, range_y=None, line_shape=None, render_mode='auto', title=None, template=None, width=None, height=None)"}, 'line_3d': {'name': 'plotly.express.line_3d', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line_3d.html', 'func': 'plotly.express.line_3d(data_frame=None, x=None, y=None, z=None, color=None, line_dash=None, text=None, line_group=None, hover_name=None, hover_data=None, custom_data=None, error_x=None, error_x_minus=None, error_y=None, error_y_minus=None, error_z=None, error_z_minus=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, line_dash_sequence=None, line_dash_map={}, log_x=False, log_y=False, log_z=False, range_x=None, range_y=None, range_z=None, title=None, template=None, width=None, height=None)'}, 'line_polar': {'name': 'plotly.express.line_polar', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line_polar.html', 'func': "plotly.express.line_polar(data_frame=None, r=None, theta=None, color=None, line_dash=None, hover_name=None, hover_data=None, custom_data=None, line_group=None, text=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, line_dash_sequence=None, line_dash_map={}, direction='clockwise', start_angle=90, line_close=False, line_shape=None, render_mode='auto', range_r=None, range_theta=None, log_r=False, title=None, template=None, width=None, height=None)"}, 'line_ternary': {'name': 'plotly.express.line_ternary', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line_ternary.html', 'func': 'plotly.express.line_ternary(data_frame=None, a=None, b=None, c=None, color=None, line_dash=None, line_group=None, hover_name=None, hover_data=None, custom_data=None, text=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, line_dash_sequence=None, line_dash_map={}, line_shape=None, title=None, template=None, width=None, height=None)'}, 'line_mapbox': {'name': 'plotly.express.line_mapbox', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line_mapbox.html', 'func': 'plotly.express.line_mapbox(data_frame=None, lat=None, lon=None, color=None, text=None, hover_name=None, hover_data=None, custom_data=None, line_group=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, zoom=8, center=None, mapbox_style=None, title=None, template=None, width=None, height=None)'}, 'line_geo': {'name': 'plotly.express.line_geo', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.line_geo.html', 'func': 'plotly.express.line_geo(data_frame=None, lat=None, lon=None, locations=None, locationmode=None, color=None, line_dash=None, text=None, hover_name=None, hover_data=None, custom_data=None, line_group=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, line_dash_sequence=None, line_dash_map={}, projection=None, scope=None, center=None, title=None, template=None, width=None, height=None)'}, 'area': {'name': 'plotly.express.area', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.area.html', 'func': 'plotly.express.area(data_frame=None, x=None, y=None, line_group=None, color=None, hover_name=None, hover_data=None, custom_data=None, text=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, orientation=None, groupnorm=None, log_x=False, log_y=False, range_x=None, range_y=None, line_shape=None, title=None, template=None, width=None, height=None)'}, 'bar': {'name': 'plotly.express.bar', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.bar.html', 'func': "plotly.express.bar(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, text=None, base=None, error_x=None, error_x_minus=None, error_y=None, error_y_minus=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, orientation=None, barmode='relative', log_x=False, log_y=False, range_x=None, range_y=None, title=None, template=None, width=None, height=None)"}, 'timeline': {'name': 'plotly.express.timeline', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.timeline.html', 'func': 'plotly.express.timeline(data_frame=None, x_start=None, x_end=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, text=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, range_x=None, range_y=None, title=None, template=None, width=None, height=None)'}, 'bar_polar': {'name': 'plotly.express.bar_polar', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.bar_polar.html', 'func': "plotly.express.bar_polar(data_frame=None, r=None, theta=None, color=None, hover_name=None, hover_data=None, custom_data=None, base=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, barnorm=None, barmode='relative', direction='clockwise', start_angle=90, range_r=None, range_theta=None, log_r=False, title=None, template=None, width=None, height=None)"}, 'violin': {'name': 'plotly.express.violin', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.violin.html', 'func': 'plotly.express.violin(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, orientation=None, violinmode=None, log_x=False, log_y=False, range_x=None, range_y=None, points=None, box=False, title=None, template=None, width=None, height=None)'}, 'box': {'name': 'plotly.express.box', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.box.html', 'func': 'plotly.express.box(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, orientation=None, boxmode=None, log_x=False, log_y=False, range_x=None, range_y=None, points=None, notched=False, title=None, template=None, width=None, height=None)'}, 'strip': {'name': 'plotly.express.strip', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.strip.html', 'func': 'plotly.express.strip(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, orientation=None, stripmode=None, log_x=False, log_y=False, range_x=None, range_y=None, title=None, template=None, width=None, height=None)'}, 'histogram': {'name': 'plotly.express.histogram', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.histogram.html', 'func': "plotly.express.histogram(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, marginal=None, opacity=None, orientation=None, barmode='relative', barnorm=None, histnorm=None, log_x=False, log_y=False, range_x=None, range_y=None, histfunc=None, cumulative=None, nbins=None, title=None, template=None, width=None, height=None)"}, 'pie': {'name': 'plotly.express.pie', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.pie.html', 'func': 'plotly.express.pie(data_frame=None, names=None, values=None, color=None, color_discrete_sequence=None, color_discrete_map={}, hover_name=None, hover_data=None, custom_data=None, labels={}, title=None, template=None, width=None, height=None, opacity=None, hole=None)'}, 'treemap': {'name': 'plotly.express.treemap', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.treemap.html', 'func': 'plotly.express.treemap(data_frame=None, names=None, values=None, parents=None, ids=None, path=None, color=None, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, color_discrete_sequence=None, color_discrete_map={}, hover_name=None, hover_data=None, custom_data=None, labels={}, title=None, template=None, width=None, height=None, branchvalues=None, maxdepth=None)'}, 'sunburst': {'name': 'plotly.express.sunburst', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.sunburst.html', 'func': 'plotly.express.sunburst(data_frame=None, names=None, values=None, parents=None, path=None, ids=None, color=None, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, color_discrete_sequence=None, color_discrete_map={}, hover_name=None, hover_data=None, custom_data=None, labels={}, title=None, template=None, width=None, height=None, branchvalues=None, maxdepth=None)'}, 'funnel': {'name': 'plotly.express.funnel', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.funnel.html', 'func': 'plotly.express.funnel(data_frame=None, x=None, y=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, custom_data=None, text=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, opacity=None, orientation=None, log_x=False, log_y=False, range_x=None, range_y=None, title=None, template=None, width=None, height=None)'}, 'funnel_area': {'name': 'plotly.express.funnel_area', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.funnel_area.html', 'func': 'plotly.express.funnel_area(data_frame=None, names=None, values=None, color=None, color_discrete_sequence=None, color_discrete_map={}, hover_name=None, hover_data=None, custom_data=None, labels={}, title=None, template=None, width=None, height=None, opacity=None)'}, 'scatter_matrix': {'name': 'plotly.express.scatter_matrix', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.scatter_matrix.html', 'func': 'plotly.express.scatter_matrix(data_frame=None, dimensions=None, color=None, symbol=None, size=None, hover_name=None, hover_data=None, custom_data=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, symbol_sequence=None, symbol_map={}, opacity=None, size_max=None, title=None, template=None, width=None, height=None)'}, 'parallel_coordinates': {'name': 'plotly.express.parallel_coordinates', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.parallel_coordinates.html', 'func': 'plotly.express.parallel_coordinates(data_frame=None, dimensions=None, color=None, labels={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, title=None, template=None, width=None, height=None)'}, 'parallel_categories': {'name': 'plotly.express.parallel_categories', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.parallel_categories.html', 'func': 'plotly.express.parallel_categories(data_frame=None, dimensions=None, color=None, labels={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, title=None, template=None, width=None, height=None, dimensions_max_cardinality=50)'}, 'choropleth': {'name': 'plotly.express.choropleth', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.choropleth.html', 'func': 'plotly.express.choropleth(data_frame=None, lat=None, lon=None, locations=None, locationmode=None, geojson=None, featureidkey=None, color=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, projection=None, scope=None, center=None, title=None, template=None, width=None, height=None)'}, 'choropleth_mapbox': {'name': 'plotly.express.choropleth_mapbox', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.choropleth_mapbox.html', 'func': 'plotly.express.choropleth_mapbox(data_frame=None, geojson=None, featureidkey=None, locations=None, color=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_discrete_sequence=None, color_discrete_map={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, zoom=8, center=None, mapbox_style=None, title=None, template=None, width=None, height=None)'}, 'density_contour': {'name': 'plotly.express.density_contour', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.density_contour.html', 'func': 'plotly.express.density_contour(data_frame=None, x=None, y=None, z=None, color=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, orientation=None, color_discrete_sequence=None, color_discrete_map={}, marginal_x=None, marginal_y=None, trendline=None, trendline_color_override=None, log_x=False, log_y=False, range_x=None, range_y=None, histfunc=None, histnorm=None, nbinsx=None, nbinsy=None, title=None, template=None, width=None, height=None)'}, 'density_heatmap': {'name': 'plotly.express.density_heatmap', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.density_heatmap.html', 'func': 'plotly.express.density_heatmap(data_frame=None, x=None, y=None, z=None, facet_row=None, facet_col=None, facet_col_wrap=0, facet_row_spacing=None, facet_col_spacing=None, hover_name=None, hover_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, orientation=None, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, marginal_x=None, marginal_y=None, opacity=None, log_x=False, log_y=False, range_x=None, range_y=None, histfunc=None, histnorm=None, nbinsx=None, nbinsy=None, title=None, template=None, width=None, height=None)'}, 'density_mapbox': {'name': 'plotly.express.density_mapbox', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.density_mapbox.html', 'func': 'plotly.express.density_mapbox(data_frame=None, lat=None, lon=None, z=None, hover_name=None, hover_data=None, custom_data=None, animation_frame=None, animation_group=None, category_orders={}, labels={}, color_continuous_scale=None, range_color=None, color_continuous_midpoint=None, opacity=None, zoom=8, center=None, mapbox_style=None, radius=None, title=None, template=None, width=None, height=None)'}, 'imshow': {'name': 'plotly.express.imshow', 'url': 'https://plotly.com/python-api-reference/generated/plotly.express.imshow.html', 'func': 'plotly.express.imshow(img, zmin=None, zmax=None, origin=None, labels={}, x=None, y=None, color_continuous_scale=None, color_continuous_midpoint=None, range_color=None, title=None, template=None, width=None, height=None, aspect=None)'}}"""

@@ -1,2 +1,0 @@
-from visualization_core.visualization_base import Visualization
-from visualization_core._version import __version__
