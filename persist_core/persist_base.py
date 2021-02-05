@@ -11,6 +11,7 @@ from collections import OrderedDict
 import requests
 from copy import deepcopy
 import importlib
+import hashlib
 import pickle
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.display import HTML
@@ -93,6 +94,14 @@ class Persist(Addon):
 
 
 
+    def getPersistDictMD5(self):
+        myfile = self.persist_dict_pkl
+        fh = open(myfile, 'rb')
+        myhash = hashlib.md5(fh.read()).hexdigest()
+        fh.close()
+        return myhash
+
+
     def checkDirs(self):
         if not os.path.isdir(self.persist_dir):
             os.makedirs(self.persist_dir)
@@ -130,6 +139,7 @@ class Persist(Addon):
 
     def savePersisted(self):
         f = open(self.persist_dict_pkl, 'wb')
+        # TODO Handle Merges
         pickle.dump(self.persist_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
         f.close()
 
@@ -187,6 +197,7 @@ class Persist(Addon):
         self.checkDirs()
 
         if os.path.isfile(self.persist_dict_pkl):
+            self.persist_dict_md5 = self.getPersistDictMD5()
             r = open(self.persist_dict_pkl, 'rb')
             self.persist_dict = pickle.load(r)
             r.close()
@@ -297,6 +308,7 @@ class Persist(Addon):
                   # {"a88167960e644cceb6dfd1531ef2cde0": {"qtime": 1611754956, "pkl_size": 13321, "integration": "Splunk", "instance": "testing", "query": "search myterm='ff', 'notes':'some notes'} # file name is a88167960e644cceb6dfd1531ef2cde>
                 mysize = self.saveData(id, thedata)
                 myrec = {"qtime": savetime, "pkl_size": mysize, "integration": integration, "instance": instance, "query": query, "notes": notes}
+                self.loadPersistedDict()
                 self.persist_dict[id] = myrec
                 self.savePersisted()
                 return id
@@ -336,6 +348,7 @@ class Persist(Addon):
         curoutput = self.displayAddonHelp()
         curoutput += "\n"
         curoutput += "Control Functions\n"
+        curoutput += "{: <35} {: <80}\n".format(*[m + " refreshø", "Refresh the currently persisted data list"])
         curoutput += "{: <35} {: <80}\n".format(*[m + " list", "List the currently persisted data"])
         curoutput += "{: <35} {: <80}\n".format(*[m + " delete <ID> [-conf]", "Delete a specific <ID> (required) add -conf to auto verify"])
         curoutput += "{: <35} {: <80}\n".format(*[m + " purge [-conf]", "Purge all persisted data older then persist_purge_days add -conf to auto verify"])
@@ -379,6 +392,8 @@ class Persist(Addon):
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip() == "list":
                     self.listPersisted()
+                elif line.lower().strip() == "refresh":
+                    self.loadPersistedDict()
                 elif line.lower().find("delete") == 0:
                     self.deletePersisted(line)
                 elif line.lower().find("purge") == 0:
