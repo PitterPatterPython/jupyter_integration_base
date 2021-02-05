@@ -64,7 +64,10 @@ class Addon(Magics):
         super(Addon, self).__init__(shell)
         self.ipy = shell
         self.load_env(self.global_evars)
-
+        if 'jupyter_loaded_addons' not in shell.user_ns:
+            shell.user_ns['jupyter_loaded_addons'] = [self.magic_name]
+        else:
+            shell.user_ns['jupyter_loaded_addons'].append(self.magic_name)
 
         # Begin Know your own name Name Code
         for frame, line in traceback.walk_stack(None):

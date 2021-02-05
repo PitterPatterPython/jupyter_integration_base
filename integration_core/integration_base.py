@@ -57,7 +57,7 @@ class Integration(Magics):
 
     # Variables Dictionary
     opts = {}
-    req_addons = ['display', 'persist', 'profile', 'sharedfunc', 'vis']
+    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis']
     integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
 
     global_evars = ['proxy_host', 'proxy_user'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
@@ -90,6 +90,11 @@ class Integration(Magics):
         self.ipy = shell
         self.load_env(self.global_evars)
         self.check_req_addons()
+
+        if 'jupyter_loaded_integrations' not in shell.user_ns:
+            shell.user_ns['jupyter_loaded_integrations'] = [self.name_str]
+        else:
+            shell.user_ns['jupyter_loaded_integrations'].append(self.name_str)
 
         # Begin Name Code
         for frame, line in traceback.walk_stack(None):
