@@ -12,7 +12,7 @@ from collections import OrderedDict
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.display import HTML
 
-from IPython.display import display_html, display, Javascript, FileLink, FileLinks, Image
+from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
 import ipywidgets as widgets
 
 
@@ -169,8 +169,6 @@ class Integration(Magics):
                     print("%s found in user_ns - Not starting" % chk)
 
 
-
-
 ##### connect should not need to be overwritten by custom integration
     def connect(self, instance=None, prompt=False):
         if self.debug:
@@ -183,7 +181,7 @@ class Integration(Magics):
 
         req_pass = self.req_password(instance)
         req_user = self.req_username(instance)
-
+        req_otp = self.req_otp(instance)
         if self.debug:
             print("req_user: %s - req_pass: %s" % (req_user, req_pass))
 
@@ -214,6 +212,16 @@ class Integration(Magics):
 
                 inst['connect_pass'] = tpass
                 self.ipy.user_ns['tpass'] = ""
+
+
+            # Should OTP be hidden? I do not believe so, but could be argued
+            # Also, unlike password, we request otp every time we need to.
+            if req_otp == True:
+                print("Please enter the One Time Password (OTP) for the %s instance you wish to connect with." % instance)
+                totp = ""
+                totp = input("Please enter OTP: ")
+                inst['connect_otp'] = totp
+                totp = ""
 
             result = self.customAuth(instance)
 
@@ -296,6 +304,15 @@ class Integration(Magics):
 
         retval = True
         return retval
+
+    def req_otp(self, instance):
+        # This is a simple function that can be overwritten by custom integrations.
+        # The default (this function) says "no, it does NOT require a One Time Password (OTP)"
+        # however, if a customer integration has an instance parameter where a certain instance requires it, it can be set to prompt by overriding this
+        retval = False
+        return retval
+
+
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
