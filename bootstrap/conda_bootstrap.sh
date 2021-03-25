@@ -36,6 +36,9 @@ echo "Installing packages"
 echo ""
 
 conda install plotly=4.12.0 pandas=1.1.3 numpy=1.19.1 jupyterlab=2.2.6 ipywidgets=7.5.1 ipython=7.18.1 widgetsnbextension=3.5.1 qgrid=1.3.1 pyodbc=4.0.30 beautifulsoup4=4.9.3 lxml=4.6.1
+
+conda install openpyxl pytables
+
 conda install -c conda-forge/label/gcc7 nodejs
 conda install -c conda-forge pandas-profiling pymysql=0.10.1 elasticsearch
 
