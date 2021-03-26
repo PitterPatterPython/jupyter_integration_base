@@ -761,7 +761,13 @@ class Integration(Magics):
             retval = val
         return retval
 
-
+    def get_proxy_str(self, instance):
+        phost = self.get_global_eval("proxy_host", instance)
+        puser = self.get_global_eval("proxy_user", instance)
+        pscheme = self.get_global_eval("proxy_scheme", instance)
+        pport = self.get_global_eval("proxy_port", instance)
+        purl = "%s://%s@%s:%s"
+        return purl
 
 
     def get_global_eval(self, var, instance=None):
