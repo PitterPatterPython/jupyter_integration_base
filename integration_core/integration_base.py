@@ -771,8 +771,8 @@ class Integration(Magics):
         retval = None
         if var in self.global_evars:
             if instance is not None:
-                if var in self.instances[instnace]:
-                    retval = self.instnaces[instance][var]
+                if var in self.instances[instance]:
+                    retval = self.instances[instance][var]
                 else:
                     if self.debug:
                         print("Instance %s provided, but var %s not found in instance vars" % (instance, var))
