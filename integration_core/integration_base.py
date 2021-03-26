@@ -32,6 +32,7 @@ class Integration(Magics):
     instances = {}          # Instances 
 
 #    instance['name'] = {"url": "source://user@host:port?option1=1&option2=2", connected: False} 
+    global_evars = ['proxy_scheme', 'proxy_user', 'proxy_host', 'proxy_port'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
 
     session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal.  This could also be a cursor
 
@@ -58,9 +59,8 @@ class Integration(Magics):
     # Variables Dictionary
     opts = {}
     req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis']
-    integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
-
-    global_evars = ['proxy_host', 'proxy_user'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
+ #   integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
+    integration_evars = ['_conn_url_'] + ['_' + i for i in global_evars] + ['_' + i + '_' for i in global_evars]
 
 
     # Option Format: [ Value, Description]
@@ -708,7 +708,21 @@ class Integration(Magics):
                     tvar = self.remove_ev_quotes(os.environ[ev])
                     if self.debug:
                         print("Loaded %s as %s" % (ev, tvar))
-                    self.opts[v][0] = tvar
+                    bgev = False
+                    for gev in self.global_evars:
+                        if v.find(gev) >= 0:
+                            if v == gev:
+                                tset = [tvar, "Jupyter Global value for %s" % gev]
+                                self.opts[v] = tset
+                                bgev = True
+                                break
+                            elif v[0] != "_":
+                                tset = [tvar, "Integration Global value for %s" % gev]
+                                self.opts[v] = tset
+                                bgev = True
+                                break
+                    if not bgev:
+                        self.opts[v][0] = tvar
                 else:
                     if self.debug:
                         print("Could not load %s" % ev)
@@ -721,7 +735,11 @@ class Integration(Magics):
                         if base_var == "conn_url":
                             self.fill_instance(instance, tval)
                         else:
-                            self.instances[instance][base_var] = tval
+                            try:
+                                self.instances[instance][base_var] = tval
+                            except:
+                                if self.debug:
+                                    print("Could not set instace variable %s - Instance %s not created yet" % (base_var, instance))
 
     def fill_instance(self, inst_name, conn_url):
         self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "last_use": "", "last_query": ""}

@@ -37,7 +37,7 @@ echo ""
 
 conda install plotly=4.12.0 pandas=1.1.3 numpy=1.19.1 jupyterlab=2.2.6 ipywidgets=7.5.1 ipython=7.18.1 widgetsnbextension=3.5.1 qgrid=1.3.1 pyodbc=4.0.30 beautifulsoup4=4.9.3 lxml=4.6.1
 
-conda install openpyxl pytables
+conda install openpyxl pytables fsspec
 
 conda install -c conda-forge/label/gcc7 nodejs
 conda install -c conda-forge pandas-profiling pymysql=0.10.1 elasticsearch
@@ -45,6 +45,14 @@ conda install -c conda-forge pandas-profiling pymysql=0.10.1 elasticsearch
 
 
 git clone https://github.com/splunk/splunk-sdk-python && cd splunk-sdk-python && python setup.py install && cd .. && rm -rf ./splunk-sdk-python
+
+git clone https://github.com/oasis-open/cti-python-stix2 && cd cti-python-stix2 && python setup.py install && cd .. && rm -rf ./cti-python-stix2
+
+git clone https://github.com/oasis-open/cti-taxii-client && cd cti-taxii-client && python setup.py install && cd .. && rm -rf ./cti-taxii-client
+
+
+
+
 
 echo ""
 echo "Installing extensions"
