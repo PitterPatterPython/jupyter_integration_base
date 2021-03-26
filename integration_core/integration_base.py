@@ -84,6 +84,9 @@ class Integration(Magics):
 
 
 
+
+
+
     def __init__(self, shell, debug=False, *args, **kwargs):
         self.debug = debug
         super(Integration, self).__init__(shell)
@@ -168,6 +171,63 @@ class Integration(Magics):
                 if self.debug:
                     print("%s found in user_ns - Not starting" % chk)
 
+
+    def get_proxy_pass(self, proxy_str, instance=None):
+        ret_val = None
+        if instance is not none:
+            if 'proxy_pass' in self.instances[instance]:
+                ret_val = self.instances[instance]['proxy_pass']
+                if self.debug:
+                    print("Proxy pass set at instance level")
+        if ret_val is None:
+            int_var = self.name_str + "_proxy_pass"
+            try:
+                ret_val = eval("self." + int_var)
+                if self.debug:
+                    print("Proxy pass set at the integration level")
+            except:
+                pass
+        if ret_val is None:
+            try:
+                ret_val = eval("self.proxy_pass")
+                if self.debug:
+                    print("Proxy pass set at the global level")
+            except:
+                pass
+        if ret_val is None:
+            # If we didn't find a password, than we will set it and it gets set by default at the integration level.
+            # The reason is is it's a good place, and there are ways to set at the instance level if needed (or should be)
+            print("Proxy password for use with %s integration not set at any level - Requesting password" % self.name_str)
+            ret_val = self.set_proxy_pass(proxy_str, 'integration', instance)
+
+        return ret_val
+
+    def set_proxy_pass(self, proxy_str, level, instance=None):
+        # We set the password based on the level, but we also return it if needed.
+        myname = self.name_str
+        ret_val = None
+        allowed_levels = ['integration', 'instance']
+        if level not in allowed_levels:
+            print("Requested level: %s not in allowed_levels: %s" % (level, allowed_levels))
+            print("Password not set")
+        elif instance is None and level == "instance":
+            print("Requested instance password set with no instance provided")
+        else:
+            print("Please enter %s level password for proxy: %s (Instance: %s)" % (level, proxy_str, instance))
+            print("")
+            tproxpass = ""
+            self.ipy.ex("from getpass import getpass\ntproxpass = getpass(prompt='Proxy Password: ')")
+            tproxpass = self.ipy.user_ns['tproxpass']
+            if level == "integration":
+                exec('self.' + self.name_str + '_proxy_pass = tproxpass')
+            elif level == "global":
+                exec('self.proxy_pass = tproxpass')
+            else:
+                self.instances[instance]['proxy_pass'] = tproxpass
+            ret_val = tproxpass
+            self.ipy.user_ns['tproxpass'] = ""
+            tproxpass = ""
+        return ret_val
 
 ##### connect should not need to be overwritten by custom integration
     def connect(self, instance=None, prompt=False):
@@ -340,6 +400,9 @@ class Integration(Magics):
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
             self.setPass(line)
+        elif line.lower().find("setproxypass") == 0:
+            bMischiefManaged = True
+            t = self.set_proxy_pass("%s Integration Proxy Pass" % self.name_str, "integration")
         elif line.lower().strip().find("disconnect") == 0:
             myinstance = None
             instcheck = line.lower().strip().replace("disconnect", "").strip()
@@ -567,6 +630,7 @@ class Integration(Magics):
         print("{: <30} {: <80}".format(*[m + " status", "Print the status of the %s connection and variables used for output" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " instances", "Print the status of the %s instances currently defined" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " setpass <instance>", "Sets the password for the specified instance (or conn_default instance if not defined) - Does not connect"]))
+        print("{: <30} {: <80}".format(*[m + " setproxypass", "Sets the proxy password at an integration level"]))
         print("{: <30} {: <80}".format(*[m + " connect <instance>", "Initiate a connection to the %s cluster, if instance is not provided, defaults to conn_default" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " connect <instance> alt", "Initiate a connection to the %s cluster, and prompt for information. If instance is not provided, defaults to conn_default" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " disconnect <instance>", "Disconnect an active %s connection and reset connection variables. If instance is not provided, defaults to conn_default" % n.capitalize()]))
@@ -695,6 +759,40 @@ class Integration(Magics):
             retval = val[1:-1]
         else:
             retval = val
+        return retval
+
+
+
+
+    def get_global_eval(self, var, instance=None):
+        # This function returns global variables by checking  in this order: instance, integration, global.
+        # The lowest set item is returned. (i.e. if if instance is set, that is what is returned)
+        # If isntance is none, then we start at the integration level
+        retval = None
+        if var in self.global_evars:
+            if instance is not None:
+                if var in self.instances[instnace]:
+                    retval = self.instnaces[instance][var]
+                else:
+                    if self.debug:
+                        print("Instance %s provided, but var %s not found in instance vars" % (instance, var))
+            if retval is None: # Even if the instance is here, if retval is still None, we didn't find the variables
+                myname = self.name_str
+                int_var = myname + "_" + var
+                if int_var in self.opts:
+                    retval = self.opts[int_var][0]
+                else:
+                    if self.debug:
+                        print("%s not found in integration level variable %s" % (var, int_var))
+                    if var in self.opts:
+                        retval = self.opts[var][0]
+                    else:
+                        if self.debug:
+                            print("Variable %s is in global_evars, but not set at the instace, integration, or global level" % var)
+                # We have a integration level global:
+        else:
+            if self.debug:
+                print("Varible requested: %s is not a global_evar: %s" % (var, self.global_evars))
         return retval
 
     def load_env(self, evars):
