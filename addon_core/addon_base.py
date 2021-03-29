@@ -276,29 +276,77 @@ class Addon(Magics):
             retval = val
         return retval
 
-    def load_env(self, evars):
+  def load_env(self, evars):
 
-        for v in [self.name_str + i for i in self.addon_evars] + evars:
+        for v in [self.name_str + i for i in self.integration_evars] + evars:
             ev = self.env_pre + v.upper()
-            if ev[-1] != "_": # Normal EV - put in options
+            if ev[-1] != "_": # Normal EV - put in options 
                 if self.debug:
                     print("Trying to load: %s" % ev)
                 if ev in os.environ:
                     tvar = self.remove_ev_quotes(os.environ[ev])
                     if self.debug:
                         print("Loaded %s as %s" % (ev, tvar))
-                    self.opts[v][0] = tvar
+                    bgev = False
+                    for gev in self.global_evars:
+                        if v.find(gev) >= 0:
+                            if v == gev:
+                                tset = [tvar, "Jupyter Global value for %s" % gev]
+                                self.opts[v] = tset
+                                bgev = True
+                                break
+                            elif v[0] != "_":
+                                tset = [tvar, "Integration Global value for %s" % gev]
+                                self.opts[v] = tset
+                                bgev = True
+                                break
+                    if not bgev:
+                        self.opts[v][0] = tvar
                 else:
                     if self.debug:
                         print("Could not load %s" % ev)
-            elif ev[-1] == "_":  # This is a per instance variable.
+            elif ev[-1] == "_":  # This is a per instance variable - must default instances must be specified as default.
                 base_var = v[0:-1].replace(self.name_str + "_", "")
                 for e in os.environ:
                     if e.find(ev) == 0:
                         tval = self.remove_ev_quotes(os.environ[e])
-                        mod = e.replace(ev, "").lower()
-                        if base_var == "url":
-                            self.fill_mods(mod, tval)
+                        instance = e.replace(ev, "").lower()
+                        if base_var == "conn_url":
+                            self.fill_instance(instance, tval)
+                        else:
+                            try:
+                                self.instances[instance][base_var] = tval
+                            except:
+                                if self.debug:
+                                    print("Could not set instace variable %s - Instance %s not created yet" % (base_var, instance))
+
+
+
+
+
+#    def load_env(self, evars):
+
+#        for v in [self.name_str + i for i in self.addon_evars] + evars:
+ #           ev = self.env_pre + v.upper()
+  #          if ev[-1] != "_": # Normal EV - put in options
+   #             if self.debug:
+    #                print("Trying to load: %s" % ev)
+     #           if ev in os.environ:
+      #              tvar = self.remove_ev_quotes(os.environ[ev])
+      #              if self.debug:
+      #                  print("Loaded %s as %s" % (ev, tvar))
+      #              self.opts[v][0] = tvar
+      #          else:
+      #              if self.debug:
+      #                  print("Could not load %s" % ev)
+      #      elif ev[-1] == "_":  # This is a per instance variable.
+      #          base_var = v[0:-1].replace(self.name_str + "_", "")
+      #          for e in os.environ:
+      #              if e.find(ev) == 0:
+      #                  tval = self.remove_ev_quotes(os.environ[e])
+      #                  mod = e.replace(ev, "").lower()
+      #                  if base_var == "url":
+      #                      self.fill_mods(mod, tval)
 
 
 

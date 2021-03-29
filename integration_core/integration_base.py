@@ -261,6 +261,7 @@ class Integration(Magics):
                 print("User not specified in env %s%s_CONN_URL_%s or user override requested" % (self.env_pre, self.name_str.upper(), instance.upper()))
                 tuser = input("Please type user name if desired: ")
                 inst['user'] = tuser
+            
             print("Connecting as user %s" % inst['user'])
             print("")
 
@@ -291,7 +292,7 @@ class Integration(Magics):
             else:
                 inst['connect_pass'] = None
                 print("")
-                print("Connection Error - Perhaps Bad Usename/Password?")
+                print("Connection Error - Error Code: %s" % result)
 
         elif inst['connected'] == True:
             print(self.name_str.capitalize() + " instance " + instance + " is already connected - Please type %" + self.name_str + " for help on what you can you do")
