@@ -278,7 +278,7 @@ class Addon(Magics):
 
     def load_env(self, evars):
 
-        for v in [self.name_str + i for i in self.integration_evars] + evars:
+        for v in [self.name_str + i for i in self.addon_evars] + evars:
             ev = self.env_pre + v.upper()
             if ev[-1] != "_": # Normal EV - put in options 
                 if self.debug:
