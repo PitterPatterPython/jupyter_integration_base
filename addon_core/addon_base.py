@@ -276,7 +276,7 @@ class Addon(Magics):
             retval = val
         return retval
 
-  def load_env(self, evars):
+    def load_env(self, evars):
 
         for v in [self.name_str + i for i in self.integration_evars] + evars:
             ev = self.env_pre + v.upper()
