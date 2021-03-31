@@ -791,7 +791,7 @@ class Integration(Magics):
                 else:
                     if self.debug:
                         print("%s not found in integration level variable %s" % (var, int_var))
-                    if var in self.opts
+                    if var in self.opts:
                         if self.debug:
                             print("Variable %s found at global - value: %s" % (var, self.opts[var][0]))
                         retval = self.opts[var][0]
