@@ -40,7 +40,7 @@ class Integration(Magics):
     connected = False       # Is the integration connected? This is a simple True/False 
     name_str = ""           # This is the name of the integraton, and will be prepended with % for the magic, used in variables, uppered() for ENV variables etc. 
     connect_pass = ""       # Connection password is special as we don't want it displayed, so it's a core component
-    proxy_pass = ""         # If a proxy is required, we need a place for a password. It can't be in the opts cause it would be displayed. 
+    proxy_pass = None         # If a proxy is required, we need a place for a password. It can't be in the opts cause it would be displayed. 
     debug = False           # Enable debug mode
     env_pre = "JUPYTER_"    #  Probably should allow this to be set by the user at some point. If sending in data through a ENV variable this is the prefix
 
@@ -791,7 +791,9 @@ class Integration(Magics):
                 else:
                     if self.debug:
                         print("%s not found in integration level variable %s" % (var, int_var))
-                    if var in self.opts:
+                    if var in self.opts
+                        if self.debug:
+                            print("Variable %s found at global - value: %s" % (var, self.opts[var][0]))
                         retval = self.opts[var][0]
                     else:
                         if self.debug:
