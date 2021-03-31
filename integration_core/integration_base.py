@@ -174,7 +174,7 @@ class Integration(Magics):
 
     def get_proxy_pass(self, proxy_str, instance=None):
         ret_val = None
-        if instance is not none:
+        if instance is not None:
             if 'proxy_pass' in self.instances[instance]:
                 ret_val = self.instances[instance]['proxy_pass']
                 if self.debug:
