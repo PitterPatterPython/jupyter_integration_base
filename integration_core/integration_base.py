@@ -767,7 +767,7 @@ class Integration(Magics):
         puser = self.get_global_eval("proxy_user", instance)
         pscheme = self.get_global_eval("proxy_scheme", instance)
         pport = self.get_global_eval("proxy_port", instance)
-        purl = "%s://%s@%s:%s"
+        purl = "%s://%s@%s:%s" % (pscheme, puser, phost, pport)
         return purl
 
 
