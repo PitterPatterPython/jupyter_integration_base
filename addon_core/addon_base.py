@@ -46,9 +46,10 @@ class Addon(Magics):
     # opt['item'][0] is the actual value if opt['item']
     # p[t['item'][1] is a description of the option and it's use for built in description.
 
-    addon_evars = []
-
+    #addon_evars = []
     global_evars = ['proxy_host', 'proxy_user']
+    addon_evars = ['_' + i for i in global_evars]
+
     opts = {}
     opts['m_replace_a0_20'] = [False, 'Replace hex(a0) with space (hex(20)) on magic submission - On lines and cells']
     opts['m_replace_crlf_lf'] = [True, 'Replace crlf with lf (convert windows to unix line endings) on magic submission - Only on cells, not lines']
@@ -277,9 +278,14 @@ class Addon(Magics):
         return retval
 
     def load_env(self, evars):
-
+        if self.debug:
+            print("Passed Evars: %s" % evars)
+            print("Addon_evars: %s" % self.addon_evars)
         for v in [self.name_str + i for i in self.addon_evars] + evars:
             ev = self.env_pre + v.upper()
+            if self.debug:
+                print("v: %s" % v)
+                print("ev: %s" % ev)
             if ev[-1] != "_": # Normal EV - put in options 
                 if self.debug:
                     print("Trying to load: %s" % ev)
@@ -307,18 +313,18 @@ class Addon(Magics):
                         print("Could not load %s" % ev)
             elif ev[-1] == "_":  # This is a per instance variable - must default instances must be specified as default.
                 base_var = v[0:-1].replace(self.name_str + "_", "")
+                if self.debug:
+                    print("base_var: %s" % base_var)
                 for e in os.environ:
                     if e.find(ev) == 0:
+                        if self.debug:
+                            print("Found %s in %s" % (ev, e))
                         tval = self.remove_ev_quotes(os.environ[e])
-                        instance = e.replace(ev, "").lower()
-                        if base_var == "conn_url":
-                            self.fill_instance(instance, tval)
-                        else:
-                            try:
-                                self.instances[instance][base_var] = tval
-                            except:
-                                if self.debug:
-                                    print("Could not set instace variable %s - Instance %s not created yet" % (base_var, instance))
+                        mod = e.replace(ev, "").lower()
+                        if base_var == "url":
+                            if self.debug:
+                                print("filling %s with %s" % (mod, tval))
+                            self.fill_mods(mod, tval)
 
 
 

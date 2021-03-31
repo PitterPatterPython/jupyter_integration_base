@@ -26,7 +26,7 @@ class Sharedfunc(Addon):
     name_str = "sharedfunc"
     mods = {}
 
-    custom_evars = []
+    custom_evars = ['sharedfunc_ver_check_delta']
 
     custom_allowed_set_opts = ['sharedfunc_max_full_results', 'sharedfunc_ver_check_delta']
 
@@ -36,9 +36,7 @@ class Sharedfunc(Addon):
     myopts['sharedfunc_ver_check_delta'] = [86400, "Number of seconds between version checks - 86400 is one day."]
     myopts['sharedfunc_addon_dir'] = ['~/.ipython/integrations/' + name_str, "Directory for sharedmod caching/configs"]
     myopts['sharedfunc_cache_filename'] = ["modver.cache", "Filename for sharedmod caching"]
-    addon_evars = ["_url_"]
 #    evars = []
-#    modevars = ["_url_"]
     gflat = {}
 
 
@@ -51,7 +49,9 @@ class Sharedfunc(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
 
-        self.load_env(self.custom_evars) 
+        self.addon_evars += ["_url_"]
+
+        self.load_env(self.custom_evars)
         shell.user_ns['sharedfunc_var'] = self.creation_name
 
         for m in self.mods:
