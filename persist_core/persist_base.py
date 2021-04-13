@@ -372,12 +372,13 @@ class Persist(Addon):
 
     def customStatus(self):
         # Todo put in information about the persisted information
-        print("")
-        print("Persist addon Subsystem: Installed")
-        print("")
-        print("Current Persistance Information:")
-        print("")
-        print("{: <30} {: <80}".format("No. Persited Data:", len(self.persist_dict.keys())))
+        out = ""
+        out += "\n"
+        out += "### Current Persistance Information\n"
+        out += "-----\n"
+        out += "Number of Persisted Data Items: %s\n" % len(self.persist_dict.keys())
+        out += "\n"
+        return out
 
 
     # This is the magic name.

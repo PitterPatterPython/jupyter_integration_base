@@ -102,9 +102,6 @@ class Display(Addon):
         curoutput += "\n"
         return curoutput
 
-    def customStatus(self):
-        # Todo put in information about the persisted information
-        print("Display Addon Subsystem: Installed")
 
     def qgridDisplay(self, result_df, mycnt):
 

@@ -132,8 +132,8 @@ class Addon(Magics):
             self.displayHelp()
             bMischiefManaged = True
         elif line.lower() == "status":
-            self.retStatus()
             bMischiefManaged = True
+            self.displayMD(self.retStatus())
         elif line.lower() == "debug":
             print("Toggling Debug from %s to %s" % (self.debug, not self.debug))
             self.debug = not self.debug
@@ -163,51 +163,58 @@ class Addon(Magics):
             print("Home: %s" % home)
         return home
 
+    def displayMD(self, md):
+        display(Markdown(md))
+
 #### retStatus should not be altered this should only exist in the base integration
     def retStatus(self):
+        n = self.name_str
+        mn = self.magic_name
+        m = "%" + mn
+        mq = "%" + m
 
-        print("Current State of %s Interface:" % self.name_str.capitalize())
-        print("")
-        print("{: <30} {: <50}".format(*["Debug Mode:", str(self.debug)]))
 
-        print("")
+        table_header = "| Variable | Value | Description |\n"
+        table_header += "| -------- | ----- | ----------- |\n"
 
-        print("Addon Properties:")
-        print("-----------------------------------")
+        out = ""
+        out += "# Current State of %s Interface\n" % self.name_str
+        out += "---------------------\n"
+        out += "\n"
+        out += "## Addon Base Properties\n"
+        out += table_header
+        out += "| debug | %s | Sets verbose out with %s debug |\n" % (self.debug, m)
+
         for k, v in self.opts.items():
             if k.find("m_") == 0:
-                try:
-                    t = int(v[1])
-                except:
-                    t = v[1]
+                desc = v[1]
                 if v[0] is None:
-                    o = "None"
+                    val = "None"
                 else:
-                    o = v[0]
-                myrow = [k, o, t]
-                print("{: <30} {: <38} {: <20}".format(*myrow))
-                myrow = []
+                    val = v[0]
 
-        print("")
-        print("%s Properties:" %  self.name_str.capitalize())
-        print("-----------------------------------")
+                out += "| %s | %s | %s |\n" % (k, val, desc) 
+
+        out += "\n\n"
+        out += "## %s Properties\n" % n
+        out += table_header
         for k, v in self.opts.items():
             if k.find(self.name_str + "_") == 0:
                 if v[0] is None:
-                    o = "None"
+                    val = "None"
                 else:
-                    o = str(v[0])
-                myrow = [k, o, v[1]]
-                print("{: <30} {: <38} {: <20}".format(*myrow))
-                myrow = []
-        print("")
-        self.customStatus()
+                    val = str(v[0])
+                desc = v[1]
+                out += "| %s | %s | %s |\n" % (k, val, desc)
 
+        out += "\n\n"
+        out += self.customStatus()
+        return out
 
 # This customStatus function should be overridden in the Addon. If it is not, nothing will happen. 
 
     def customStatus(self):
-        pass
+        return ""
 
 ##### displayHelp should only be in base. It allows a global level of customization, and then calls the custom help in each integration that's unique
     def displayHelp(self):

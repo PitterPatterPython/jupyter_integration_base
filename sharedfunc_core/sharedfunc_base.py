@@ -355,8 +355,6 @@ class Sharedfunc(Addon):
 
         return curoutput
 
-    def customStatus(self):
-        print("Sharedfunc Addon Subsystem: Installed")
 
 
     # This is the magic name.

@@ -238,9 +238,6 @@ class Vis(Addon):
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
             print("No Cell Magic for %s" % self.name_str)
 
-    def customStatus(self):
-        # Todo put in information about the persisted information
-        print("Vis Addon Subsystem: Installed")
 
 
 # Display Help can be customized

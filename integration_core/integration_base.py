@@ -39,6 +39,7 @@ class Integration(Magics):
     connection = None       # This is a connection object. Separate from a cursor or session it only handles connecting, then the session/cursor stuff is in session. 
     connected = False       # Is the integration connected? This is a simple True/False 
     name_str = ""           # This is the name of the integraton, and will be prepended with % for the magic, used in variables, uppered() for ENV variables etc. 
+    magic_name = ""
     connect_pass = ""       # Connection password is special as we don't want it displayed, so it's a core component
     proxy_pass = None         # If a proxy is required, we need a place for a password. It can't be in the opts cause it would be displayed. 
     debug = False           # Enable debug mode
@@ -93,7 +94,8 @@ class Integration(Magics):
         self.ipy = shell
         self.load_env(self.global_evars)
         self.check_req_addons()
-
+        if self.magic_name == "":
+            self.magic_name = self.name_str
         if 'jupyter_loaded_integrations' not in shell.user_ns:
             shell.user_ns['jupyter_loaded_integrations'] = [self.name_str]
         else:
@@ -373,7 +375,8 @@ class Integration(Magics):
         retval = False
         return retval
 
-
+    def displayMD(self, md):
+        display(Markdown(md))
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
@@ -386,8 +389,8 @@ class Integration(Magics):
             self.displayHelp()
             bMischiefManaged = True
         elif line.lower() == "status":
-            self.retStatus()
             bMischiefManaged = True
+            self.displayMD(self.retStatus())
         elif line.lower() == "progquery":
             self.displayProgQueryHelp()
             bMischiefManaged = True
@@ -672,44 +675,53 @@ class Integration(Magics):
                 if k not in ['connect_pass']:
                     print("{: <30} {: <50}".format(*[k + ":", str(self.instances[i][k])]))
 
+
 #### retStatus should not be altered this should only exist in the base integration
     def retStatus(self):
+        n = self.name_str
+        mn = self.magic_name
+        m = "%" + mn
+        mq = "%" + m
 
-        print("Current State of %s Interface:" % self.name_str.capitalize())
-        print("")
-        print("{: <30} {: <50}".format(*["Debug Mode:", str(self.debug)]))
 
-        print("")
+        table_header = "| Variable | Value | Description |\n"
+        table_header += "| -------- | ----- | ----------- |\n"
 
-        print("Display Properties:")
-        print("-----------------------------------")
+        out = ""
+        out += "# Current State of %s Interface\n" % self.name_str
+        out += "---------------------\n"
+        out += "\n"
+        out += "## Integration Base Properties\n"
+        out += table_header
+        out += "| debug | %s | Sets verbose out with %s debug |\n" % (self.debug, m)
+
         for k, v in self.opts.items():
-            if k.find("pd_") == 0 or k.find("qg_") == 0 or k.find("m_") == 0 or k.find("display_") == 0:
-                try:
-                    t = int(v[1])
-                except:
-                    t = v[1]
+            if k.find("m_") == 0:
+                desc = v[1]
                 if v[0] is None:
-                    o = "None"
+                    val = "None"
                 else:
-                    o = v[0]
-                myrow = [k, o, t]
-                print("{: <30} {: <50} {: <20}".format(*myrow))
-                myrow = []
+                    val = v[0]
+                out += "| %s | %s | %s |\n" % (k, val, desc)
 
-
-        print("")
-        print("%s Properties:" %  self.name_str.capitalize())
-        print("-----------------------------------")
+        out += "\n\n"
+        out += "## %s Properties\n" % n
+        out += table_header
         for k, v in self.opts.items():
             if k.find(self.name_str + "_") == 0:
                 if v[0] is None:
-                    o = "None"
+                    val = "None"
                 else:
-                    o = str(v[0])
-                myrow = [k, o, v[1]]
-                print("{: <30} {: <50} {: <20}".format(*myrow))
-                myrow = []
+                    val = str(v[0])
+                desc = v[1]
+                out += "| %s | %s | %s |\n" % (k, val, desc)
+
+        out += "\n\n"
+        out += self.customStatus()
+        return out
+
+    def customStatus(self):
+        return ""
 
 ##### setvar should only exist in the base_integration
     def setvar(self, line):
