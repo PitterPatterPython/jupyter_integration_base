@@ -1,4 +1,4 @@
-# jupyter_integration_base
+# jupyter_integration_base - Base Package
 -----
 The Jupyter Integrations are a system of tools and base classes that allows folks to make connections to multiple data sources and use that data in a consistent way. 
 
