@@ -73,7 +73,7 @@ class Integration(Magics):
 
     # Pandas Variables
     opts['default_instance_name'] = ['default', "The instance name used as a default"]
-    opts['pd_display_grid'] = ['na', "This is legacy, and needs to be removed once all integrations that reference it stop using it - It is not used"]
+ #   opts['pd_display_grid'] = ['na', "This is legacy, and needs to be removed once all integrations that reference it stop using it - It is not used"]
 
     opts['m_replace_a0_20'] = [False, 'Replace hex(a0) with space (hex(20)) on magic submission - On lines and cells']
     opts['m_replace_crlf_lf'] = [True, 'Replace crlf with lf (convert windows to unix line endings) on magic submission - Only on cells, not lines']
@@ -401,8 +401,8 @@ class Integration(Magics):
         bMischiefManaged = False
         # Handle all common line items or return back to the custom integration
         if line == "" or line.lower().find("help") == 0:
-            self.displayHelp()
             bMischiefManaged = True
+            self.displayMD(self.retHelp())
         elif line.lower() == "status":
             bMischiefManaged = True
             self.displayMD(self.retStatus())
@@ -581,6 +581,57 @@ class Integration(Magics):
         query_time = endtime - starttime
 
         return mydf, query_time, status
+####
+
+
+    def retHelp(self):
+        n = self.name_str
+        mn = self.magic_name
+        m = "%" + mn
+        mq = "%" + m
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
+
+
+        out = ""
+        out += "# %s - Jupyter Integrations Datasource Integration Help System\n" % m
+        out += "------------------\n"
+        out += self.retCustomDesc() + "\n\n"
+        out += "## %s line magic \n" % (m)
+        out += "---------------------\n"
+        out += "### Standard Integration Line Magics\n"
+        out += table_header
+        out += "| %s | This Help Screen |\n" % m
+        out += "| %s | Display help on programmatic queries with integrations |\n" % (m + " progquery")
+        out += "| %s | Show the status of the %s addon, including variables used for config |\n" % (m + " status", m)
+        out += "| %s | Sets the internal debug flag - Used to see more verbose info on addon functionality |\n" % (m + " debug")
+        out += "| %s | Sets a the 'variable' provided to the 'value' provided |\n" % (m + " set 'variable' 'value'")
+        out += "| %s | Sets the proxy password at the integration level |\n" % (m + " setproxypass")
+        out += "\n\n"
+        out += "### Working with instances\n"
+        out += table_header
+        out += "| %s | Show defined instances and their status |\n" % (m + " instances")
+        out += "| %s | Connect to (optional) 'instance' (uses default if ommited) with defined settings. Use alt to override url and user settings |\n" % (m + " connect 'instance' [alt]")
+        out += "| %s | Disconnect from  (optional) <instance> (uses default if ommitted). |\n" % (m + " disconnect <instance>")
+        out += "| %s | Set password for (optional) <instance> (uses default if ommitted). |\n" % (m + " setpass <instance>")
+        out += "\n\n"
+        out = self.customHelp(out)
+
+        return out
+
+    def retCustomDesc(self):
+        return "Standard Datasource integration as part of Jupyter Integrations"
+
+
+    def customHelp(self, curout):
+        out = curout
+        out += self.displayProgQueryHelp()
+        return out
+
+
+
+
+
 ##### displayHelp should only be in base. It allows a global level of customization, and then calls the custom help in each integration that's unique
     def displayHelp(self):
         print("***** Jupyter Integrations Help System")
@@ -657,28 +708,39 @@ class Integration(Magics):
         print("{: <30} {: <80}".format(*[m + " debug", "Sets an internal debug variable to True (False by default) to see more verbose info about connections"]))
 
     # displayQueryHelp is a helperfunction only. Consider moving this to utilities.
-    def displayQueryHelp(self, q_example):
+    def retQueryHelp(self, q_examples=None):
         n = self.name_str
-        m = "%" + self.name_str
+        mn = self.magic_name
+        m = "%" + mn
         mq = "%" + m
-        print("")
-        print("Running queries with %s" % mq)
-        print("###############################################################################################")
-        print("")
-        print("When running queries with %s, %s will be on the first line of your cell, with an optional instance and the next line is the query you wish to run. Example:" % (mq, mq))
-        print("")
-        print(mq)
-        print(q_example)
-        print("")
-        print(mq + " myinstance")
-        print(q_example)
-        print("")
-        print("Some query notes:")
-        print("- If the number of results is less than display_max_rows, then the results will be diplayed in your notebook")
-        print("- You can change display_max_rows with %s set display_max_rows 2000" % m)
-        print("- The results, regardless of being displayed will be placed in a Pandas Dataframe variable called prev_%s_<instance>" % n)
-        print("- prev_%s_<instance> is overwritten every time a successful query is run. If you want to save results assign it to a new variable" % n)
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
+        out = ""
+        # Examples are [ instance line, query line, description]
+        examples = []
+        examples.append(["'instance'", "'Query in Native Language'", "Run A Query on the 'instance' (uses default if ommitted)"])
+        if q_examples is not None:
+            examples = examples + q_examples
+        if self.debug:
+            print(examples)
+        out += "## Running Queries with %s\n" % (mq)
+        out += "-----------------\n"
+        out += "When running queries with %s, %s will be on the first line of your cell, with an optional 'instance' and the next line is the 'query' you wish to run.\n" % (mq, mq)
+        out += "### Query Examples\n"
+        out += "--------------------\n"
+        out += table_header
+        for ex in examples:
+            line1 = mq + " " + ex[0]
+            out += "| %s | %s |\n" % (line1.strip() + "<br>" + ex[1].strip(), ex[2].strip())
+        out += "\n\n"
+        out += "## Query Notes\n"
+        out += "- If the number of results is less than the %display subsystem display_max_rows, results will be displayed directly after query\n"
+        out += "- You may change the display_max_rows with `%display set display_max_rows 20000` to set to 20000 for example\n"
+        out += "- All results, regardless of display, will be in a variable named prev_%s_<instance> where <instance> is the instance name. Example: `prev_%s_default`\n" % (mn, mn)
+        out += "- prev_%s_<instance> is overwritten every time a successful query is run. If you wish to save, assign it to a new variable\n" % (mn)
+        out += "\n\n"
+        return out
 
 
     def retInstances(self):

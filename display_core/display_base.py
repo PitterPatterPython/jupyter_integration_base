@@ -100,7 +100,7 @@ class Display(Addon):
         out += "---------------------\n"
         out += "### %s Specific Line Magics\n" % m
         out += table_header
-        out += "| %s | Display the specified Dataframe |\n" % (m + " $dataframe")
+        out += "| %s | Display the dataframe 'yourdf' (no quotes) |\n" % (m + " 'yourdf'")
         out += "\n\n"
         return out
 
