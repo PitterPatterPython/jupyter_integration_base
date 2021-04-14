@@ -172,7 +172,22 @@ class Integration(Magics):
             else:
                 if self.debug:
                     print("%s found in user_ns - Not starting" % chk)
+    def retProxy(self, instance=None):
+        proxystr = self.get_proxy_str(instance)
+        if self.debug:
+           print("Proxy String: %s" % proxystr)
+        prox_pass = self.get_proxy_pass(proxystr, instance)
+        proxurl = proxystr.replace("@", ":" + prox_pass + "@")
+        proxies = {'http': proxurl, 'https': proxurl}
+        return proxies
 
+    def get_proxy_str(self, instance=None):
+        phost = self.get_global_eval("proxy_host", instance)
+        puser = self.get_global_eval("proxy_user", instance)
+        pscheme = self.get_global_eval("proxy_scheme", instance)
+        pport = self.get_global_eval("proxy_port", instance)
+        purl = "%s://%s@%s:%s" % (pscheme, puser, phost, pport)
+        return purl
 
     def get_proxy_pass(self, proxy_str, instance=None):
         ret_val = None
@@ -400,7 +415,7 @@ class Integration(Magics):
             bMischiefManaged = True
         elif line.lower() == "instances":
             bMischiefManaged = True
-            self.printInstances()
+            self.displayMD(self.retInstances())
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
             self.setPass(line)
@@ -663,17 +678,24 @@ class Integration(Magics):
         print("- You can change display_max_rows with %s set display_max_rows 2000" % m)
         print("- The results, regardless of being displayed will be placed in a Pandas Dataframe variable called prev_%s_<instance>" % n)
         print("- prev_%s_<instance> is overwritten every time a successful query is run. If you want to save results assign it to a new variable" % n)
-        
-    def printInstances(self):
-        print("Current State of %s Instances:" % self.name_str.capitalize())
-        print("")
+
+
+
+    def retInstances(self):
+        n = self.name_str
+        mn = self.magic_name
+        m = "%" + mn
+        mq = "%" + m
+
+        out = ""
+        out += "# %s instances\n" % n
+        out += "---------------\n"
+        out += "| instance | conn_url | connected | last_query | options |\n"
+        out += "| -------- | -------- | --------- | ---------- | ------- |\n"
         for i in self.instances.keys():
-            print("")
-            print("Instance: %s" % i)
-            print("----------------------------------------------------------")
-            for k in self.instances[i].keys():
-                if k not in ['connect_pass']:
-                    print("{: <30} {: <50}".format(*[k + ":", str(self.instances[i][k])]))
+            inst = self.instances[i]
+            out += "| %s | %s | %s | %s | %s |\n" % (i,inst['conn_url'], inst['connected'], inst['last_query'], inst['options'])
+        return out
 
 
 #### retStatus should not be altered this should only exist in the base integration
@@ -774,13 +796,6 @@ class Integration(Magics):
             retval = val
         return retval
 
-    def get_proxy_str(self, instance):
-        phost = self.get_global_eval("proxy_host", instance)
-        puser = self.get_global_eval("proxy_user", instance)
-        pscheme = self.get_global_eval("proxy_scheme", instance)
-        pport = self.get_global_eval("proxy_port", instance)
-        purl = "%s://%s@%s:%s" % (pscheme, puser, phost, pport)
-        return purl
 
 
     def get_global_eval(self, var, instance=None):

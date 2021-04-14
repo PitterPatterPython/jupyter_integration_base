@@ -89,19 +89,24 @@ class Display(Addon):
         shell.user_ns['display_var'] = self.creation_name
 
 
-# Display Help can be customized
-    def customHelp(self):
+
+    def customHelp(self, curout):
         n = self.name_str
         m = "%" + self.name_str
         mq = "%" + m
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
+        out = curout
+        out += "---------------------\n"
+        out += "### %s Specific Line Magics\n" % m
+        out += table_header
+        out += "| %s | Display the specified Dataframe |\n" % (m + " $dataframe")
+        out += "\n\n"
+        return out
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "Display Functions\n"
-        curoutput += "{: <35} {: <80}\n".format(*[m + " display <dataframe>", "Display the Dataframe"])
-        curoutput += "\n"
-        return curoutput
-
+    def retCustomDesc(self):
+        out = "This addon allows you to display dataframes using a standard interface. It is also the default addon called post query by integrations"
+        return out
 
     def qgridDisplay(self, result_df, mycnt):
 

@@ -44,35 +44,12 @@ class Helloworld(Addon):
         shell.user_ns['helloworld_var'] = self.creation_name
 
 
-# Display Help can be customized
-    def listIntsAds(self):
-        myout = ""
-        myout += "\n"
-        myout += "Addition help for each integration and addon can be found by running the magic string for each integration or addon\n"
-        myout += "\n"
-        myout += "Installed Integrations:\n"
-        myout += "\n"
-        myout += "{: <30} {: <30}\n".format(*["Integration", "Integration Loaded"])
-        for integration in self.ipy.user_ns['jupyter_loaded_integrations']:
-            m = "%" + integration
-            myout += "{: <30} {: <30}\n".format(*[m, str(True)])
-        myout += "\n"
-
-        myout += "Installed Addons:\n"
-        myout += "\n"
-        myout += "{: <30} {: <30}\n".format(*["Addon", "Addon Loaded"])
-        for addon in self.ipy.user_ns['jupyter_loaded_addons']:
-            m = "%" + addon
-            myout += "{: <30} {: <30}\n".format(*[m, str(True)])
-        myout += "\n"
-
-        return myout
     def listIntsAdsMD(self):
         myout = ""
         myout += "\n"
-        myout += "Addition help for each integration and addon can be found by running the magic string for each integration or addon\n"
+        myout += "Additional help for each integration and addon can be found by running the magic string for each integration or addon\n"
         myout += "\n"
-        myout += "## Installed Integrations:\n"
+        myout += "### Installed Integrations:\n"
         myout += "---------------\n"
         myout += "| %s | %s |\n" % ("Integration", "Integration Loaded")
         myout += "| ------ | ------ |\n"
@@ -81,7 +58,7 @@ class Helloworld(Addon):
             myout += "| %s | %s |\n" % (m, str(True))
         myout += "\n"
 
-        myout += "## Installed Addons:\n"
+        myout += "### Installed Addons:\n"
         myout += "---------------\n"
         myout += "| %s | %s |\n" % ("Addon", "Addon Loaded")
         myout += "| ------ | ------ |\n"
@@ -90,24 +67,24 @@ class Helloworld(Addon):
             myout += "| %s | %s |\n" % (m, str(True))
         myout += "\n"
         return myout
-    def customHelpMD(self):
-        mdhelp = self.listIntsAdsMD()
-        display(Markdown(mdhelp))
 
-    def customHelp(self):
+    def customHelp(self, curout):
+        n = self.name_str
+        m = "%" + self.name_str
+        mq = "%" + m
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "Jupyter Integrations - Hello World\n"
-        curoutput += "\n"
-        curoutput += "This is the starting point for Jupyter Integrations"
-        curoutput += "\n"
-        curoutput = self.listIntsAds()
-        curoutput += "\n"
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
-        return curoutput
+        out = curout
+        out += "\n"
+        out += self.listIntsAdsMD()
 
+        return out
 
+    def retCustomDesc(self):
+        out = "This is the starting point for all addons and integrations in the Jupyter Integrations package"
+        return out
 
     # This is the magic name.
     @line_cell_magic
@@ -119,9 +96,6 @@ class Helloworld(Addon):
         if cell is None:
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations.
-                if line.strip().find("md") >= 0:
-                    self.customHelpMD()
-                else:
-                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
+                print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
             print("No Cell Magic for %s" % self.name_str)

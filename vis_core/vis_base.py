@@ -224,40 +224,37 @@ class Vis(Addon):
            print("cell: %s" % cell)
         #line = line.replace("\r", "")
         if cell is None:
-            if line is None or line.strip() == "":
-                line = "vis"
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations. 
-                if line.lower().find("vis") == 0:
-                    newline = line.replace("vis ", "").strip()
-                    self.showVisWidget(newline)
-                elif line.strip().split(" ")[0] in self.ipy.user_ns:
-                    self.vis("vis " + line.strip())
+                if line.lower().find("show") == 0:
+                    newline = line.replace("show", "").strip()
+                    if newline == "" or newline in self.ipy.user_ns:
+                        self.showVisWidget(newline)
+                    else:
+                        print("Provided variable %s not in user namespace - cannot display widget" % newline)
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
             print("No Cell Magic for %s" % self.name_str)
 
-
-
-# Display Help can be customized
-    def customHelp(self):
+    def customHelp(self, curout):
         n = self.name_str
         m = "%" + self.name_str
         mq = "%" + m
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "Visulaization Helper Functions\n"
-        curoutput += "\n"
-        curoutput += "This addon helps to facilitate Visualizations within your Jupyter Notebooks"
-        curoutput += "\n"
-        curoutput += "{: <35} {: <80}\n".format(*[m, "Bring up Visualization Widget for all dataframes that start with " + self.opts['vis_search_prefix'][0] ])
-        curoutput += "{: <35} {: <80}\n".format(*[m + " <yourdf>", "Bring up Visualization Widget, but add in your custom dataframe yourdf"])
-        curoutput += "\n"
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
-        return curoutput
+        out = curout
+        out += table_header
+        out += "| %s | Bring up the Visualization Widget for all dataframes that start with %s |\n" % (m + " show", self.opts['vis_search_prefix'][0])
+        out += "| %s | Bring up the Visualization Widget, but include 'yourdf' in the list of available dataframes |\n" % (m + " show 'yourdf'")
+        out += "\n"
+        return out
 
+    def retCustomDesc(self):
+        out = "The vis (visualization) addon creates a widget that will help you create plotly express visualizations in Jupyter"
+        return out
 
     def layout_grid(self):
         if self.debug:

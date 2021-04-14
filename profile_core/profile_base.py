@@ -56,24 +56,28 @@ class Profile(Addon):
             print("pandas_profiling doesn't seem to be installed, you will need this")
 
 # Display Help can be customized
-    def customHelp(self):
+
+    def customHelp(self, curout):
         n = self.name_str
         m = "%" + self.name_str
         mq = "%" + m
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "Profiling Dataframes with Pandas Profiling\n"
-        curoutput += "\n"
-        curoutput += "Pandas Profiling allows you to quickly understand basic stats about your data frame in an easy to read report\n"
-        curoutput += "\n"
-        curoutput += "{: <35} {: <80}\n".format(*[m + " <yourdf>", "Profile dataframe yourdf"])
-        curoutput += "{: <35} {: <80}\n".format(*[m + " <yourdf> Your Title", "Profile dataframe yourdf add the title: Your Title"])
-        curoutput += "\n"
-        curoutput += "The last report run is stored in a variable called prev_profile available to you\n"
-        curoutput += "It is overwritten every time you run %s\n" % m
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
-        return curoutput
+        out = curout
+        out += table_header
+        out += "| %s | Run Pandas Profiler on profiledf |\n" % (m + " $profiledf")
+        out += "| %s | Run Pandas Profile on profiledf with a title of 'Your Title' |\n" % (m + " %profiledf Your Title")
+        out += "\n\n"
+        out += "**The last report run is stored in a pandas profile variable named prev_profile**\n"
+        out += "\n"
+        return out
+
+    def retCustomDesc(self):
+        out = "The profile addon allows an easy to user interface to Pandas Profiling for understanding your datasets"
+        return out
+
 
 
 

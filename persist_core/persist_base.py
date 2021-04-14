@@ -339,36 +339,51 @@ class Persist(Addon):
     def getUUID(self):
         return uuid.uuid4().hex
 
-# Display Help can be customized
-    def customHelp(self):
-        n = self.name_str
-        m = "%" + self.name_str
+    def customHelp(self, curout):
+        n = self.magic_name
+        m = "%" + n
         mq = "%" + m
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "Control Functions\n"
-        curoutput += "{: <35} {: <80}\n".format(*[m + " refreshø", "Refresh the currently persisted data list"])
-        curoutput += "{: <35} {: <80}\n".format(*[m + " list", "List the currently persisted data"])
-        curoutput += "{: <35} {: <80}\n".format(*[m + " delete <ID> [-conf]", "Delete a specific <ID> (required) add -conf to auto verify"])
-        curoutput += "{: <35} {: <80}\n".format(*[m + " purge [-conf]", "Purge all persisted data older then persist_purge_days add -conf to auto verify"])
-        curoutput += "\n"
-        curoutput += "Saving Dataframes\n"
-        curoutput += "{: <35} {: <80}\n".format(*[mq + " save <df> [id:abc][-conf]", ""])
-        curoutput += "{: <35} {: <80}\n".format(*["Notes about your query", ""])
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
-        curoutput += "{: <35} {: <80}\n".format(*["", "df is dataframe to save (required)"])
-        curoutput += "{: <35} {: <80}\n".format(*["", "id:abc - abc is the id to overwrite. (This saves over an existing df, this is optional, if none provided, we create a new id"])
-        curoutput += "{: <35} {: <80}\n".format(*["", "-conf will auto clobber a previously saved id:"])
-        curoutput += "{: <35} {: <80}\n".format(*["", "The next line is the notes about your query"])
+        out = curout
 
-        curoutput += "\n"
-        curoutput += "Loading Dataframes\n"
-        curoutput += "{: <35} {: <80}\n".format(*[m + " load <id:abc> <newvar>", ""])
-        curoutput += "{: <35} {: <80}\n".format(*["", "id:abc - abc is the id to of the data to load (required)"])
-        curoutput += "{: <35} {: <80}\n".format(*["", "newvar is the name of the new variable to load the dataframe into (required)"])
+        out += "\n"
+        out += "### %s management line magics\n" % (m)
+        out += "---------------\n"
+        out += table_header
+        out += "| %s | Refresh the list of persisted data (helpful if you saved on a different notebook) |\n" % (m + " refresh")
+        out += "| %s | List currently persisted data |\n" % (m + " list")
+        out += "| %s | Delete a specifc persist 'id' use -conf to force no confirmation |\n" % (m + " delete 'id' [-conf]")
+        out += "| %s | Purge all persisted data older than persist_purge_days. Add -conf to do so without confirmation |\n" % (m + " purge [-conf]")
+        out += "\n\n"
 
-        return curoutput
+        out += "### %s Dataframe Saving\n" % (mq)
+        out += "---------------\n"
+        out += table_header
+        out += "| %s | Save Dataframe 'df' add -conf to auto overwrite with 'notes' on the dataframe |\n" % (mq + " save 'df' [-conf]<br>'notes'")
+        out += "| %s | Save Dataframe mydf with the notes 'Dataframe saved due to amazing findings' |\n" % (mq + " save mydf<br>Dataframe saved due to amazing findings")
+        out += "\n\n"
+
+        out += "### %s Dataframe Loading\n" % (m)
+        out += "---------------\n"
+        out += table_header
+        out += "| %s | Load persisted data with id 'id' into 'newvar' |\n" % (m + " load 'id' 'newvar'")
+        out += "| %s | Load id 8123ab into variable saved_df |\n" % (m + " load 8123ab saved_df")
+        out += "\n\n"
+
+
+        return out
+
+    def retCustomDesc(self):
+        out = "The persist addon allows you to save dataframes so it can be loaded after a kernel restart or in a different notebook"
+        return out
+
+
+
+
+
 
     def customStatus(self):
         # Todo put in information about the persisted information

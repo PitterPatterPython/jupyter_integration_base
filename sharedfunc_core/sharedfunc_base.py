@@ -315,47 +315,44 @@ class Sharedfunc(Addon):
         else:
             print("All requested modules show, even if they did not successfully import")
         self.ipy.set_next_input(outcell)
-# Display Help can be customized
-    def customHelp(self):
-        n = self.name_str
-        m = "%" + self.magic_name
+
+    def customHelp(self, curout):
+        n = self.magic_name
+        m = "%" + n
         mq = "%" + m
 
-        curoutput = self.displayAddonHelp()
-        curoutput += "\n"
-        curoutput += "jupyter integrations has a (beta) shared functions doc interface that allows you to use the magic function %s and %s to help provide in notebook documentation for shared functions\n" % (m, mq)
-        curoutput += "\n"
-        curoutput += "Documentation has two main modes %s and %s\n" % (m, mq)
-        curoutput += "%s is for interacting with specific parts of the doc help system and narrowing scope of %s queries\n" % (m, mq)
-        curoutput += "%s is for running searches and obtaining results back from shared functions\n" % (mq)
-        curoutput += "\n"
-        curoutput += "%s addon functions available\n" % m
-        curoutput += "###############################################################################################\n"
-        curoutput += "\n"
-        curoutput += "{: <30} {: <80}\n".format(*[m, "This help screen"])
-        curoutput += "{: <30} {: <80}\n".format(*[m + " mods", "List the requested modules, and their relavent information including import success"])
-        curoutput += "{: <30} {: <80}\n".format(*[m + " imports", "Show the actual import lines (in the next cell) for the successfully imported modules"])
-        curoutput += "{: <30} {: <80}\n".format(*[m + " list", "Show all documented functions handled by shared funcs"])
-        curoutput += "{: <30} {: <80}\n".format(*[m + " list <modname>", "Show all documented fucnctions in the <modname> module. (This is the alias)"])
-        curoutput += "{: <30} {: <80}\n".format(*[m + " display <funcname>", "Show the documentation for the <funcname> function as formatted in list"])
-        curoutput += "\n"
-        curoutput += "%s usage available\n" % mq
-        curoutput += "###############################################################################################\n"
-        curoutput += "%s is used to run searches across the scope provided.  Scope is provided on the same line as %s and the search terms on the next line\n" % (mq, mq)
-        curoutput += "\n"
-        curoutput += "Examples:\n"
-        curoutput += "Search for any functions related to geoip\n"
-        curoutput += "%s functions\n"
-        curoutput += "geoip\n"
-        curoutput += "\n"
-        curoutput += "Search for any functions in the sharedsec module for active directory functions\n"
-        curoutput += "%s functions sharedsec\n"
-        curoutput += "active directory\n"
-        curoutput += "\n"
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
 
-        return curoutput
+        out = curout
 
+        out += "## %s usage\n" % n
+        out += "---------------\n"
+        out += "\n"
+        out += "### %s line magic\n" % (m)
+        out += "---------------\n"
+        out += "Interacting with specfics parts of the shared function system\n\n"
+        out += table_header
+        out += "| %s | List the requested modules, and their relavent information including import success |\n" % (m + " mods")
+        out += "| %s | Show the actual import lines (in the next cell) for the successfully imported module |\n" % (m + " imports")
+        out += "| %s | Show all documented functions handled by shared funcs |\n" % (m + " list")
+        out += "| %s | Show all documented functions in the 'modname' module |\n" % (m + " list 'modname'")
+        out += "| %s | Show the documentation for the 'funcname' function as formatted in list |\n" % (m + " display 'funcname'")
+        out += "\n\n"
+        out += "### %s cell magic\n" % (mq)
+        out += "-------------------\n"
+        out += "Running searches and obtaining results back from the shared function system\n\n"
+        out += table_header
+        out += "| %s | 'scope' is the search scope (functions, modules) and the 'query' are the keywords searched |\n" % (mq + " scope<br>query")
+        out += "| %s | Search for any functions related to geoip |\n" % (mq + " functions<br>geoip")
+        out += "| %s | Search for any function in the sharedsec module for active directory |\n" % (mq + " functions sharedsec<br>active directory")
+        out += "\n"
 
+        return out
+
+    def retCustomDesc(self):
+        out = "The sharedfunc addon allows you to use the magic function %funcs to provide in notebook documentation for shared functions through a common repository"
+        return out
 
     # This is the magic name.
     @line_cell_magic

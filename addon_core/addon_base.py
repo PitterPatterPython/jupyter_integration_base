@@ -129,8 +129,8 @@ class Addon(Magics):
         bMischiefManaged = False
         # Handle all common line items or return back to the custom integration
         if line == "" or line.lower().find("help") == 0:
-            self.displayHelp()
             bMischiefManaged = True
+            self.displayMD(self.retHelp())
         elif line.lower() == "status":
             bMischiefManaged = True
             self.displayMD(self.retStatus())
@@ -216,13 +216,41 @@ class Addon(Magics):
     def customStatus(self):
         return ""
 
-##### displayHelp should only be in base. It allows a global level of customization, and then calls the custom help in each integration that's unique
-    def displayHelp(self):
-        print("***** Jupyter Addons Help System")
-        print("")
-        helptxt = self.customHelp()
-        print(helptxt)
 
+    def retHelp(self):
+        n = self.name_str
+        mn = self.magic_name
+        m = "%" + mn
+        mq = "%" + m
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
+
+
+        out = ""
+        out += "# %s - Jupyter Integrations Addon Help System\n" % m
+        out += "------------------\n"
+        out += self.retCustomDesc() + "\n\n"
+        out += "## %s line magic \n" % (m)
+        out += "---------------------\n"
+        out += "### Standard Addon Line Magics\n"
+        out += table_header
+        out += "| %s | This Help Screen |\n" % m
+        out += "| %s | Show the status of the %s addon, including variables used for config |\n" % (m + " status", m)
+        out += "| %s | Sets the internal debug flag - Used to see more verbose info on addon functionality |\n" % (m + " debug")
+        out += "| %s | Sets a the 'variable' provided to the 'value' provided |\n" % (m + " set 'variable' 'value'")
+        out += "\n\n"
+        out = self.customHelp(out)
+
+        return out
+
+    def retCustomDesc(self):
+        return "Standard Addon for as Part of Jupyter Integrations"
+
+#### This is the default custom help and should be overridden
+    def customHelp(self, curout):
+        out = curout
+        out += "Added Custom Addon Help"
+        return out
 #### displayAddonHelp this is just a default help for Addons
 
     def displayAddonHelp(self):
