@@ -68,30 +68,30 @@ class Persist(Addon):
         shell.user_ns['persist_var'] = self.creation_name
 
 
-    def listPersisted(self):
+    def retPersisted(self):
 
         # {"a88167960e644cceb6dfd1531ef2cde0": {"qtime": 1611754956, "pkl_size": 13321, "integration": "Splunk", "instance": "testing", "query": "search myterm='ff', 'notes':'some notes'} # file name is a88167960e644cceb6dfd1531ef2cde0.pkl
+        out = ""
 
-        print("Currently Persisted Data: \n")
+        out += "# Currently Persisted Data\n"
+        out += "------------------------\n"
+        out += "| Id | Saved TS | Saved Size | Int/Inst | Notes | Query |\n"
+        out += "| -- | -------  | ---------- | -------- | ----- | ----- |\n"
 
-#        curoutput += "{: <35} {: <80}\n".format(*["", "id:abc - abc is the id to of the data to load (required)"])
-
-        print("{: <10} {: <20} {: <15} {: <15}".format(*['ID', 'Save Ts', 'Saved Size', 'Int/Inst']))
         for x in self.persist_dict.keys():
             d = self.persist_dict[x]
             mytime = self.retHumanTime(d['qtime'])
             mysize = self.dispSize(d['pkl_size'])
-            myquery = d['query']
-            mynotes = d['notes']
-            myid = str(x)
-            print("-------------------------------------------------------------")
-            print("{: <10} {: <20} {: <15} {: <15}".format(*[myid[0:8], mytime, str(mysize) + ' ' + self.opts['persist_default_pkl_size'][0], d['integration'] + '/' + d['instance']]))
-            print("")
-            print("Query:\n%s" % myquery)
-            print("")
-            print("Notes: %s" % mynotes)
-            print("")
-
+            myquery = d['query'].strip().replace("\n", "<br>")
+            mynotes = d['notes'].strip().replace("\n", "<br>")
+            myid = str(x).strip()[0:8]
+            strsize = str(mysize) + " " + self.opts['persist_default_pkl_size'][0]
+            strint = d['integration'] + '/' + d['instance']
+            if strint == '/':
+                strint = "Dataframe"
+            out += "| %s | %s | %s| %s | %s | %s |\n" % (myid, mytime, strsize, strint, mynotes, myquery)
+        out += "\n\n"
+        return out
 
 
     def getPersistDictMD5(self):
@@ -407,7 +407,7 @@ class Persist(Addon):
                 print("cell: %s" % cell)
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip() == "list":
-                    self.listPersisted()
+                    self.displayMD(self.retPersisted())
                 elif line.lower().strip() == "refresh":
                     self.loadPersistedDict()
                 elif line.lower().find("delete") == 0:
