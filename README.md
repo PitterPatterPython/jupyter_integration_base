@@ -36,8 +36,15 @@ Jupyter integrations proivide two main abstractions
   - This should just work with Conda 3.8 or greater
 - Pip 
   - Not yet created - TODO
-- Docker
-  - Not yet create - TODO
+- Docker (based on Conda as of now)
+  - pull this repo
+  - `cd docker`
+  - `./build.sh conda`
+  - Edit the start.sh file. 
+    - Change the NOTEBOOKDIR variable to your Notebook folder (or home folder)
+    - You can change the ENV_FILE location, but it defaults to your home directory if you have a mac, change it if you need too (it will create this file for you)
+  - run `./start.sh`
+    - It will show you the URL to go to
 
 
 
