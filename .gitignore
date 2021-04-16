@@ -12,3 +12,5 @@ dist
 dist/*
 dist/**
 build
+*.env
+**.env
