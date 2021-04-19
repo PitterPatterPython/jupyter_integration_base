@@ -9,7 +9,20 @@ ENV_FILE="/Users/${USER}/jupyter_integration_data_sources.env"
 ########################
 # Advanced Variables, probably don't need to change these
 
-MYTYPE="conda"
+MYTYPE="$1"
+
+if [ "${MYTYPE}" == "conda" ]; then
+    CMD="/root/start_jupyter.sh"
+    DHOME="/root"
+elif [ "${MYTYPE}" == "stacks" ]; then
+    CMD=""
+    DHOME="/home/jovyan"
+else
+    echo "Must pass stacks or conda to this script"
+    exit 1
+fi
+
+
 PORT="8888"
 IMG="integrations_${MYTYPE}:latest"
 
@@ -23,11 +36,7 @@ if [ ! -f "$ENV_FILE" ]; then
     cp ${ENV_TEMPLATE} ${ENV_FILE}
 fi
 
-ID=$(docker run -d -p${PORT}:8888 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:/root/notebooks ${IMG} /root/start_jupyter.sh)
+docker run -p${PORT}:8888 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:${DHOME}/notebooks ${IMG} ${CMD}
 
-echo "Waiting for Start"
-sleep 5
-
-docker logs $ID
 
 
