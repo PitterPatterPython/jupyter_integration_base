@@ -36,7 +36,7 @@ if [ ! -f "$ENV_FILE" ]; then
     cp ${ENV_TEMPLATE} ${ENV_FILE}
 fi
 
-docker run -p${PORT}:8888 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:${DHOME}/notebooks ${IMG} ${CMD}
+docker run -p${PORT}:8888 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:${DHOME}/Notebooks ${IMG} ${CMD}
 
 
 
