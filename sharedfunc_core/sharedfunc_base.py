@@ -2,6 +2,7 @@
 
 # Base imports for all integrations, only remove these at your own risk!
 import json
+import textwrap
 import sys
 import os
 import time
@@ -30,7 +31,6 @@ class Sharedfunc(Addon):
 
     custom_allowed_set_opts = ['sharedfunc_max_full_results', 'sharedfunc_ver_check_delta']
 
-
     myopts = {}
     myopts['sharedfunc_max_full_results'] = [1, "When searching, if your results are above this number it only returns the function name and keywords, otherwise it returns full description"]
     myopts['sharedfunc_ver_check_delta'] = [86400, "Number of seconds between version checks - 86400 is one day."]
@@ -51,9 +51,12 @@ class Sharedfunc(Addon):
 
         self.addon_evars += ["_url_"]
 
-        self.load_env(self.custom_evars)
+        self.load_env(self.custom_evars) # Called in addon core - Should make it so mods are generic. 
         shell.user_ns['sharedfunc_var'] = self.creation_name
 
+        self.init_mods()
+        
+    def init_mods(self):
         for m in self.mods:
             mloaded = False
             load_error = ""
@@ -211,21 +214,39 @@ class Sharedfunc(Addon):
         return sScore
 
 
-    def handleSearch(self, c, l):
+    def handleSearch(self, l, c):
         if self.debug:
             print("Line: %s" % l)
             print("Cell: %s" % c)
-        myScore = self.searchFuncs(l, c)
+        myScore = self.searchFuncs(c, l)
         if self.debug:
             print("Raw myScore: %s" % myScore)
         sortedScore = dict(sorted(myScore.items(), key=lambda item: item[1][1], reverse=True))
-        pFull = True
-        if len(sortedScore.keys()) > self.opts['sharedfunc_max_full_results'][0]:
-            pFull = False
+        out = ""
+        out += "## Function Search Results\n"
+        out += "------------\n"
+        out += "### Search Term: %s\n" % c.strip()
+        out += "----------------\n"
         for x in sortedScore.keys():
-            print("%s - Score: %s" % (x, sortedScore[x][1]))
-            if pFull:
-                self.displayFunc(x)
+            out += "<details>\n<summary>%s - Score: %s</summary>\n\n" % (x, sortedScore[x][1]) 
+            out += self.retSingleFunc(x)
+            out += "</details>\n\n"
+
+#        out += "| Search Score | Module | Name | Full Name | Desc | Keywords |\n"
+#        out += "| ------------ | ------ | ---- | --------- | ---- | -------- |\n"
+#        for x in sortedScore.keys():
+#            out += "| %s | %s | %s | %s | %s | %s |\n" % (sortedScore[x][1], x.split(",")[0], self.gflat[x]['name'], x, "<br>".join(textwrap.wrap(self.gflat[x]['description'], 40)), self.gflat[x]['keywords'])
+        out += "\n\n"
+        return out
+
+
+ #       pFull = True
+ #       if len(sortedScore.keys()) > self.opts['sharedfunc_max_full_results'][0]:
+ #           pFull = False
+ #       for x in sortedScore.keys():
+ #           print("%s - Score: %s" % (x, sortedScore[x][1]))
+ #           if pFull:
+ #               self.displayFunc(x)
 
     def flatfuncs(self, troot, basename):
         tret = {}
@@ -238,6 +259,64 @@ class Sharedfunc(Addon):
             tb = basename + "." + c
             tret.update(self.flatfuncs(troot['children'][c], tb))
         return tret
+
+
+    def retSingleFunc(self, fname):
+        f = self.gflat[fname]
+        modalias = fname.split(".")[0]
+        modname = self.mods[modalias]['realname']
+
+        out = ""
+        out += "## %s\n" % fname
+        out += "-----------------\n"
+        out += "`import %s as %s`\n\n" % (modname, modalias)
+        out += "| Author | Keywords |\n"
+        out += "| --- | ---- |\n"
+        out += "| %s | %s |\n" % (f['authors'], f['keywords'])
+        out += "\n\n"
+        out += "%s\n\n" % f['description']
+        out += "#### Arguments\n---------\n"
+        out += "| Name | Type | Req/Opt | Desc |\n"
+        out += "| ---- | ---- | ------- | ---- |\n"
+        for a in f['args']:
+            out += "| %s | %s | %s | %s |\n" % (a[0], a[1], a[2], "<br>".join(textwrap.wrap(a[3],  40)))
+        out += "\n\n"
+        out += "#### Returns\n----------\n"
+        out += "| Type | Desc |\n"
+        out += "| ---- | ---- |\n"
+        for r in f['returns']:
+            out += "| %s | %s |\n" % (r[0], r[1])
+        out += "\n\n"
+        out += "#### Usage:\n---------\n"
+        out += "```\n%s\n```\n" % (f['usage'])
+        out += "\n\n"
+
+        return out
+
+
+    def displayFuncs(self, fname):
+        #self.displayFunc(line.replace("display", "").strip())
+
+        out = ""
+        out += "# Function Display\n"
+        out += "----------\n"
+
+        found = []
+        if fname in self.gflat.keys():
+            found.append(fname)
+        else:
+            for n in self.gflat.keys():
+                if fname == self.gflat[n]['name']:
+                    found.append(n)
+        out += "%s Functions Returned that match search term: %s\n\n" % (len(found), fname)
+        for f in found:
+            out += self.retSingleFunc(f)
+
+        if out [-2:0] != "\n\n":
+            out += "\n\n"
+
+        return out
+
 
     def displayFunc(self, fname):
 
@@ -270,6 +349,24 @@ class Sharedfunc(Addon):
             print(f['usage'])
             print("")
 
+
+    def retFuncs(self, mod):
+        if mod == "":
+            tmod = None
+        else:
+            tmod = mod
+        out = ""
+        out += "# Function Listing\n"
+        out += "--------------\n"
+        out += "Module Filter: %s\n\n" % tmod
+        out += "| Module | Name | Full Name | Desc | Keywords |\n"
+        out += "| ------ | ---- | --------- | ---- | -------- |\n"
+        for m in self.gflat.keys():
+            if tmod is None or m.find(tmod) == 0:
+                out += "| %s | %s | %s | %s | %s |\n" % (m.split(".")[0], self.gflat[m]['name'], self.gflat[m]['fullname'], "<br>".join(textwrap.wrap(self.gflat[m]['description'], 40)), self.gflat[m]['keywords'])
+        out += "\n\n"
+        return out
+
     def listFuncs(self, mod):
         if mod == "":
             tmod = "None"
@@ -281,6 +378,24 @@ class Sharedfunc(Addon):
         for m in self.gflat.keys():
             if tmod == "None" or m.find(tmod) == 0:
                 print(m)
+
+    def fixOut(self, instr):
+        out = instr.strip().replace("\n", "<br>")
+        return out
+
+    def retMods(self):
+        out = ""
+        out += "# Modules Defined in Environment\n"
+        out += "--------------\n"
+
+        table_header =  "| Module | Loaded As | Imported | Import Message | Import Ver | Repo URL | Repo Ver |\n"
+        table_header += "| ------ | --------- | -------- | -------------- | ---------- | -------- | -------- |\n"
+        out += table_header
+        for m in self.mods.keys():
+            tmod = self.mods[m]
+            out += "| %s | %s | %s | %s | %s | %s | %s |\n" % (m, tmod['realname'], tmod['imported'], self.fixOut(tmod['import_msg']), tmod['import_ver'], tmod['url'], tmod['url_ver'])
+        out += "\n\n"
+        return out
 
     def listmods(self):
         print("")
@@ -333,8 +448,8 @@ class Sharedfunc(Addon):
         out += "---------------\n"
         out += "Interacting with specfics parts of the shared function system\n\n"
         out += table_header
-        out += "| %s | List the requested modules, and their relavent information including import success |\n" % (m + " mods")
-        out += "| %s | Show the actual import lines (in the next cell) for the successfully imported module |\n" % (m + " imports")
+        out += "| %s | List the requested modules, and their relavent information including import status |\n" % (m + " mods")
+        out += "| %s | Show the actual import lines (in the next cell) for the successfully imported modules |\n" % (m + " imports")
         out += "| %s | Show all documented functions handled by shared funcs |\n" % (m + " list")
         out += "| %s | Show all documented functions in the 'modname' module |\n" % (m + " list 'modname'")
         out += "| %s | Show the documentation for the 'funcname' function as formatted in list |\n" % (m + " display 'funcname'")
@@ -343,9 +458,9 @@ class Sharedfunc(Addon):
         out += "-------------------\n"
         out += "Running searches and obtaining results back from the shared function system\n\n"
         out += table_header
-        out += "| %s | 'scope' is the search scope (functions, modules) and the 'query' are the keywords searched |\n" % (mq + " scope<br>query")
-        out += "| %s | Search for any functions related to geoip |\n" % (mq + " functions<br>geoip")
-        out += "| %s | Search for any function in the sharedsec module for active directory |\n" % (mq + " functions sharedsec<br>active directory")
+        out += "| %s | 'scope' is the search scope (name, kw, desc, author) (can provide multiple, leave blank for all) and the 'query' are the keywords searched |\n" % (mq + " scope<br>query")
+        out += "| %s | Search for any functions related to geoip |\n" % (mq + "<br>geoip")
+        out += "| %s | Search for any function where the description has  active directory |\n" % (mq + " desc<br>active directory")
         out += "\n"
 
         return out
@@ -365,16 +480,19 @@ class Sharedfunc(Addon):
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.find("mods") == 0:
-                    self.listmods()
+                    self.displayMD(self.retMods())
+#                    self.listmods()
                 elif line.find("list") == 0:
-                    self.listFuncs(line.replace("list", "").strip())
+                    self.displayMD(self.retFuncs(line.replace("list", "").strip()))
+#                    self.listFuncs(line.replace("list", "").strip())
                 elif line.find("imports") == 0:
                     self.showActiveImports(line)
                 elif line.find("display") == 0:
-                    self.displayFunc(line.replace("display", "").strip())
+#                    self.displayFunc(line.replace("display", "").strip())
+                    self.displayMD(self.displayFuncs(line.replace("display", "").strip()))
                 else:
                     print("Unknown line magic for funcs")
         else: # This is a cell (or a cell + line) call
-            self.handleSearch(line, cell)
+            self.displayMD(self.handleSearch(line, cell))
 
 
