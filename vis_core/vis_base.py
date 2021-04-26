@@ -548,7 +548,7 @@ class Vis(Addon):
 
         tstorloc = self.opts['vis_addon_dir'][0]
         if tstorloc[0] == "~":
-            myhome = self.getHome()
+            myhome = jiu.getHome(debug=self.debug)
             thome = tstorloc.replace("~", myhome)
             if self.debug:
                 print(thome)

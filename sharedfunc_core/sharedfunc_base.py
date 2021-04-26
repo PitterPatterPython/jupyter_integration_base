@@ -96,7 +96,7 @@ class Sharedfunc(Addon):
     def check_mod_ver(mod):
         tstorloc = self.opts['sharedfunc_addon_dir'][0]
         if tstorloc[0] == "~":
-            myhome = self.getHome()
+            myhome = jiu.getHome(debug=self.debug)
             thome = tstorloc.replace("~", myhome)
             if self.debug:
                 print(thome)

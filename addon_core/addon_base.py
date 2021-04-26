@@ -148,23 +148,23 @@ class Addon(Magics):
             pass
         return bMischiefManaged
 
-    def getHome(self):
-        home = ""
-        if "HOME" in os.environ:
-            if self.debug:
-                print("HOME Found")
-            home = os.environ["HOME"]
-        elif "USERPROFILE" in os.environ:
-            if self.debug:
-                print("USERPROFILE Found")
-            home = os.environ["USERPROFILE"]
-        else:
-            print("Home not found - Defaulting to ''")
-        if home[-1] == "/" or home[-1] == "\\":
-            home = home[0:-1]
-        if self.debug:
-            print("Home: %s" % home)
-        return home
+   # def getHome(self):
+   #     home = ""
+   #     if "HOME" in os.environ:
+   #         if self.debug:
+   #             print("HOME Found")
+   #         home = os.environ["HOME"]
+   #     elif "USERPROFILE" in os.environ:
+   #         if self.debug:
+   #             print("USERPROFILE Found")
+   #         home = os.environ["USERPROFILE"]
+   #     else:
+   #         print("Home not found - Defaulting to ''")
+   #     if home[-1] == "/" or home[-1] == "\\":
+   #         home = home[0:-1]
+   #     if self.debug:
+   #         print("Home: %s" % home)
+   #     return home
 
     #def displayMD(self, md):
     #    display(Markdown(md))
