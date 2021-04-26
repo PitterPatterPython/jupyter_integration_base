@@ -256,11 +256,6 @@ class Integration(Magics):
             instance = self.opts[self.name_str + "_conn_default"][0]
         instance = instance.strip().replace('"', '')
 
-        req_pass = self.req_password(instance)
-        req_user = self.req_username(instance)
-        req_otp = self.req_otp(instance)
-        if self.debug:
-            print("req_user: %s - req_pass: %s" % (req_user, req_pass))
 
         if instance not in self.instances.keys() or prompt == True:
             print("Instance %s not found or prompt requested, adding and connecting" % instance)
@@ -271,6 +266,15 @@ class Integration(Magics):
             self.fill_instance(instance, tconn_url)
             self.parse_instances(parse_inst=instance)
 
+
+        req_pass = self.req_password(instance)
+        req_user = self.req_username(instance)
+        req_otp = self.req_otp(instance)
+        if self.debug:
+            print("req_user: %s - req_pass: %s" % (req_user, req_pass))
+
+
+
         inst = self.instances[instance]
 
         if inst['connected'] == False:
@@ -278,9 +282,11 @@ class Integration(Magics):
                 print("User not specified in env %s%s_CONN_URL_%s or user override requested" % (self.env_pre, self.name_str.upper(), instance.upper()))
                 tuser = input("Please type user name if desired: ")
                 inst['user'] = tuser
-            
-            print("Connecting as user %s" % inst['user'])
-            print("")
+            if inst['user'] is None or inst['user'] == "":
+                myuser = "none"
+            else:
+                myuser = inst['user']
+            jiu.displayMD("Connecting to instance **%s** as **%s**\n\n" % (instance, myuser))
 
             if ((inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True) and req_pass == True:
                 print("Please enter the password for the %s instance that you wish to connect with:" % instance)
@@ -305,15 +311,13 @@ class Integration(Magics):
 
             if result == 0:
                 inst["connected"] = True
-                print("%s - %s Connected!" % (self.name_str.capitalize(), inst['conn_url']))
+                jiu.displayMD("**%s - Connected** - %s\n\n" % (self.name_str.capitalize(), inst['conn_url']))
             else:
                 inst['connect_pass'] = None
-                print("")
-                print("Connection Error - Error Code: %s" % result)
+                jiu.displayMD("## Connection Error\n--------\nConnection Error Code: %s\n\n" % result)
 
         elif inst['connected'] == True:
-            print(self.name_str.capitalize() + " instance " + instance + " is already connected - Please type %" + self.name_str + " for help on what you can you do")
-
+            jiu.displayMD("%s instance %s is already connected." % (self.name_str.capitalize(), instance))
         if inst['connected'] != True:
             self.disconnect(instance=instance)
 
@@ -456,12 +460,6 @@ class Integration(Magics):
         else:
             pass
         return bMischiefManaged
-###############################
-    # TODO - Remove these after code review - Need to check active integrations for them
-    def displayMD(self, md):
-        display(Markdown(md))
-
-
 
 
 
@@ -498,39 +496,41 @@ class Integration(Magics):
                     bPersist = True
                 else:
                     print("Unknown line data beyond instance name, ignoring")
+        if instance in self.instances:
+            
 
-
-        if self.opts['m_replace_crlf_lf'][0] == True:
-            cell = cell.replace("\r\n", "\n")
-        if self.opts['m_replace_a0_20'][0] == True:
-            cell = cell.replace("\xa0", " ")
-        if self.instances[instance]['connected'] == False:
-            if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None or self.req_password(instance) == False:
-                self.connect(instance)
-        if self.instances[instance]['connected'] == True:
-            result_df, qtime, status = self.runQuery(cell, instance)
-            if status.find("Failure") == 0:
-                print("Error from instance %s: %s" % (instance, status))
-            elif status.find("Other: ") == 0:
-                print("Non Query Results:\n" + status.replace("Other: ", ""))
-            elif status.find("Success - No Results") == 0:
-                print("No Results from instance: %s - returned in %s seconds" % (instance, qtime))
-            elif status.find("ValidationError") == 0:
-                print("Validation Error from instance %s" % instance)
+            if self.opts['m_replace_crlf_lf'][0] == True:
+                cell = cell.replace("\r\n", "\n")
+            if self.opts['m_replace_a0_20'][0] == True:
+                cell = cell.replace("\xa0", " ")
+            if self.instances[instance]['connected'] == False:
+                if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None or self.req_password(instance) == False:
+                    self.connect(instance)
+            if self.instances[instance]['connected'] == True:
+                result_df, qtime, status = self.runQuery(cell, instance)
+                if status.find("Failure") == 0:
+                    print("Error from instance %s: %s" % (instance, status))
+                elif status.find("Other: ") == 0:
+                    print("Non Query Results:\n" + status.replace("Other: ", ""))
+                elif status.find("Success - No Results") == 0:
+                    print("No Results from instance: %s - returned in %s seconds" % (instance, qtime))
+                elif status.find("ValidationError") == 0:
+                    print("Validation Error from instance %s" % instance)
+                else:
+                    self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
+                    if bPersist:
+                        if "persist_var" in self.ipy.user_ns:
+                            persisted_id = self.ipy.user_ns[self.ipy.user_ns["persist_var"]].persistData(result_df, notes=sPersist, integration=integration, instance=instance, query=cell, confirm=True)
+                            print("Query Persisted with ID: %s" % persisted_id)
+                        else:
+                            print("persist_var is not found in the ipy user name space, you will need to instantiate the persistance core for this to work")
+                            print("Warning: Your query was NOT persisted")
+                    display_var = self.ipy.user_ns['display_var']
+                    self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
             else:
-                self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
-                if bPersist:
-                    if "persist_var" in self.ipy.user_ns:
-                        persisted_id = self.ipy.user_ns[self.ipy.user_ns["persist_var"]].persistData(result_df, notes=sPersist, integration=integration, instance=instance, query=cell, confirm=True)
-                        print("Query Persisted with ID: %s" % persisted_id)
-                    else:
-                        print("persist_var is not found in the ipy user name space, you will need to instantiate the persistance core for this to work")
-                        print("Warning: Your query was NOT persisted")
-                display_var = self.ipy.user_ns['display_var']
-                self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
+                print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
         else:
-            print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
-
+            print("Provided Instance: %s not found in defined instances" % instance)
 
     def setPass(self, line):
         instance = line.replace("setpass", "").strip()
