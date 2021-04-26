@@ -751,15 +751,21 @@ class Integration(Magics):
         mn = self.magic_name
         m = "%" + mn
         mq = "%" + m
+        def_instance =  self.opts[self.name_str + "_conn_default"][0]
 
         out = ""
         out += "# %s instances\n" % n
         out += "---------------\n"
-        out += "| instance | conn_url | connected | last_query | options |\n"
-        out += "| -------- | -------- | --------- | ---------- | ------- |\n"
+        out += "| default | instance | conn_url | connected | last_query | options |\n"
+        out += "| ------- | -------- | -------- | --------- | ---------- | ------- |\n"
         for i in self.instances.keys():
             inst = self.instances[i]
-            out += "| %s | %s | %s | %s | %s |\n" % (i,inst['conn_url'], inst['connected'], inst['last_query'], inst['options'])
+            mydef = False
+            if i == def_instance:
+                mydef = True
+            else:
+                mydef = False
+            out += "| %s | %s | %s | %s | %s | %s |\n" % (mydef, i, inst['conn_url'], inst['connected'], inst['last_query'], inst['options'])
         return out
 
 
