@@ -15,6 +15,7 @@ from IPython.core.display import HTML
 from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
 import ipywidgets as widgets
 
+import jupyter_integrations_utility as jiu
 
 # nameing code
 import traceback, threading, time
@@ -152,7 +153,6 @@ class Integration(Magics):
     def print_creation_info(self):
         print(self.creation_name, self.creation_module, self.creation_function,
                 self.creation_line, self.creation_text, sep=", ")
-
 
 #### End Name code
 
@@ -390,8 +390,6 @@ class Integration(Magics):
         retval = False
         return retval
 
-    def displayMD(self, md):
-        display(Markdown(md))
 
 ##### This is the base integration for line magic (single %), it handles the common items, and if the magic isn't common, it sends back to the custom integration to handle
     def handleLine(self, line):
@@ -402,10 +400,10 @@ class Integration(Magics):
         # Handle all common line items or return back to the custom integration
         if line == "" or line.lower().find("help") == 0:
             bMischiefManaged = True
-            self.displayMD(self.retHelp())
+            jiu.displayMD(self.retHelp())
         elif line.lower() == "status":
             bMischiefManaged = True
-            self.displayMD(self.retStatus())
+            jiu.displayMD(self.retStatus())
         elif line.lower() == "progquery":
             self.displayProgQueryHelp()
             bMischiefManaged = True
@@ -415,7 +413,7 @@ class Integration(Magics):
             bMischiefManaged = True
         elif line.lower() == "instances":
             bMischiefManaged = True
-            self.displayMD(self.retInstances())
+            jiu.displayMD(self.retInstances())
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
             self.setPass(line)
@@ -458,6 +456,11 @@ class Integration(Magics):
         else:
             pass
         return bMischiefManaged
+###############################
+    # TODO - Remove these after code review - Need to check active integrations for them
+    def displayMD(self, md):
+        display(Markdown(md))
+
 
 
 

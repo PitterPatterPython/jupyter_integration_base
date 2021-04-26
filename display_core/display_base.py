@@ -13,6 +13,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, li
 from IPython.core.display import HTML
 from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
 import pandas as pd
+import jupyter_integrations_utility as jiu
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 

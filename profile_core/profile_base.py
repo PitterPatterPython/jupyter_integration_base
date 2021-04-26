@@ -14,7 +14,7 @@ from IPython.display import display_html, display, Markdown, Javascript, FileLin
 import pandas as pd
 # Widgets
 from ipywidgets import GridspecLayout, widgets
-
+import jupyter_integrations_utility as jiu
 try:
     from pandas_profiling import ProfileReport
 except:

@@ -18,6 +18,7 @@ from IPython.display import display_html, display, Markdown, Javascript, FileLin
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 
+import jupyter_integrations_utility as jiu
 
 # nameing code
 import traceback, threading, time
@@ -61,6 +62,8 @@ class Addon(Magics):
     # We get the self ipy, we set session to None, and we load base_integration level environ variables.
 
     def __init__(self, shell, debug=False, *args, **kwargs):
+        # Try here
+
         self.debug = debug
         super(Addon, self).__init__(shell)
         self.ipy = shell
@@ -130,10 +133,10 @@ class Addon(Magics):
         # Handle all common line items or return back to the custom integration
         if line == "" or line.lower().find("help") == 0:
             bMischiefManaged = True
-            self.displayMD(self.retHelp())
+            jiu.displayMD(self.retHelp())
         elif line.lower() == "status":
             bMischiefManaged = True
-            self.displayMD(self.retStatus())
+            jiu.displayMD(self.retStatus())
         elif line.lower() == "debug":
             print("Toggling Debug from %s to %s" % (self.debug, not self.debug))
             self.debug = not self.debug
@@ -163,8 +166,8 @@ class Addon(Magics):
             print("Home: %s" % home)
         return home
 
-    def displayMD(self, md):
-        display(Markdown(md))
+    #def displayMD(self, md):
+    #    display(Markdown(md))
 
 #### retStatus should not be altered this should only exist in the base integration
     def retStatus(self):

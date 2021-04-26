@@ -19,7 +19,7 @@ from IPython.display import display_html, display, Markdown, Javascript, FileLin
 import pandas as pd
 # Widgets
 from ipywidgets import GridspecLayout, widgets
-
+import jupyter_integrations_utility as jiu
 
 from addon_core import Addon
 
@@ -407,7 +407,7 @@ class Persist(Addon):
                 print("cell: %s" % cell)
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip() == "list":
-                    self.displayMD(self.retPersisted())
+                    jiu.displayMD(self.retPersisted())
                 elif line.lower().strip() == "refresh":
                     self.loadPersistedDict()
                 elif line.lower().find("delete") == 0:

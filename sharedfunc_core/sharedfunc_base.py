@@ -15,7 +15,7 @@ from IPython.display import display_html, display, Markdown, Javascript, FileLin
 import pandas as pd
 # Widgets
 from ipywidgets import GridspecLayout, widgets
-
+import jupyter_integrations_utility as jiu
 import importlib
 
 from addon_core import Addon
@@ -480,19 +480,19 @@ class Sharedfunc(Addon):
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.find("mods") == 0:
-                    self.displayMD(self.retMods())
+                    jiu.displayMD(self.retMods())
 #                    self.listmods()
                 elif line.find("list") == 0:
-                    self.displayMD(self.retFuncs(line.replace("list", "").strip()))
+                    jiu.displayMD(self.retFuncs(line.replace("list", "").strip()))
 #                    self.listFuncs(line.replace("list", "").strip())
                 elif line.find("imports") == 0:
                     self.showActiveImports(line)
                 elif line.find("display") == 0:
 #                    self.displayFunc(line.replace("display", "").strip())
-                    self.displayMD(self.displayFuncs(line.replace("display", "").strip()))
+                    jiu.displayMD(self.displayFuncs(line.replace("display", "").strip()))
                 else:
                     print("Unknown line magic for funcs")
         else: # This is a cell (or a cell + line) call
-            self.displayMD(self.handleSearch(line, cell))
+            jiu.displayMD(self.handleSearch(line, cell))
 
 

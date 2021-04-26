@@ -24,6 +24,8 @@ RUN jupyter labextension install --dev-build=True @jupyter-widgets/jupyterlab-ma
     jupyter labextension install --dev-build=True ipysheet && \
     conda clean --all -f -y && npm cache clean --force && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
 
+
+
 RUN git clone https://github.com/johnomernik/jupyter_integration_base && cd jupyter_integration_base && python setup.py install && cd .. && rm -rf ./jupyter_integration_base
 RUN git clone https://github.com/johnomernik/jupyter_splunk && cd jupyter_splunk && python setup.py install && cd .. && rm -rf ./jupyter_splunk
 RUN git clone https://github.com/johnomernik/jupyter_drill && cd jupyter_drill && python setup.py install && cd .. && rm -rf ./jupyter_drill
@@ -34,6 +36,10 @@ RUN git clone https://github.com/johnomernik/jupyter_tera && cd jupyter_tera && 
 RUN git clone https://github.com/johnomernik/jupyter_es && cd jupyter_es && python setup.py install && cd .. && rm -rf ./jupyter_es
 RUN git clone https://github.com/johnomernik/jupyter_mysql && cd jupyter_mysql && python setup.py install && cd .. && rm -rf ./jupyter_mysql
 RUN git clone https://github.com/johnomernik/jupyter_taxii && cd jupyter_taxii && python setup.py install && cd .. && rm -rf ./jupyter_taxii
+
+# Include this to show shared module functions.  You can remove this with a comment, or just comment out the shared module load in your ENV
+RUN git clone https://github.com/johnomernik/sharedmod && cd sharedmod && python setup.py install && cd .. && rm -rf ./sharedmod
+
 
 ADD startup_files.sh /home/${NB_USER}
 RUN /home/${NB_USER}/startup_files.sh
