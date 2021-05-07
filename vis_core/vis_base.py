@@ -136,7 +136,7 @@ class Vis(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
-        shell.user_ns['vis_var'] = self.creation_name
+#        shell.user_ns['vis_var'] = self.creation_name
         # Run the Plotly code in the user_ns
         runcode = "try:\n    import plotly.graph_objects as go\n    import plotly.express as px\nexcept:\n    pass\n"
         shell.ex(runcode)

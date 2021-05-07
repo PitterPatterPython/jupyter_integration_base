@@ -45,7 +45,7 @@ class Profile(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
-        shell.user_ns['profile_var'] = self.creation_name
+#        shell.user_ns['profile_var'] = self.creation_name
 
         runcode = "try:\n    from pandas_profiling import ProfileReport\nexcept:\n    pass\n"
         runres = shell.ex(runcode)

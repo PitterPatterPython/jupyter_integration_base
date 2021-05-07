@@ -65,7 +65,7 @@ class Persist(Addon):
         self.load_env(self.custom_evars)
         self.loadPersistedDict()
 
-        shell.user_ns['persist_var'] = self.creation_name
+        #shell.user_ns['persist_var'] = self.creation_name
 
 
     def retPersisted(self):

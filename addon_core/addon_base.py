@@ -68,10 +68,10 @@ class Addon(Magics):
         super(Addon, self).__init__(shell)
         self.ipy = shell
         self.load_env(self.global_evars)
-        if 'jupyter_loaded_addons' not in shell.user_ns:
-            shell.user_ns['jupyter_loaded_addons'] = [self.magic_name]
-        else:
-            shell.user_ns['jupyter_loaded_addons'].append(self.magic_name)
+#        if 'jupyter_loaded_addons' not in shell.user_ns:
+#            shell.user_ns['jupyter_loaded_addons'] = [self.magic_name]
+#        else:
+#            shell.user_ns['jupyter_loaded_addons'].append(self.magic_name)
 
         # Begin Know your own name Name Code
         for frame, line in traceback.walk_stack(None):
@@ -93,6 +93,10 @@ class Addon(Magics):
             traceback.extract_stack(frame, 1)[0]
         self.creation_name = self.creation_text.split("=")[0].strip()
         threading.Thread(target=self._check_existence_after_creation).start()
+        ##
+        if 'jupyter_loaded_addons' not in shell.user_ns:
+            shell.user_ns['jupyter_loaded_addons'] = {}
+        shell.user_ns['jupyter_loaded_addons'][self.name_str] = self.creation_name
 
 
     def _check_existence_after_creation(self):
@@ -148,26 +152,6 @@ class Addon(Magics):
             pass
         return bMischiefManaged
 
-   # def getHome(self):
-   #     home = ""
-   #     if "HOME" in os.environ:
-   #         if self.debug:
-   #             print("HOME Found")
-   #         home = os.environ["HOME"]
-   #     elif "USERPROFILE" in os.environ:
-   #         if self.debug:
-   #             print("USERPROFILE Found")
-   #         home = os.environ["USERPROFILE"]
-   #     else:
-   #         print("Home not found - Defaulting to ''")
-   #     if home[-1] == "/" or home[-1] == "\\":
-   #         home = home[0:-1]
-   #     if self.debug:
-   #         print("Home: %s" % home)
-   #     return home
-
-    #def displayMD(self, md):
-    #    display(Markdown(md))
 
 #### retStatus should not be altered this should only exist in the base integration
     def retStatus(self):
@@ -368,29 +352,6 @@ class Addon(Magics):
 
 
 
-#    def load_env(self, evars):
-
-#        for v in [self.name_str + i for i in self.addon_evars] + evars:
- #           ev = self.env_pre + v.upper()
-  #          if ev[-1] != "_": # Normal EV - put in options
-   #             if self.debug:
-    #                print("Trying to load: %s" % ev)
-     #           if ev in os.environ:
-      #              tvar = self.remove_ev_quotes(os.environ[ev])
-      #              if self.debug:
-      #                  print("Loaded %s as %s" % (ev, tvar))
-      #              self.opts[v][0] = tvar
-      #          else:
-      #              if self.debug:
-      #                  print("Could not load %s" % ev)
-      #      elif ev[-1] == "_":  # This is a per instance variable.
-      #          base_var = v[0:-1].replace(self.name_str + "_", "")
-      #          for e in os.environ:
-      #              if e.find(ev) == 0:
-      #                  tval = self.remove_ev_quotes(os.environ[e])
-      #                  mod = e.replace(ev, "").lower()
-      #                  if base_var == "url":
-      #                      self.fill_mods(mod, tval)
 
 
 

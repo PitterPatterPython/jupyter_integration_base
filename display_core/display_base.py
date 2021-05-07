@@ -87,7 +87,7 @@ class Display(Addon):
         if self.opts['display_pd_display_grid'][0] == 'html':
             self.opts['display_pd_display_grid'][0] = display_pd_display_grid
 
-        shell.user_ns['display_var'] = self.creation_name
+        #shell.user_ns['display_var'] = self.creation_name
 
 
 

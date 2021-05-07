@@ -5,6 +5,7 @@ import json
 import sys
 import os
 import time
+import textwrap
 from collections import OrderedDict
 import requests
 from copy import deepcopy
@@ -41,7 +42,7 @@ class Helloworld(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
-        shell.user_ns['helloworld_var'] = self.creation_name
+#        shell.user_ns['helloworld_var'] = self.creation_name
 
 
     def listIntsAdsMD(self):
@@ -49,22 +50,39 @@ class Helloworld(Addon):
         myout += "\n"
         myout += "Additional help for each integration and addon can be found by running the magic string for each integration or addon\n"
         myout += "\n"
-        myout += "### Installed Integrations:\n"
+        myout += "### Installed Integrations and Addons\n"
         myout += "---------------\n"
-        myout += "| %s | %s |\n" % ("Integration", "Integration Loaded")
-        myout += "| ------ | ------ |\n"
-        for integration in self.ipy.user_ns['jupyter_loaded_integrations']:
-            m = "%" + integration
-            myout += "| %s | %s |\n" % (m, str(True))
-        myout += "\n"
+        myout += "| Integration | Desc |   | Addon | Desc |\n"
+        myout += "| ------ | ------ | --- | ----- | ---------|\n"
 
-        myout += "### Installed Addons:\n"
-        myout += "---------------\n"
-        myout += "| %s | %s |\n" % ("Addon", "Addon Loaded")
-        myout += "| ------ | ------ |\n"
-        for addon in self.ipy.user_ns['jupyter_loaded_addons']:
-            m = "%" + addon
-            myout += "| %s | %s |\n" % (m, str(True))
+        myints = list(self.ipy.user_ns['jupyter_loaded_integrations'].keys())
+        myadds = list(self.ipy.user_ns['jupyter_loaded_addons'].keys())
+        for i in range(max(len(myints), len(myadds))):
+            try:
+                cn = self.ipy.user_ns['jupyter_loaded_integrations'][myints[i]]
+                mn = self.ipy.user_ns[cn].magic_name
+                myintdesc = self.ipy.user_ns[cn].retCustomDesc()
+                myintdesc = "<br>".join(textwrap.wrap(myintdesc, 40))
+
+                myint = "%" + mn
+                myintstatus = str(True)
+            except:
+                myint = " "
+                myintstatus = " "
+                myintdesc = " "
+
+            try:
+                cn = self.ipy.user_ns['jupyter_loaded_addons'][myadds[i]]
+                mn = self.ipy.user_ns[cn].magic_name
+                myadddesc = self.ipy.user_ns[cn].retCustomDesc()
+                myadddesc = "<br>".join(textwrap.wrap(myadddesc, 40))
+                myadd = "%" + mn
+                myaddstatus = str(True)
+            except:
+                myadd = " "
+                myaddstatus = " "
+                myadddesc = " "
+            myout += "| %s | %s |   | %s | %s|\n" % (myint, myintdesc, myadd, myadddesc)
         myout += "\n"
         return myout
 

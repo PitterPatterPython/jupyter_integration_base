@@ -97,10 +97,10 @@ class Integration(Magics):
         self.check_req_addons()
         if self.magic_name == "":
             self.magic_name = self.name_str
-        if 'jupyter_loaded_integrations' not in shell.user_ns:
-            shell.user_ns['jupyter_loaded_integrations'] = [self.name_str]
-        else:
-            shell.user_ns['jupyter_loaded_integrations'].append(self.name_str)
+#        if 'jupyter_loaded_integrations' not in shell.user_ns:
+#            shell.user_ns['jupyter_loaded_integrations'] = [self.name_str]
+#        else:
+#            shell.user_ns['jupyter_loaded_integrations'].append(self.name_str)
 
         # Begin Name Code
         for frame, line in traceback.walk_stack(None):
@@ -122,7 +122,9 @@ class Integration(Magics):
             traceback.extract_stack(frame, 1)[0]
         self.creation_name = self.creation_text.split("=")[0].strip()
         threading.Thread(target=self._check_existence_after_creation).start()
-
+        if 'jupyter_loaded_integrations' not in shell.user_ns:
+            shell.user_ns['jupyter_loaded_integrations'] = {}
+        shell.user_ns['jupyter_loaded_integrations'][self.name_str] = self.creation_name
 
     def _check_existence_after_creation(self):
         while self._outer_frame.f_lineno == self.creation_line:
@@ -158,8 +160,10 @@ class Integration(Magics):
 
     def check_req_addons(self):
         for addon in self.req_addons:
-            chk = addon + "_var"
-            if chk not in self.ipy.user_ns:
+            chk = addon
+            if 'jupyter_loaded_addons' not in self.ipy.user_ns:
+                self.ipy.user_ns['jupyter_loaded_addons'] = {}
+            if chk not in self.ipy.user_ns['jupyter_loaded_addons'].keys():
                 if self.debug:
                     print("%s not found in user_ns - Running" % chk)
                 objname = addon.capitalize()
@@ -519,13 +523,14 @@ class Integration(Magics):
                 else:
                     self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
                     if bPersist:
-                        if "persist_var" in self.ipy.user_ns:
-                            persisted_id = self.ipy.user_ns[self.ipy.user_ns["persist_var"]].persistData(result_df, notes=sPersist, integration=integration, instance=instance, query=cell, confirm=True)
+                        if "persist" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+                            persist_var = self.ipy.user_ns['jupyter_loaded_addons']['persist']
+                            persisted_id = self.ipy.user_ns[persist_var].persistData(result_df, notes=sPersist, integration=integration, instance=instance, query=cell, confirm=True)
                             print("Query Persisted with ID: %s" % persisted_id)
                         else:
-                            print("persist_var is not found in the ipy user name space, you will need to instantiate the persistance core for this to work")
+                            print("persist is not found in the ipy user name space for jupyter_loaded_addons, You will need to instantiate the persistance core for this to work")
                             print("Warning: Your query was NOT persisted")
-                    display_var = self.ipy.user_ns['display_var']
+                    display_var = self.ipy.user_ns['jupyter_loaded_addons']['display']
                     self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
             else:
                 print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
@@ -642,12 +647,14 @@ class Integration(Magics):
         print("Required Addon Status:")
         print("{: <30} {: <30}".format(*["Addon", "Addon Loaded"]))
         for addon in self.req_addons:
-            chk = addon + "_var"
+            chk = addon 
             bFound = False
-            if chk in self.ipy.user_ns:
-                m = '%' + self.ipy.user_ns[self.ipy.user_ns[chk]].magic_name
-                bFound = True
-                print("{: <30} {: <30}".format(*[m, str(bFound)]))
+            if chk in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+                cn = self.ipy.user_ns['jupyter_loaded_integrations'][chk]
+                mn = self.ipy.user_ns[cn].magic_name
+                myadd = "%" + mn
+                myaddstatus = str(True)
+                print("{: <30} {: <30}".format(*[myadd, myaddstatus]))
         print("")
         self.customHelp()
 

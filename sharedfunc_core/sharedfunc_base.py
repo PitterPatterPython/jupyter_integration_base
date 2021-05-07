@@ -52,7 +52,7 @@ class Sharedfunc(Addon):
         self.addon_evars += ["_url_"]
 
         self.load_env(self.custom_evars) # Called in addon core - Should make it so mods are generic. 
-        shell.user_ns['sharedfunc_var'] = self.creation_name
+#        shell.user_ns['sharedfunc_var'] = self.creation_name
 
         self.init_mods()
         
