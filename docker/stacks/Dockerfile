@@ -1,5 +1,6 @@
 
-ARG BASE_CONTAINER=jupyter/scipy-notebook:latest
+ARG BASE_CONTAINER=jupyter/scipy-notebook:72915260caf3
+
 
 FROM $BASE_CONTAINER
 
@@ -14,7 +15,7 @@ RUN conda install --quiet --yes -c plotly plotly=4.14.3 && \
 RUN conda install -c conda-forge --quiet --yes elasticsearch pymysql=0.10.1 pyarrow ipysheet tabulate && \
     conda clean --all -f -y && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
 
-RUN pip install --quiet --no-cache-dir stix2 taxii2-client splunk-sdk==1.6.13 pandas-profiling yahoo-fin && \
+RUN pip install --quiet --no-cache-dir stix2 taxii2-client splunk-sdk==1.6.13 pandas-profiling yahoo-fin stockstats && \
     fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
 
 RUN ipython profile create && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
