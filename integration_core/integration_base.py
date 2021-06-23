@@ -521,6 +521,19 @@ class Integration(Magics):
                 elif status.find("ValidationError") == 0:
                     print("Validation Error from instance %s" % instance)
                 else:
+                    dcols = {}
+                    outcols = []
+                    for ci in range(len(list(result_df.columns))):
+                        cn = result_df.columns[ci]
+                        if cn in dcols:
+                            dcols[cn] += 1
+                            ren_idx = dcols[cn]
+                            rencol = "%s_%s" % (cn, ren_idx)
+                            outcols.append(rencol)
+                        else:
+                            dcols[cn] = 0
+                            outcols.append(cn)
+                    result_df.columns = outcols
                     self.ipy.user_ns['prev_' + self.name_str + "_" + instance] = result_df
                     if bPersist:
                         if "persist" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
