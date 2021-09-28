@@ -220,11 +220,22 @@ class Persist(Addon):
         else:
             storage = self.retStorageMethod()
             fname = myid + "." + storage
+            if not os.path.isfile(self.persisted_data_dir / fname):
+                if storage == 'parq':
+                    fname = myid + ".pkl"
+                    if os.path.isfile(self.persisted_data_dir / fname):
+                        storage = "pkl"
+                    else:
+                        print("ID found but storage file not found in parq or pkl - Error")
+                        return None
+                else:
+                    print("ID found by storage file not found in pkl - Error")
+                    return None
             if storage == "pkl":
                 r = open(self.persisted_data_dir / fname, 'rb')
                 mydf = pickle.load(r)
                 r.close()
-            elif storage == "arrow":
+            elif storage == "parq":
                 tmp_arrow = pq.read_table(self.persisted_data_dir / fname)
                 mydf = tmp_arrow.to_pandas()
                 tmp_arrow = None
@@ -388,7 +399,9 @@ class Persist(Addon):
         if mydfstr in self.ipy.user_ns.keys() and self.ipy.user_ns[mydfstr] is not None:
             print("Cannot load dataframe as %s because that variable exists and is not None in the namespace, please pick another" % mydfstr)
         else:
-            self.ipy.user_ns[mydfstr] =  self.loadPersistedDF(myid)
+            tdf = self.loadPersistedDF(myid)
+            if tdf is not None:
+                self.ipy.user_ns[mydfstr] = tdf
 
 
 
