@@ -22,6 +22,13 @@ from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 
 
+try:
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+except:
+    pass
+
+
 
 from addon_core import Addon
 
