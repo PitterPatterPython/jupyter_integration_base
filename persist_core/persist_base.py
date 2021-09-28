@@ -157,7 +157,7 @@ class Persist(Addon):
         f.close()
 
 
-    def retStorageMethod():
+    def retStorageMethod(self):
         if self.arrow_support and self.opts['persist_use_arrow'][0] == 1:
             if self.debug:
                 print("Saving with pyarrow")
