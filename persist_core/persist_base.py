@@ -21,10 +21,21 @@ import pandas as pd
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 
+
+
 from addon_core import Addon
 
 @magics_class
 class Persist(Addon):
+
+    arrow_support = False
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        arrow_support = True
+    except:
+        pass
+
     # Static Variables
 
     magic_name = "persist"
@@ -41,6 +52,7 @@ class Persist(Addon):
     # p[t['item'][1] is a description of the option and it's use for built in description.
 
     myopts = {}
+    myopts['persist_use_arrow'] = [1, "Use PyArrow if supported, otherwise default to pickle"]
     myopts['persist_purge_days'] = [60, "Number of days to keep queries before purge events occur"]
     myopts['persist_default_pkl_size'] = ['KB', "Units to show pickle sizes in. Defaults to KB (kilobytes), Supported: B, KB, MB"]
     myopts['persist_purge_data_only'] = [0, "When purging, only purge data, full records of df only, just the data part of queries (retain the query)"]
@@ -138,19 +150,47 @@ class Persist(Addon):
 
 
     def savePersisted(self):
+        # Ok for Arrow
         f = open(self.persist_dict_pkl, 'wb')
         # TODO Handle Merges
         pickle.dump(self.persist_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
         f.close()
 
-    def saveData(self, myid, mydf):
-        fname = myid + ".pkl"
 
-        sfile = self.persisted_data_dir / fname
-        f = open(sfile, 'wb')
-        pickle.dump(mydf, f, protocol=pickle.HIGHEST_PROTOCOL)
-        f.close()
-        mysize = os.path.getsize(sfile)
+    def retStorageMethod():
+        if self.arrow_support and self.opts['persist_use_arrow'][0] == 1:
+            if self.debug:
+                print("Saving with pyarrow")
+            storage_method = "parq"
+        elif self.opts['persist_use_arrow'][0] == 1 and not self.arrow_support:
+            print("Option to save with arrow selected, however arrow modules not loaded - falling back to savintg with pickle")
+            storage_method = "pkl"
+        else:
+            if self.debug:
+                print("Option selected to save with pickle")
+            save_method = "pkl"
+        return storage_method
+
+    def saveData(self, myid, mydf):
+        # Updated for Arrow
+        storage = self.retStorageMethod()
+
+        fname = myid + "." + storage
+        if storage == 'pkl':
+            sfile = self.persisted_data_dir / fname
+            f = open(sfile, 'wb')
+            pickle.dump(mydf, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.close()
+            mysize = os.path.getsize(sfile)
+        elif storage == 'parq':
+            tmp_arrow = pa.Table.from_pandas(mydf)
+            pq.write_table(tmp_arrow, sfile)
+            mysize = os.path.getsize(sfile)
+            tmp_arrow = None
+        else:
+            print("Unknown storage: %s" % storage)
+            mysize = 0
+
         return mysize
 
     def lookupID(self, id):
@@ -163,18 +203,24 @@ class Persist(Addon):
 
 
     def loadPersistedDF(self, myid):
+        # Updated for arrow
         mydf = None
-
         myid = self.lookupID(myid)
 
         if myid not in self.persist_dict.keys():
             print("The id %s not found in currently persisted data" % myid)
             mydf = None
         else:
-            fname = myid + ".pkl"
-            r = open(self.persisted_data_dir / fname, 'rb')
-            mydf = pickle.load(r)
-            r.close()
+            storage = self.retStorageMethod()
+            fname = myid + "." + storage
+            if storage == "pkl":
+                r = open(self.persisted_data_dir / fname, 'rb')
+                mydf = pickle.load(r)
+                r.close()
+            elif storage == "arrow":
+                tmp_arrow = pq.read_table(self.persisted_data_dir / fname)
+                mydf = tmp_arrow.to_pandas()
+                tmp_arrow = None
         return mydf
 
     def loadPersistedDict(self):
@@ -207,6 +253,7 @@ class Persist(Addon):
             print(self.persist_dict)
 
     def deletePersisted(self, line):
+        # Updated for arrow
         bConf = False
         tid = line.replace("delete", "").strip()
         tidar = tid.split(" ")
@@ -226,7 +273,9 @@ class Persist(Addon):
                 if dval.lower().strip() == "delete":
                     bConf = True
             if bConf:
-                dfile =  myid + ".pkl"
+                storage = self.retStorageMethod()
+
+                dfile =  myid + "." + storage
                 os.remove(self.persisted_data_dir / dfile)
                 del self.persist_dict[myid]
                 self.savePersisted()
@@ -329,8 +378,8 @@ class Persist(Addon):
             print("ID: %s" % myid)
             print("Var: %s" % mydfstr)
 
-        if mydfstr in self.ipy.user_ns.keys():
-            print("Cannot load dataframe as %s because that variable exists in the namespace, please pick another" % mydfstr)
+        if mydfstr in self.ipy.user_ns.keys() and self.ipy.user_ns[mydfstr] is not None:
+            print("Cannot load dataframe as %s because that variable exists and is not None in the namespace, please pick another" % mydfstr)
         else:
             self.ipy.user_ns[mydfstr] =  self.loadPersistedDF(myid)
 
@@ -381,10 +430,6 @@ class Persist(Addon):
         return out
 
 
-
-
-
-
     def customStatus(self):
         # Todo put in information about the persisted information
         out = ""
@@ -410,6 +455,7 @@ class Persist(Addon):
                     jiu.displayMD(self.retPersisted())
                 elif line.lower().strip() == "refresh":
                     self.loadPersistedDict()
+                    jiu.displayMD(self.retPersisted())
                 elif line.lower().find("delete") == 0:
                     self.deletePersisted(line)
                 elif line.lower().find("purge") == 0:
