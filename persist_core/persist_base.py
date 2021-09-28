@@ -183,8 +183,9 @@ class Persist(Addon):
         storage = self.retStorageMethod()
 
         fname = myid + "." + storage
+        sfile = self.persisted_data_dir / fname
+
         if storage == 'pkl':
-            sfile = self.persisted_data_dir / fname
             f = open(sfile, 'wb')
             pickle.dump(mydf, f, protocol=pickle.HIGHEST_PROTOCOL)
             f.close()
