@@ -292,15 +292,33 @@ class Persist(Addon):
                 if dval.lower().strip() == "delete":
                     bConf = True
             if bConf:
-                storage = self.retStorageMethod()
-
-                dfile =  myid + "." + storage
-                os.remove(self.persisted_data_dir / dfile)
-                del self.persist_dict[myid]
-                self.savePersisted()
-                print("Deleted Persisted data with ID %s" % myid)
+                del_result = self.deleteID(myid)
             else:
                 print("Persisted Data removal canceled by not typing delete")
+
+    def deleteID(self, myid):
+
+        storage = self.retStorageMethod()
+        dfile =  myid + "." + storage
+        if not os.path.isfile(self.persisted_data_dir / fname):
+            if storage == 'parq':
+                fname = myid + ".pkl"
+                if os.path.isfile(self.persisted_data_dir / fname):
+                    storage = "pkl"
+                else:
+                    print("ID found but storage file not found in parq or pkl - Error")
+                    return False
+            else:
+                print("ID found by storage file not found in pkl - Error")
+                return False
+        os.remove(self.persisted_data_dir / dfile)
+        del self.persist_dict[myid]
+        self.savePersisted()
+        print("Deleted Persisted data with ID %s" % myid)
+        return True
+
+
+
     def purgePersist(self, line):
         bConf = False
         if line.find("-conf") >= 0:
