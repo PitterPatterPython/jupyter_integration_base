@@ -299,7 +299,7 @@ class Persist(Addon):
     def deleteID(self, myid):
 
         storage = self.retStorageMethod()
-        dfile =  myid + "." + storage
+        fname =  myid + "." + storage
         if not os.path.isfile(self.persisted_data_dir / fname):
             if storage == 'parq':
                 fname = myid + ".pkl"
