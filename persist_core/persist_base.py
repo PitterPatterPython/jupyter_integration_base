@@ -311,7 +311,7 @@ class Persist(Addon):
             else:
                 print("ID found by storage file not found in pkl - Error")
                 return False
-        os.remove(self.persisted_data_dir / dfile)
+        os.remove(self.persisted_data_dir / fname)
         del self.persist_dict[myid]
         self.savePersisted()
         print("Deleted Persisted data with ID %s" % myid)
