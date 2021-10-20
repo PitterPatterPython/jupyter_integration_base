@@ -216,6 +216,8 @@ class Display(Addon):
     def parse_df(self, line):
         tvar = line.strip()
         mydf = None
+        dot_df = False
+        sq_df = False
         if tvar in self.ipy.user_ns:
         # if it exists in the user namespace
             mydf = self.ipy.user_ns[tvar]
