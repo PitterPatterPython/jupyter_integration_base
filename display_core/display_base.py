@@ -234,6 +234,8 @@ class Display(Addon):
                 dot_var = tvar.split(".")[0]
                 if isinstance(self.ipy.user_ns[dot_var], pd.DataFrame):
                     dot_df = True
+                    if self.debug:
+                        print("%s passed the dot test" % dot_var)
             except:
                 pass
             if not dot_df:
@@ -243,6 +245,8 @@ class Display(Addon):
                     sq_var = tvar.split("[")[0]
                     if isinstance(self.ipy.user_ns[sq_var], pd.DataFrame):
                         sq_df = True
+                        if self.debug:
+                            print("%s passed the square bracket test" % sq_var)
                 except:
                     pass
             if sq_df or dot_df:
@@ -250,9 +254,15 @@ class Display(Addon):
                     tmpdf = eval(tvar)
                     if isinstance(tmpdf, pd.DataFrame):
                         mydf = tmpdf
-                except:
+                    else:
+                        print("We were able to process, but it didn't produce a dataframe")
+                        print("What we processed: %s" % tvar)
+                        print("What it produced: %s" % type(tmpdf))
+                        mydf = None
+                except Exception as e:
                     print("Could not evaluate the following code into a Dataframe - Not Displaying")
                     print(tvar)
+                    print("Error: %s" % str(e))
                     mydf = None
         return mydf
 
