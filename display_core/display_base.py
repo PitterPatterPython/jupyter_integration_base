@@ -213,6 +213,60 @@ class Display(Addon):
             else:
                 print("%s display type not supported" % display_type)
 
+    def parse_df(self, line):
+        tvar = line.strip()
+        mydf = None
+        if tvar in self.ipy.user_ns:
+        # if it exists in the user namespace
+            mydf = self.ipy.user_ns[tvar]
+            if isinstance(mydf, pd.DataFrame):
+                pass
+            else:
+                print("%s exists but is not a Pandas Data frame - Not Displaying" % varname)
+                print("Type: %s" % type(mydf))
+                mydf = None
+        else:
+            # First try to split based on . and see if the first thing is a dataframe in the user namespace
+            dot_df = False
+            try:
+                dot_var = tvar.split(".")[0]
+                if isinstance(self.ipy.user_ns[dot_var], pd.DataFrame):
+                    dot_df = True
+            except:
+                pass
+            if not dot_df:
+                # If mydf. isn't in the card, let's also check for filtering ( mydf[mydf[ )
+                sq_df = False
+                try:
+                    sq_var = tvar.split("[")[0]
+                    if isinstance(self.ipy.user_ns[sq_var], pd.DataFrame):
+                        sq_df = True
+                except:
+                    pass
+            if sq_df or dot_df:
+                try:
+                    tmpdf = eval(tvar)
+                    if isinstance(tmpdf, pd.DataFrame):
+                        mydf = tmpdf
+                except:
+                    print("Could not evaluate the following code into a Dataframe - Not Displaying")
+                    print(tvar)
+                    mydf = None
+        return mydf
+
+
+    def line_display(self, line):
+        if line.lower().find("display") == 0:
+            line = line.replace("display", "").strip()
+        curdf = self.parse_df(line)
+        if curdf is not None:
+            self.displayDF(curdf)
+        else:
+            print("Could not identifiable dataframe from provided %display magic submission")
+            print("Provided value must be a dataframe that exists in the namespace, or evalute to a dataframe")
+            print("Please see %display for help")
+
+
     # This is the magic name.
     @line_cell_magic
     def display(self, line, cell=None):
@@ -223,24 +277,6 @@ class Display(Addon):
                 print("line: %s" % line)
                 print("cell: %s" % cell)
             if not line_handled: # We based on this we can do custom things for integrations. 
-                if line.lower().find("display") == 0:
-                    varname = line.replace("display", "").strip()
-                    mydf = None
-                    try:
-                        mydf = self.ipy.user_ns[varname]
-                        if isinstance(mydf, pd.DataFrame):
-                            pass
-                        else:
-                            print("%s exists but is not a Pandas Data frame - Not Displaying" % varname)
-                            mydf = None
-                    except:
-                        print("%s does not exist in user namespace - Not Displaying" % varname)
-                        mydf = None
-                    if mydf is not None:
-                        self.displayDF(mydf)
-                elif line.strip() in self.ipy.user_ns:
-                    self.display("display " + line)
-                else:
-                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
+                self.line_display(line)
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
             print("No Cell data activities")
