@@ -57,6 +57,12 @@ echo "from taxii_core import Taxii" > $CUR
 echo "myTaxii = Taxii${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(myTaxii)" >> $CUR
 
+CUR="${SU}19_oracle.py"
+echo "Creating $CUR"
+echo "from oracle_core import Oracle" > $CUR
+echo "myOracle = Oracle${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(myOracle)" >> $CUR
+
 echo "Startup Files Complete"
 
 echo "trying this"

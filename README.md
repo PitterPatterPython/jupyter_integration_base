@@ -27,28 +27,11 @@ Jupyter integrations proivide two main abstractions
 - All queries are also returned to a Pandas Dataframe ready to be used programatically as desired. 
 
 
+## EASIEST PATH TO GETTING STARTED
+------
+- go to the docker folder
+- Read the README
 
-
-## Environment Setup
-
-- Conda
-  - Please look in bootstrap/ for conda_bootstrap.sh
-  - This should just work with Conda 3.8 or greater
-- Pip 
-  - Not yet created - TODO
-- Docker (based on Conda as of now)
-  - pull this repo
-  - `cd docker`
-  - `./build.sh conda`
-  - Edit the start.sh file. 
-    - Change the NOTEBOOKDIR variable to your Notebook folder (or home folder)
-    - You can change the ENV_FILE location, but it defaults to your home directory if you have a mac, change it if you need too (it will create this file for you)
-  - run `./start.sh`
-    - It will show you the URL to go to
-
-
-
-## Please see bootstrap folder for all the requirements
 
 ## Getting Started:
 - When installed, please start via the script in ~/yourenvname.sh

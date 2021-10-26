@@ -1,0 +1,26 @@
+
+ARG BASE_CONTAINER=jupyter/scipy-notebook:72915260caf3
+
+
+FROM $BASE_CONTAINER
+
+USER $NB_UID
+
+ENV JIVERSION=stacks_1.0.3
+
+
+RUN conda install --quiet --yes qgrid pyodbc lxml openpyxl html5lib plotly && \
+    conda clean --all -f -y && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
+
+#RUN conda install --quiet --yes -c plotly && \
+#    conda clean --all -f -y && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
+
+RUN conda install -c conda-forge --quiet --yes elasticsearch pymysql=0.10.1 pyarrow ipysheet tabulate && \
+    conda clean --all -f -y && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
+
+RUN pip install --quiet --no-cache-dir stix2 taxii2-client splunk-sdk==1.6.13 pandas-profiling fugue[sql] jupyter-packaging tldextract yahoo-fin stockstats && \
+    fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
+
+RUN ipython profile create && fix-permissions "${CONDA_DIR}" && fix-permissions "/home/${NB_USER}"
+
+

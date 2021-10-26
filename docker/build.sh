@@ -2,57 +2,63 @@
 
 MYTYPE="$1"
 
-if [ -d ./${MYTYPE} ]; then
-    echo "We good"
+MYDFILE="Dockerfile_${MYTYPE}"
 
+
+
+if [ -f ./${MYDFILE} ]; then
+    echo "Found Dockerfile for $MYTYPE - Continuing"
 else
-    echo "Type $MYTYPE not supported"
+    echo "Type $MYTYPE does not have an associated dockerfile"
+    exit 1
+fi
+
+FULL_VERSION=`grep JIVERSION ${MYDFILE} |sed  "s/ENV JIVERSION=//"`
+
+VERSION=`echo -n ${FULL_VERSION}|sed "s/${MYTYPE}_//"`
+BASE_TAG="integrations_base_${MYTYPE}:$VERSION"
+
+FINAL_TAG="jupyter_integrations_${MYTYPE}:$VERSION"
+
+
+echo "MYTYPE: $MYTYPE"
+echo "MYDFILE: $MYDFILE"
+echo "FULL_VERSION: $FULL_VERSION"
+echo "VERSION: $VERSION"
+echo "BASE_TAG: $BASE_TAG"
+echo "FINAL_TAG: $FINAL_TAG"
+
+cp $MYDFILE ./Dockerfile
+
+docker build -t ${BASE_TAG} .
+
+if [ $? -eq 0 ]; then
+    echo "Complete with base build - Proceeding to Integrations Build"
+    rm ./Dockerfile
+else
+    echo "Base build for $MYTYPE failed - exiting"
     exit 1
 fi
 
 
-cp ./startup_files.sh ./$MYTYPE
-cd $MYTYPE
-docker build -t integrations_${MYTYPE}:latest .
-rm ./startup_files.sh
-cd ..
-cat > jupyter_integration_data_sources_template.env << EOF
-# We try to load a file at $HOME/.jupyter_integration_data_sources
-# This is a shell script just like this one, but allows for a shared list of data sources
+sed "s/~~SRCIMAGE~~/${BASE_TAG}/" Dockerfile_jupyter_integrations > Dockerfile1
 
-JUPYTER_DISPLAY_PD_DISPLAY_GRID="qgrid"
-JUPYTER_PERSIST_ADDON_DIR="/root/notebooks/persistdata"
-
-JUPYTER_TAXII_CONN_URL_MITRE="https://cti-taxii.mitre.org:443?path=/taxii/&authreq=0"
-JUPYTER_TAXII_CONN_DEFAULT="mitre"
-
-# Example Drill
-# The Instance name is embed
-# And we set the Drill integration default to be embded
-# JUPYTER_DRILL_CONN_URL_EMBED="http://drill@localhost:8047?drill_embedded=1"
-# JUPYTER_DRILL_CONN_DEFAULT="embed"
-
-# We included a Splunk connection - but it's commented out - Updated the User(splunkuser) and host (splunkhost) if you want to use 
-# The splunk instance name is mainsplunk, and it's set to be the default
-# I included a different example splunk instance named othersplunk.
-
-# JUPYTER_SPLUNK_CONN_URL_MAINSPLUNK="splunk://splunkuser@splunkhost:8089"
-# JUPYTER_SPLUNK_CONN_URL_OTHERSPLUNK="splunk://splunkuser@othersplunkhost:8089"
-# JUPYTER_SPLUNK_CONN_DEFAULT="mainsplunk"
-
-# Here is an example mysql connection
-# They are commented out, I provided two, intel and events. Uncomment, the exports and update as needed
-# JUPYTER_MYSQL_CONN_URL_INTEL="mysql://myuser@myintelhost:3306"
-# JUPYTER_MYSQL_CONN_URL_EVENTS="mysql://myuser@myeventhost:3306"
-# JUPYTER_MYSQL_CONN_DEFAULT="intel"
-
-# Example Elastic Search
-# JUPYTER_ES_CONN_URL_LOCAL="http://192.168.0.85:9200?no_auth=1"
-# JUPYTER_ES_CONN_DEFAULT="local"
+if [ "${MYTYPE}" == "stacks" ]; then
+    sed "s/RUN \/root\/startup_files\.sh//" Dockerfile1 > Dockerfile
+    rm  Dockerfile1
+else
+    mv Dockerfile1 Dockerfile
+fi
 
 
-# Example Shared Function loaded as "mymod"
-# JUPYTER_SHAREDFUNC_URL_MYMOD="mymod@https://raw.githubusercontent.com/JohnOmernik/sharedmod/main/mymod/_funcdocs.py"
+docker build -t ${FINAL_TAG} .
 
+if [ $? -eq 0 ]; then
+    echo "Final Build Complete"
+    docker tag ${FINAL_TAG} jupyter_integrations_${MYTYPE}:latest
+    rm ./Dockerfile
+else
+    echo "Final Build for $MYTYPE failed - exiting"
+    exit 1
+fi
 
-EOF
