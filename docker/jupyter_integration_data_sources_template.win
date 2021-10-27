@@ -1,0 +1,39 @@
+-- This is a shell script just like this one, but allows for a shared list of data sources
+
+SET JUPYTER_DISPLAY_PD_DISPLAY_GRID="qgrid"
+SET JUPYTER_PERSIST_ADDON_DIR="/root/notebooks/persistdata"
+
+SET JUPYTER_TAXII_CONN_URL_MITRE="https://cti-taxii.mitre.org:443?path=/taxii/&authreq=0"
+SET JUPYTER_TAXII_CONN_DEFAULT="mitre"
+
+SET JUPYTER_ENABLE_LAB=yes
+
+-- Example Drill
+-- The Instance name is embed
+-- And we set the Drill integration default to be embded
+-- SET JUPYTER_DRILL_CONN_URL_EMBED="http://drill@localhost:8047?drill_embedded=1"
+-- SET JUPYTER_DRILL_CONN_DEFAULT="embed"
+
+-- We included a Splunk connection - but it's commented out - Updated the User(splunkuser) and host (splunkhost) if you want to use 
+-- The splunk instance name is mainsplunk, and it's set to be the default
+-- I included a different example splunk instance named othersplunk.
+
+-- SET JUPYTER_SPLUNK_CONN_URL_MAINSPLUNK="splunk://splunkuser@splunkhost:8089"
+-- SET JUPYTER_SPLUNK_CONN_URL_OTHERSPLUNK="splunk://splunkuser@othersplunkhost:8089"
+-- SET JUPYTER_SPLUNK_CONN_DEFAULT="mainsplunk"
+
+-- Here is an example mysql connection
+-- They are commented out, I provided two, intel and events. Uncomment, the exports and update as needed
+-- SET JUPYTER_MYSQL_CONN_URL_INTEL="mysql://myuser@myintelhost:3306"
+-- SET JUPYTER_MYSQL_CONN_URL_EVENTS="mysql://myuser@myeventhost:3306"
+-- SET JUPYTER_MYSQL_CONN_DEFAULT="intel"
+
+-- Example Elastic Search
+-- SET JUPYTER_ES_CONN_URL_LOCAL="http://192.168.0.85:9200?no_auth=1"
+-- SET JUPYTER_ES_CONN_DEFAULT="local"
+
+
+-- Example Shared Function loaded as "mymod"
+-- SET JUPYTER_SHAREDFUNC_URL_MYMOD="mymod@https://raw.githubusercontent.com/JohnOmernik/sharedmod/main/mymod/_funcdocs.py"
+
+
