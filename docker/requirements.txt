@@ -69,7 +69,7 @@ pyarrow
 pycparser
 pygments
 pyopenssl
-pymysql=0.10.1
+pymysql==0.10.1
 pyrsistent
 pysocks
 python-dateutil
