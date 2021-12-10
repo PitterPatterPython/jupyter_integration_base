@@ -505,6 +505,9 @@ class Integration(Magics):
                         bPersist = True
                     else:
                         print("Unknown line data beyond instance name, ignoring")
+            else:
+                instance = self.opts[self.name_str + "_conn_default"][0]
+                bPersist = False
         if instance in self.instances:
             if self.opts['m_replace_crlf_lf'][0] == True:
                 cell = cell.replace("\r\n", "\n")
