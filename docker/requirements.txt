@@ -110,3 +110,5 @@ yahoo_fin
 fugue[sql]
 tldextract
 build
+usaddress
+nameparser

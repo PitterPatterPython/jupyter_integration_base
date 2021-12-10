@@ -473,12 +473,16 @@ class Integration(Magics):
         sPersist = ""
         tPersist = ""
         instance = ""
+        bDisplay = True
         integration = self.name_str
         if line is None or line == "":
             instance = self.opts[self.name_str + "_conn_default"][0]
             bPersist = False
         else:
-            arline = line.split(" ")
+            if line.find("-d") >= 0:
+                bDisplay = False
+                line = line.replace("-d", "")
+            arline = [l.strip() for l in line.split(" ") if l.strip() != ""]
             if len(arline) == 1:
                 tline = arline[0].strip()
                 if tline.find("p:") == 0:
@@ -501,8 +505,6 @@ class Integration(Magics):
                 else:
                     print("Unknown line data beyond instance name, ignoring")
         if instance in self.instances:
-            
-
             if self.opts['m_replace_crlf_lf'][0] == True:
                 cell = cell.replace("\r\n", "\n")
             if self.opts['m_replace_a0_20'][0] == True:
@@ -543,8 +545,12 @@ class Integration(Magics):
                         else:
                             print("persist is not found in the ipy user name space for jupyter_loaded_addons, You will need to instantiate the persistance core for this to work")
                             print("Warning: Your query was NOT persisted")
-                    display_var = self.ipy.user_ns['jupyter_loaded_addons']['display']
-                    self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
+                    if bDisplay:
+                        display_var = self.ipy.user_ns['jupyter_loaded_addons']['display']
+                        self.ipy.user_ns[display_var].displayDF(result_df, instance, qtime)
+                    else:
+                        if self.debug:
+                            print("No display requested")
             else:
                 print(self.name_str.capitalize() + " instance " + instance + " is not connected: Please see help at %" + self.name_str)
         else:
