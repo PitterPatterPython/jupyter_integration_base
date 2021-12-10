@@ -36,7 +36,8 @@ class Display(Addon):
                               'display_pd_display_idx', 'display_pd_max_colwidth', 'display_pd_display.max_columns', 'display_pd_display_grid',
                               'display_max_rows',
                               'display_qg_header_autofit', 'display_qg_header_pad', 'display_qg_colmin', 'display_qg_colmax', 'display_qg_text_factor',
-                              'display_qg_autofit_cols', 'display_qg_defaultColumnWidth', 'display_qg_minVisibleRows', 'display_qg_maxVisibleRows', 'display_qg_display_idx'
+                              'display_qg_autofit_cols', 'display_qg_defaultColumnWidth', 'display_qg_minVisibleRows', 'display_qg_maxVisibleRows', 'display_qg_display_idx',
+                              'display_qg_rowHeight'
                             ]
 
     pd_set_vars = ['display_pd_display.max_columns', 'display_pd_max_colwidth']
@@ -56,6 +57,7 @@ class Display(Addon):
     myopts['display_qg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
     myopts['display_qg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
     myopts['display_qg_defaultColumnWidth'] = [200, 'The default column width when using qgrid']
+    myopts['display_qg_rowHeight'] = [28, 'The default row heigh']
     myopts['display_qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid - This affects the height of the widget']
     myopts['display_qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid - This affects the height of the widget']
     myopts['display_qg_display_idx'] = [False, "Display the Pandas Index with qgrid output"]
@@ -123,7 +125,7 @@ class Display(Addon):
             max_rows = def_max_rows
             min_rows = mycnt + 2
 
-        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['display_qg_defaultColumnWidth'][0])}
+        mygridopts = {'forceFitColumns': False, 'maxVisibleRows': max_rows, 'rowHeight': int(self.opts['display_qg_rowHeight'][0]), 'minVisibleRows': min_rows, 'defaultColumnWidth': int(self.opts['display_qg_defaultColumnWidth'][0])}
         mycoldefs = {}
 
         # Determine Index width
