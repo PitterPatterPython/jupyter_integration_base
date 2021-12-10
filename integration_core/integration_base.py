@@ -481,29 +481,30 @@ class Integration(Magics):
         else:
             if line.find("-d") >= 0:
                 bDisplay = False
-                line = line.replace("-d", "")
-            arline = [l.strip() for l in line.split(" ") if l.strip() != ""]
-            if len(arline) == 1:
-                tline = arline[0].strip()
-                if tline.find("p:") == 0:
-                    instance = self.opts[self.name_str + "_conn_default"][0]
-                    bPersist = True
-                    sPersist = tline.replace("p:", "")
+                line = line.replace("-d", "").strip()
+            if line != "":
+                arline = [l.strip() for l in line.split(" ") if l.strip() != ""]
+                if len(arline) == 1:
+                    tline = arline[0].strip()
+                    if tline.find("p:") == 0:
+                        instance = self.opts[self.name_str + "_conn_default"][0]
+                        bPersist = True
+                        sPersist = tline.replace("p:", "")
+                    else:
+                        instance = tline
+                        bPersist = False
                 else:
-                    instance = tline
-                    bPersist = False
-            else:
-                if arline[0].strip().find("p:") == 0:
-                    tPersist = line
-                    instance = self.opts[self.name_str + "_conn_default"][0]
-                else:
-                    instance = arline[0].strip()
-                    tPersist = line.replace(instance, "").strip()
-                if tPersist.find("p:") >= 0:
-                    sPersist = tPersist.replace("p:", "").strip()
-                    bPersist = True
-                else:
-                    print("Unknown line data beyond instance name, ignoring")
+                    if arline[0].strip().find("p:") == 0:
+                        tPersist = line
+                        instance = self.opts[self.name_str + "_conn_default"][0]
+                    else:
+                        instance = arline[0].strip()
+                        tPersist = line.replace(instance, "").strip()
+                    if tPersist.find("p:") >= 0:
+                        sPersist = tPersist.replace("p:", "").strip()
+                        bPersist = True
+                    else:
+                        print("Unknown line data beyond instance name, ignoring")
         if instance in self.instances:
             if self.opts['m_replace_crlf_lf'][0] == True:
                 cell = cell.replace("\r\n", "\n")
