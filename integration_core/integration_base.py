@@ -330,12 +330,13 @@ class Integration(Magics):
                     tpass = ""
                     self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
                     tpass = self.ipy.user_ns['tpass']
+                    del self.ipy.user_ns['tpass']
+
 
                 tencpass = self.ret_enc_pass(tpass)
             # TODO This should be removed once all integrations support the encrypted password, otherwise, we keep it the same as it was
                 inst['connect_pass'] = tpass
                 inst['enc_pass'] = tencpass
-                del self.ipy.user_ns['tpass']
                 del tpass
                 del tencpass
 
