@@ -259,7 +259,7 @@ class Integration(Magics):
         else:
             print("NamedPW not installed - there be problems")
             return None
-        enc_PW = namedpw_var.enc_PW(dec_PW)
+        enc_PW = self.ipy.user_ns[namedpw_var].enc_PW(dec_PW)
         return enc_PW
 
     def ret_dec_pass(self, enc_PW):
@@ -268,7 +268,7 @@ class Integration(Magics):
         else:
             print("NamedPW not installed - there be problems")
             return None
-        dec_PW = namedpw_var.dec_PW(enc_PW)
+        dec_PW = self.ipy.user_ns[namedpw_var].dec_PW(enc_PW)
         return dec_PW
 
 ##### connect should not need to be overwritten by custom integration
@@ -324,7 +324,7 @@ class Integration(Magics):
 
                 if "namedpw" in inst['options']:
                     pwname = inst['options']["namedpw"]
-                    tpass = namedpw_var.get_named_PW(pwname)
+                    tpass = self.ipy.user_ns[namedpw_var].get_named_PW(pwname)
                 else:
                     print("Please enter the password for the %s instance that you wish to connect with:" % instance)
                     tpass = ""
