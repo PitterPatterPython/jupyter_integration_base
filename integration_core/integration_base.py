@@ -203,13 +203,16 @@ class Integration(Magics):
             if 'proxy_pass' in self.instances[instance]:
                 ret_val = self.ret_dec_pass(self.instances[instance]['proxy_pass'])
             elif "namedproxypw" in self.instances[instance]['options']:
+                print("Please enter the password for proxy named password: %s" % self.instances[instance]['options']['namedproxypw'])
                 ret_val = self.get_named_pass(self.instances[instance]['options']['namedproxypw'])
             elif global_namedpw is not None:
+                print("Please enter the password for global proxy named password: %s" % global_namedpw)
                 ret_val = self.get_named_pass(global_namedpw)
             else:
                 ret_val = self.set_proxy_pass(proxy_str, instance)
         else:
             if global_namedpw is not None:
+                print("Please enter the password for global proxy named password: %s" % global_namedpw)
                 ret_val = self.get_named_pass(global_namedpw)
             else:
                 print("Setting Global Proxies not allowed - Try used in a named passwd")
