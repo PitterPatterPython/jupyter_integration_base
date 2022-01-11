@@ -60,7 +60,7 @@ class Integration(Magics):
 
     # Variables Dictionary
     opts = {}
-    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis']
+    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
  #   integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
     integration_evars = ['_conn_url_'] + ['_' + i for i in global_evars] + ['_' + i + '_' for i in global_evars]
 
@@ -221,9 +221,9 @@ class Integration(Magics):
             print("Proxy password for use with %s integration not set at any level - Requesting password" % self.name_str)
             ret_val = self.set_proxy_pass(proxy_str, 'integration', instance)
 
-        return ret_val
-
+        return self.ret_dec_pass(ret_val)
     def set_proxy_pass(self, proxy_str, level, instance=None):
+
         # We set the password based on the level, but we also return it if needed.
         myname = self.name_str
         ret_val = None
@@ -239,21 +239,49 @@ class Integration(Magics):
             tproxpass = ""
             self.ipy.ex("from getpass import getpass\ntproxpass = getpass(prompt='Proxy Password: ')")
             tproxpass = self.ipy.user_ns['tproxpass']
+            enc_tproxpass = self.ret_enc_pass(tproxpass)
+            self.ipy.user_ns['enc_tproxpass'] = enc_tproxpass
             if level == "integration":
-                exec('self.' + self.name_str + '_proxy_pass = tproxpass')
+                exec('self.' + self.name_str + '_proxy_pass = enc_tproxpass')
             elif level == "global":
-                exec('self.proxy_pass = tproxpass')
+                exec('self.proxy_pass = enc_tproxpass')
             else:
-                self.instances[instance]['proxy_pass'] = tproxpass
-            ret_val = tproxpass
-            self.ipy.user_ns['tproxpass'] = ""
-            tproxpass = ""
+                self.instances[instance]['proxy_pass'] = enc_tproxpass
+            ret_val = enc_tproxpass
+            del tproxpass
+            del self.ipy.user_ns['tproxpass']
+            del self.ipy.user_ns['enc_tproxpass']
         return ret_val
+
+    def ret_enc_pass(self, dec_PW):
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+        enc_PW = namedpw_var.enc_PW(dec_PW)
+        return enc_PW
+
+    def ret_dec_pass(self, enc_PW):
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+        dec_PW = namedpw_var.dec_PW(enc_PW)
+        return dec_PW
 
 ##### connect should not need to be overwritten by custom integration
     def connect(self, instance=None, prompt=False):
         if self.debug:
             print("Connect function - Instance: %s - Prompt: %s - " % (instance, prompt))
+
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+
 
 
         if instance is None:
@@ -292,14 +320,24 @@ class Integration(Magics):
                 myuser = inst['user']
             jiu.displayMD("Connecting to instance **%s** as **%s**\n\n" % (instance, myuser))
 
-            if ((inst['connect_pass'] is None and self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is None) or prompt == True) and req_pass == True:
-                print("Please enter the password for the %s instance that you wish to connect with:" % instance)
-                tpass = ""
-                self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
-                tpass = self.ipy.user_ns['tpass']
+            if ((inst['enc_pass'] is None and inst['connect_pass'] is None) or prompt == True) and req_pass == True:
 
+                if "namedpw" in inst['options']:
+                    pwname = inst['options']["namedpw"]
+                    tpass = namedpw_var.get_named_PW(pwname)
+                else:
+                    print("Please enter the password for the %s instance that you wish to connect with:" % instance)
+                    tpass = ""
+                    self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Connection Password: ')")
+                    tpass = self.ipy.user_ns['tpass']
+
+                tencpass = self.ret_enc_pass(tpass)
+            # TODO This should be removed once all integrations support the encrypted password, otherwise, we keep it the same as it was
                 inst['connect_pass'] = tpass
-                self.ipy.user_ns['tpass'] = ""
+                inst['enc_pass'] = tencpass
+                del self.ipy.user_ns['tpass']
+                del tpass
+                del tencpass
 
 
             # Should OTP be hidden? I do not believe so, but could be argued
@@ -424,7 +462,8 @@ class Integration(Magics):
             jiu.displayMD(self.retInstances())
         elif line.lower().find("setpass") == 0:
             bMischiefManaged = True
-            self.setPass(line)
+            print("setpass has been disabled - if you require this lets talk")
+#            self.setPass(line)
         elif line.lower().find("setproxypass") == 0:
             bMischiefManaged = True
             t = self.set_proxy_pass("%s Integration Proxy Pass" % self.name_str, "integration")
@@ -644,7 +683,7 @@ class Integration(Magics):
         out += "| %s | Show defined instances and their status |\n" % (m + " instances")
         out += "| %s | Connect to (optional) 'instance' (uses default if ommited) with defined settings. Use alt to override url and user settings |\n" % (m + " connect 'instance' [alt]")
         out += "| %s | Disconnect from  (optional) <instance> (uses default if ommitted). |\n" % (m + " disconnect <instance>")
-        out += "| %s | Set password for (optional) <instance> (uses default if ommitted). |\n" % (m + " setpass <instance>")
+ #       out += "| %s | Set password for (optional) <instance> (uses default if ommitted). |\n" % (m + " setpass <instance>")
         out += "\n\n"
         out = self.customHelp(out)
 
@@ -732,7 +771,7 @@ class Integration(Magics):
         print("{: <30} {: <80}".format(*[m + " display <dataframe>", "Use the current display settings of the %s integration and display the dataframe provided (regardless of source)" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " status", "Print the status of the %s connection and variables used for output" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " instances", "Print the status of the %s instances currently defined" % n.capitalize()]))
-        print("{: <30} {: <80}".format(*[m + " setpass <instance>", "Sets the password for the specified instance (or conn_default instance if not defined) - Does not connect"]))
+  #      print("{: <30} {: <80}".format(*[m + " setpass <instance>", "Sets the password for the specified instance (or conn_default instance if not defined) - Does not connect"]))
         print("{: <30} {: <80}".format(*[m + " setproxypass", "Sets the proxy password at an integration level"]))
         print("{: <30} {: <80}".format(*[m + " connect <instance>", "Initiate a connection to the %s cluster, if instance is not provided, defaults to conn_default" % n.capitalize()]))
         print("{: <30} {: <80}".format(*[m + " connect <instance> alt", "Initiate a connection to the %s cluster, and prompt for information. If instance is not provided, defaults to conn_default" % n.capitalize()]))
@@ -977,7 +1016,7 @@ class Integration(Magics):
                                     print("Could not set instace variable %s - Instance %s not created yet" % (base_var, instance))
 
     def fill_instance(self, inst_name, conn_url):
-        self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "last_use": "", "last_query": ""}
+        self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "enc_pass": None, "last_use": "", "last_query": ""}
 
     def parse_instances(self, parse_inst=None):
         if parse_inst is None: # Parse all instances

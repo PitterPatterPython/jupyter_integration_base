@@ -492,9 +492,10 @@ class Persist(Addon):
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip() == "list":
                     jiu.displayMD(self.retPersisted())
-                elif line.lower().strip() == "refresh":
+                elif line.lower().strip().find("refresh") == 0:
                     self.loadPersistedDict()
-                    jiu.displayMD(self.retPersisted())
+                    if line.lower().strip().replace("refresh", "").strip() == "":
+                        jiu.displayMD(self.retPersisted())
                 elif line.lower().find("delete") == 0:
                     self.deletePersisted(line)
                 elif line.lower().find("purge") == 0:
