@@ -57,7 +57,7 @@ class Namedpw(Addon):
             if self.debug:
                 print("Namepw key named %s not in user_ns - Generating" % self.key_name)
             self.gen_key()
-        return self.ipy.user_ns[key_name]
+        return self.ipy.user_ns[self.key_name]
 
     def gen_key(self):
         tkey = Fernet.generate_key()
