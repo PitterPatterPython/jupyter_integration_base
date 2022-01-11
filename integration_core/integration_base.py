@@ -202,8 +202,8 @@ class Integration(Magics):
         if instance is not None:
             if 'proxy_pass' in self.instances[instance]:
                 ret_val = self.ret_dec_pass(self.instances[instance]['proxy_pass'])
-            elif "namedpw" in self.instances[instance]['options']:
-                ret_val = self.get_named_pass(self.instances[instance]['options']['namedpw'])
+            elif "namedproxypw" in self.instances[instance]['options']:
+                ret_val = self.get_named_pass(self.instances[instance]['options']['namedproxypw'])
             elif global_namedpw is not None:
                 ret_val = self.get_named_pass(global_namedpw)
             else:
