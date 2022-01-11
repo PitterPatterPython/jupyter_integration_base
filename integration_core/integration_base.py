@@ -240,7 +240,7 @@ class Integration(Magics):
         else:
             print("NamedPW not installed - there be problems")
             return None
-        return self.ipy.user_ns[namedpw_var].get_named_PW(namedPW)
+        return self.ipy.user_ns[namedpw_var].get_named_PW(namedpw)
 
     def ret_enc_pass(self, dec_PW):
         if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
