@@ -139,7 +139,12 @@ class Namedpw(Addon):
         out = "The namedpw addon allows you to managed named passwords used for multiple integrations"
         return out
 
-
+    def list_named_PWs(self):
+        print("Currently Defined Named Passwords:")
+        pw_list = self.get_PW_list()
+        for pw in pw_list.keys():
+            print(pw)
+        print("")
 
 
 
@@ -155,8 +160,10 @@ class Namedpw(Addon):
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip().find("clear") == 0:
                     self.clear_named_PW(line.replace("clear", "").strip())
-                elif len(line.strip().split(" ")) == 1:
-                    self.set_named_PW(line.strip())
+                elif line.lower().strip().find("set") == 0:
+                    self.set_named_PW(line.replace("set", "").strip())
+                elif line.lower().strip().find("list") == 0:
+                    self.list_named_PWs()
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
