@@ -130,8 +130,9 @@ class Namedpw(Addon):
 
         out = curout
         out += table_header
-        out += "| %s | Enter named password $namedpw in current kernel |\n" % (m + " $namedpw")
-        out += "| %s | Clear named password $namedpw in current kernel |\n" % (m + " clear $namedpw")
+        out += "| %s | Save named password yournamedpw in current kernel |\n" % (m + " save yournamedpw")
+        out += "| %s | Clear named password yournamedpw in current kernel |\n" % (m + " clear yournamedpw")
+        out += "| %s | List the names of currently saved saved named passwords |\n" % (m + " list")
         out += "\n\n"
         return out
 
@@ -160,8 +161,8 @@ class Namedpw(Addon):
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().strip().find("clear") == 0:
                     self.clear_named_PW(line.replace("clear", "").strip())
-                elif line.lower().strip().find("set") == 0:
-                    self.set_named_PW(line.replace("set", "").strip())
+                elif line.lower().strip().find("save") == 0:
+                    self.set_named_PW(line.replace("save", "").strip())
                 elif line.lower().strip().find("list") == 0:
                     self.list_named_PWs()
                 else:
