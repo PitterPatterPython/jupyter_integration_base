@@ -33,7 +33,7 @@ class Integration(Magics):
     instances = {}          # Instances 
 
 #    instance['name'] = {"url": "source://user@host:port?option1=1&option2=2", connected: False} 
-    global_evars = ['proxy_scheme', 'proxy_user', 'proxy_host', 'proxy_port'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
+    global_evars = ['proxy_scheme', 'proxy_user', 'proxy_host', 'proxy_port', 'proxy_namedpw'] # These are the ENV variables we check with. We upper() these and then prepend env_pre. so proxy_user would check the ENV variable JUPYTER_PROXY_HOST and let set that in opts['proxy_host']
 
     session = None          # Session if ingeration uses it. Most data sets have a concept of a session object. An API might use a requests session, a mysql might use a mysql object. Just put it here. If it's not used, no big deal.  This could also be a cursor
 
@@ -181,6 +181,9 @@ class Integration(Magics):
         if self.debug:
            print("Proxy String: %s" % proxystr)
         prox_pass = self.get_proxy_pass(proxystr, instance)
+        if prox_pass is None:
+            print("No proxy pass found - using a blank password")
+            prox_pass = ""
         proxurl = proxystr.replace("@", ":" + prox_pass + "@")
         proxies = {'http': proxurl, 'https': proxurl}
         return proxies
@@ -195,63 +198,49 @@ class Integration(Magics):
 
     def get_proxy_pass(self, proxy_str, instance=None):
         ret_val = None
+        global_namedpw = self.get_global_eval("proxy_namedpw", instance)
         if instance is not None:
             if 'proxy_pass' in self.instances[instance]:
-                ret_val = self.instances[instance]['proxy_pass']
-                if self.debug:
-                    print("Proxy pass set at instance level")
-        if ret_val is None:
-            int_var = self.name_str + "_proxy_pass"
-            try:
-                ret_val = eval("self." + int_var)
-                if self.debug:
-                    print("Proxy pass set at the integration level")
-            except:
-                pass
-        if ret_val is None:
-            try:
-                ret_val = eval("self.proxy_pass")
-                if self.debug:
-                    print("Proxy pass set at the global level")
-            except:
-                pass
-        if ret_val is None:
-            # If we didn't find a password, than we will set it and it gets set by default at the integration level.
-            # The reason is is it's a good place, and there are ways to set at the instance level if needed (or should be)
-            print("Proxy password for use with %s integration not set at any level - Requesting password" % self.name_str)
-            ret_val = self.set_proxy_pass(proxy_str, 'integration', instance)
+                ret_val = self.ret_dec_pass(self.instances[instance]['proxy_pass'])
+            elif "namedpw" in self.instances[instance]['options']:
+                ret_val = self.get_named_pass(self.instances[instance]['options']['namedpw'])
+            elif global_namedpw is not None:
+                ret_val = self.get_named_pass(global_namedpw)
+            else:
+                ret_val = self.set_proxy_pass(proxy_str, instance)
+        else:
+            if global_namedpw is not None:
+                ret_val = self.get_named_pass(global_namedpw)
+            else:
+                print("Setting Global Proxies not allowed - Try used in a named passwd")
+                ret_val = None
 
-        return self.ret_dec_pass(ret_val)
-    def set_proxy_pass(self, proxy_str, level, instance=None):
+
+        return ret_val
+    def set_proxy_pass(self, proxy_str, instance):
 
         # We set the password based on the level, but we also return it if needed.
-        myname = self.name_str
         ret_val = None
-        allowed_levels = ['integration', 'instance']
-        if level not in allowed_levels:
-            print("Requested level: %s not in allowed_levels: %s" % (level, allowed_levels))
-            print("Password not set")
-        elif instance is None and level == "instance":
-            print("Requested instance password set with no instance provided")
-        else:
-            print("Please enter %s level password for proxy: %s (Instance: %s)" % (level, proxy_str, instance))
-            print("")
-            tproxpass = ""
-            self.ipy.ex("from getpass import getpass\ntproxpass = getpass(prompt='Proxy Password: ')")
-            tproxpass = self.ipy.user_ns['tproxpass']
-            enc_tproxpass = self.ret_enc_pass(tproxpass)
-            self.ipy.user_ns['enc_tproxpass'] = enc_tproxpass
-            if level == "integration":
-                exec('self.' + self.name_str + '_proxy_pass = enc_tproxpass')
-            elif level == "global":
-                exec('self.proxy_pass = enc_tproxpass')
-            else:
-                self.instances[instance]['proxy_pass'] = enc_tproxpass
-            ret_val = enc_tproxpass
-            del tproxpass
-            del self.ipy.user_ns['tproxpass']
-            del self.ipy.user_ns['enc_tproxpass']
+
+        print("Please enter proxy password for %s instance %s - %s" % (self.name_str, instance, proxy_str))
+        print("")
+        self.ipy.ex("from getpass import getpass\ntproxpass = getpass(prompt='Proxy Password: ')")
+        tproxpass = self.ipy.user_ns['tproxpass']
+        enc_tproxpass = self.ret_enc_pass(tproxpass)
+        self.instances[instance]['proxy_pass'] = enc_tproxpass
+        ret_val = enc_tproxpass
+        del tproxpass
+        del self.ipy.user_ns['tproxpass']
+
         return ret_val
+
+    def get_named_pass(self, namedpw):
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+        return self.ipy.user_ns[namedpw_var].get_named_PW(namedPW)
 
     def ret_enc_pass(self, dec_PW):
         if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
@@ -275,14 +264,6 @@ class Integration(Magics):
     def connect(self, instance=None, prompt=False):
         if self.debug:
             print("Connect function - Instance: %s - Prompt: %s - " % (instance, prompt))
-
-        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
-            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
-        else:
-            print("NamedPW not installed - there be problems")
-            return None
-
-
 
         if instance is None:
             instance = self.opts[self.name_str + "_conn_default"][0]
@@ -324,7 +305,7 @@ class Integration(Magics):
 
                 if "namedpw" in inst['options']:
                     pwname = inst['options']["namedpw"]
-                    tpass = self.ipy.user_ns[namedpw_var].get_named_PW(pwname)
+                    tpass = self.get_named_pass(pwname)
                 else:
                     print("Please enter the password for the %s instance that you wish to connect with:" % instance)
                     tpass = ""
