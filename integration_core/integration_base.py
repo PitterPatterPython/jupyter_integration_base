@@ -1016,6 +1016,22 @@ class Integration(Magics):
                 for k in parsed_dict.keys():
                     self.instances[i][k] = parsed_dict[k]
 
+    def add_single_instance(self, inst_name, conn_url):
+
+        if self.debug:
+           print("Adding Instance: %s with conn_url: %s" % (inst_name, conn_url))
+
+        if inst_name not in self.instances:
+            self.fill_instance(inst_name, conn_url)
+            self.parse_instances(parse_inst=inst_name)
+            print("Adding instance %s" % inst_name)
+        else:
+            print("Instance %s already exists - Please choose new instance name" % inst_name)
+            print("")
+            print("See '%" + self.magic_name + " instances' for list of current instances")
+
+
+
     def checkvar(self, instance, var):
         retval = None
         if var in self.instances[instance]['options'].keys():
