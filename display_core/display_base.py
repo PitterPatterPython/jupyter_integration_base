@@ -169,7 +169,10 @@ class Display(Addon):
             print("")
             print("mycoldefs: %s" % mycoldefs)
         # Display the QGrid
-        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
+#        tmp_qgrid = qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs)
+        self.ipy.user_ns['prev_display'] = qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs)
+        display(self.ipy.user_ns['prev_display'])
+#        display(qgrid.show_grid(result_df, grid_options=mygridopts, column_definitions=mycoldefs))
 
     def htmlDisplay(self, result_df, mycnt):
 
