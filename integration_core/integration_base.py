@@ -349,6 +349,14 @@ class Integration(Magics):
             self.disconnect(instance=instance)
 
 
+    def isConnected(self, instance=None):
+        retval = False
+        if instance is None:
+            instance = self.opts[self.name_str + "_conn_default"][0]
+        if self.instances[instance]["connected"] == True:
+            retval = True
+        return retval
+
 
 
 ##### disconnect should not need to be overwritten by customer integration
