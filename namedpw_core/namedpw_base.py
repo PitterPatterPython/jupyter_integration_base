@@ -191,7 +191,7 @@ class Namedpw(Addon):
                 tskrt = f.replace("skrt_", "").replace(".enc", "")
                 tskrt_val = None
                 try:
-                    sfile_path = Path(self.namedpw_dir + "/" + f)
+                    sfile_path = Path(str(self.namedpw_dir) + "/" + f)
                     sfile = open(sfile_path, "rb")
                     tskrt_val = sfile.read()
                     sfile.close()
@@ -237,14 +237,14 @@ class Namedpw(Addon):
     def save_secret(self, secret, secret_name, secret_pass):
 
         enc_secret = self.enc_data(secret, key_text=secret_pass)
-        secret_path = Path(self.namedpw_dir + "/skrt_" + secret_name + ".enc")
+        secret_path = Path(str(self.namedpw_dir) + "/skrt_" + secret_name + ".enc")
         f = open(secret_path, "wb")
         f.write(enc_secret)
         f.close()
 
 
     def read_secret(self, secret_name, secret_pass):
-        secret_path = Path(self.namedpw_dir + "/skrt_" + secret_name + ".enc")
+        secret_path = Path(str(self.namedpw_dir) + "/skrt_" + secret_name + ".enc")
         f = open(secret_path, "rb")
         enc_secret = f.read()
         f.close()
