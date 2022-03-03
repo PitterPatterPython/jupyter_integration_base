@@ -168,6 +168,7 @@ class Namedpw(Addon):
         return out
 
     def list_items(self, list_type="passwords"):
+        print("")
         if list_type == "passwords":
             print("Currently Defined Named %s:" % list_type.capitalize())
             print("---------------------")
@@ -175,6 +176,7 @@ class Namedpw(Addon):
         elif list_type == "secrets":
             print("Currently Defined %s:" % list_type.capitalize())
             print("---------------------")
+            self.refresh_secrets_dict()
             list_dict = self.enc_secrets_dict
         else:
             print("Unknown list type - Not doing anything")
@@ -328,7 +330,9 @@ class Namedpw(Addon):
                 elif line.lower().strip().find("save secret") == 0:
                     self.set_saved_secret(line.replace("save secret", "").strip())
                 elif line.lower().strip().find("list secrets") == 0:
-                    self.refresh_secrets_dict()
+                    self.list_items(list_type="secrets")
+                elif line.lower().strip().find("list") == 0:
+                    self.list_items(list_type="passwords")
                     self.list_items(list_type="secrets")
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
