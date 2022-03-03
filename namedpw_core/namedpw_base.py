@@ -234,6 +234,12 @@ class Namedpw(Addon):
         print("Now please enter the password for secret %s. It will be usable as %s_npw" % (secret_name, secret_name))
         tpass = self.get_named_PW(secret_name + "_npw")
 
+        self.save_secret(tsecret, secret_name, tpass)
+        tsecret = None
+        tpass = None
+        del tsecret
+        del tpass
+
     def save_secret(self, secret, secret_name, secret_pass):
 
         enc_secret = self.enc_data(secret, key_text=secret_pass)
