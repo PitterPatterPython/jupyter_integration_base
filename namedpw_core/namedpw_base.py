@@ -236,7 +236,7 @@ class Namedpw(Addon):
     def set_saved_secret(self, secret_name):
         print("")
         print("We are setting or replacing the value for the saved secret %s - What you will need:" % secret_name)
-        print(" - The value of the secret. (This is not saved to disk unencrypted")
+        print(" - The value of the secret. (This is not saved to disk unencrypted)")
         print(" - A password to encrypt the secret with")
         print("")
         print("NOTE: There is no recoverability if you forget the password - Secret Accordingly")
