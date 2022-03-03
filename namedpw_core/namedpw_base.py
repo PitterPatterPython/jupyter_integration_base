@@ -130,6 +130,20 @@ class Namedpw(Addon):
         else:
             print("Named password %s does not exist - Password not cleared" % namedpw)
 
+    def clear_secret(self, secret_name):
+        pwname = secret_name + "_npw"
+        print("Also clearing named password: %s" % pwname)
+        self.clear_named_PW(pwname)
+        secret_path = Path(str(self.namedpw_dir) + "/skrt_" + secret_name + ".enc")
+        if os.path.exists(secret_path):
+            os.remove(secret_path)
+            print("Secret %s cleared!" % secret_name)
+        else:
+            print("Secret %s not found" % secret_name)
+        self.refresh_secrets_dict()
+
+
+
     def customHelp(self, curout):
         n = self.name_str
         m = "%" + self.name_str
@@ -140,9 +154,11 @@ class Namedpw(Addon):
 
         out = curout
         out += table_header
-        out += "| %s | Save named password yournamedpw in current kernel |\n" % (m + " save yournamedpw")
-        out += "| %s | Clear named password yournamedpw in current kernel |\n" % (m + " clear yournamedpw")
+        out += "| %s | Save named password yournamedpw in current kernel |\n" % (m + " save password yournamedpw")
+        out += "| %s | Clear named password yournamedpw in current kernel |\n" % (m + " clear password yournamedpw")
         out += "| %s | List the names of currently saved named passwords |\n" % (m + " list passwords")
+        out += "| %s | Save secret yoursecret |\n" % (m + " save secret yoursecret")
+        out += "| %s | Clear secret yoursecret |\n" % (m + " clear secret yoursecret")
         out += "| %s | List the names of currently saved secrets |\n" % (m + " list secrets")
         out += "\n\n"
         return out
@@ -230,9 +246,14 @@ class Namedpw(Addon):
         tsecret = self.ipy.user_ns['tpass']
         del self.ipy.user_ns['tpass']
         print("")
+        secret_named_pw = secret_name + "_npw"
+        pw_list = self.get_PW_list()
+        if secret_named_pw in pw_list.keys():
+            print("Named PW %s is already defined, we are going to clear it to reset the secret: %s" % (secret_named_pw, secret_name))
+            self.clear_named_PW(secret_named_pw)
 
-        print("Now please enter the password for secret %s. It will be usable as %s_npw" % (secret_name, secret_name))
-        tpass = self.get_named_PW(secret_name + "_npw")
+        print("Now please enter the password for secret %s. It will be usable as %s" % (secret_name, secret_named_pw))
+        tpass = self.get_named_PW(secret_named_pw)
 
         self.save_secret(tsecret, secret_name, tpass)
         tsecret = None
@@ -296,12 +317,16 @@ class Namedpw(Addon):
         if cell is None:
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations. 
-                if line.lower().strip().find("clear") == 0:
-                    self.clear_named_PW(line.replace("clear", "").strip())
-                elif line.lower().strip().find("save") == 0:
-                    self.set_named_PW(line.replace("save", "").strip())
+                if line.lower().strip().find("clear password") == 0:
+                    self.clear_named_PW(line.replace("clear password", "").strip())
+                elif line.lower().strip().find("save password") == 0:
+                    self.set_named_PW(line.replace("save password", "").strip())
                 elif line.lower().strip().find("list passwords") == 0:
                     self.list_items(list_type="passwords")
+                elif line.lower().strip().find("clear secret") == 0:
+                    self.clear_secret(line.replace("clear secret", "").strip())
+                elif line.lower().strip().find("save secret") == 0:
+                    self.set_saved_secret(line.replace("save secret", "").strip())
                 elif line.lower().strip().find("list secrets") == 0:
                     self.refresh_secrets_dict()
                     self.list_items(list_type="secrets")
