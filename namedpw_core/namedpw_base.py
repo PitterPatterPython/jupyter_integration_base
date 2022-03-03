@@ -165,7 +165,7 @@ class Namedpw(Addon):
         for pw in list_dict.keys():
                 print(pw)
         print("")
-    def set_namedpd_dir(self):
+    def set_namedpw_dir(self):
         tstorloc = self.opts['namedpw_addon_dir'][0]
         if tstorloc[0] == "~":
             myhome = jiu.getHome(debug=self.debug)
