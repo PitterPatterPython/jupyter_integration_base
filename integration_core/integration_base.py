@@ -245,13 +245,22 @@ class Integration(Magics):
             return None
         return self.ipy.user_ns[namedpw_var].get_named_PW(namedpw)
 
+    def get_secret(self, secret_name):
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+        return self.ipy.user_ns[namedpw_var].get_saved_secret(secret_name)
+
+
     def ret_enc_pass(self, dec_PW):
         if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
             namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
         else:
             print("NamedPW not installed - there be problems")
             return None
-        enc_PW = self.ipy.user_ns[namedpw_var].enc_PW(dec_PW)
+        enc_PW = self.ipy.user_ns[namedpw_var].enc_data(dec_PW)
         return enc_PW
 
     def ret_dec_pass(self, enc_PW):
@@ -260,7 +269,7 @@ class Integration(Magics):
         else:
             print("NamedPW not installed - there be problems")
             return None
-        dec_PW = self.ipy.user_ns[namedpw_var].dec_PW(enc_PW)
+        dec_PW = self.ipy.user_ns[namedpw_var].dec_data(enc_PW)
         return dec_PW
 
 ##### connect should not need to be overwritten by custom integration
@@ -309,6 +318,9 @@ class Integration(Magics):
                 if "namedpw" in inst['options']:
                     pwname = inst['options']["namedpw"]
                     tpass = self.get_named_pass(pwname)
+                elif "namedsecret" in inst['options']:
+                    secretname = inst['options']['namedsecret']
+                    tpass = self.get_secret(secretname)
                 else:
                     print("Please enter the password for the %s instance that you wish to connect with:" % instance)
                     tpass = ""
