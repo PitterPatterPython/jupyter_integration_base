@@ -224,7 +224,7 @@ class Namedpw(Addon):
         print("NOTE: There is no recoverability if you forget the password - Secret Accordingly")
         print("")
 
-        print("Please paste the raw text of the secret with name %s that you wish to save: %s" % secret_name)
+        print("Please paste the raw text of the secret with name %s that you wish to save:" % secret_name)
         tsecret = ""
         self.ipy.ex("from getpass import getpass\ntpass = getpass(prompt='Secret Value: ')")
         tsecret = self.ipy.user_ns['tpass']
