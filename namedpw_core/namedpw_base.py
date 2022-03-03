@@ -208,7 +208,7 @@ class Namedpw(Addon):
     def get_saved_secret(self, secret_name):
         self.refresh_secrets_dict()
         if secret_name not in self.enc_secrets_dict:
-            print("Secret name: %s not defined - Setting secret now!" % secrete_name)
+            print("Secret name: %s not defined - Setting secret now!" % secret_name)
             self.set_saved_secret(secret_name)
         secret_pass = get_named_PW(secret_name + "_npw")
         dec_secret = self.read_secret(secret_name, secret_pass)
