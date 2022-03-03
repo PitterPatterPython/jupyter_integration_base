@@ -6,6 +6,7 @@ import sys
 import os
 import time
 from collections import OrderedDict
+from pathlib import Path
 import requests
 from copy import deepcopy
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
