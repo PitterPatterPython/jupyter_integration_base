@@ -6,6 +6,7 @@ import sys
 import os
 import time
 import pandas as pd
+import urllib.parse
 
 from collections import OrderedDict
 
@@ -184,7 +185,8 @@ class Integration(Magics):
         if prox_pass is None:
             print("No proxy pass found - using a blank password")
             prox_pass = ""
-        proxurl = proxystr.replace("@", ":" + prox_pass + "@")
+        enc_prox_pass = urllib.parse.quote(prox_pass)
+        proxurl = proxystr.replace("@", ":" + enc_prox_pass + "@")
         proxies = {'http': proxurl, 'https': proxurl}
         return proxies
 
