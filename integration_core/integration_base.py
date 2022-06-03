@@ -247,6 +247,18 @@ class Integration(Magics):
             return None
         return self.ipy.user_ns[namedpw_var].get_named_PW(namedpw)
 
+
+
+    def clear_named_pass(self, namedpw):
+        if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
+        else:
+            print("NamedPW not installed - there be problems")
+            return None
+        return self.ipy.user_ns[namedpw_var].clear_named_PW(namedpw)
+
+
+
     def get_secret(self, secret_name):
         if "namedpw" in self.ipy.user_ns['jupyter_loaded_addons'].keys():
             namedpw_var = self.ipy.user_ns['jupyter_loaded_addons']['namedpw']
@@ -356,6 +368,8 @@ class Integration(Magics):
             else:
                 inst['connect_pass'] = None
                 inst['enc_pass'] = None
+                if "namedpw" in inst['options']:
+                    self.clear_named_pass(inst['options']["namedpw"])
                 jiu.displayMD("## Connection Error\n--------\nConnection Error Code: %s\n\n" % result)
 
         elif inst['connected'] == True:
