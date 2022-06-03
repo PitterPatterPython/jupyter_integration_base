@@ -355,6 +355,7 @@ class Integration(Magics):
                 jiu.displayMD("**%s - Connected** - %s\n\n" % (self.name_str.capitalize(), inst['conn_url']))
             else:
                 inst['connect_pass'] = None
+                inst['enc_pass'] = None
                 jiu.displayMD("## Connection Error\n--------\nConnection Error Code: %s\n\n" % result)
 
         elif inst['connected'] == True:
