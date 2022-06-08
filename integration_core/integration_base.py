@@ -760,7 +760,7 @@ class Integration(Magics):
         print("")
         print("%s default\nselect * from table" % (mq))
         print("")
-        print("This query is run on the default instace for the %s integration " % n)
+        print("This query is run on the default instance for the %s integration " % n)
         print("")
         print("To make this programatic:")
         print("")
@@ -918,7 +918,7 @@ class Integration(Magics):
         if ttest in self.instances.keys():
             # This looks like an instance set var! 
             instance = ttest
-            tkv = tline.replace(instace + " ", "")
+            tkv = tline.replace(instance + " ", "")
             tkey = tkv.split(" ")[0]
             tval = tline.replace(instance + " " + tkey + " ", "")
         else:
@@ -986,7 +986,7 @@ class Integration(Magics):
                         retval = self.opts[var][0]
                     else:
                         if self.debug:
-                            print("Variable %s is in global_evars, but not set at the instace, integration, or global level" % var)
+                            print("Variable %s is in global_evars, but not set at the instance, integration, or global level" % var)
                 # We have a integration level global:
         else:
             if self.debug:
@@ -1035,7 +1035,7 @@ class Integration(Magics):
                                 self.instances[instance][base_var] = tval
                             except:
                                 if self.debug:
-                                    print("Could not set instace variable %s - Instance %s not created yet" % (base_var, instance))
+                                    print("Could not set instance variable %s - Instance %s not created yet" % (base_var, instance))
 
     def fill_instance(self, inst_name, conn_url):
         self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "enc_pass": None, "last_use": "", "last_query": ""}
