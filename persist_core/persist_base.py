@@ -599,6 +599,13 @@ class Persist(Addon):
         out += "| %s | Load id 8123ab into variable saved_df |\n" % (m + " load 8123ab saved_df")
         out += "\n\n"
 
+        out += "### %s Shared Datasets\n" % (m)
+        out += "---------------\n"
+        out += table_header
+        out += "| %s | Save Dataframe 'df' to shared location and get a id to share  |\n" % (m + " shared save df")
+        out += "| %s | Load Saved id into df |\n" % (m + " shared load id df")
+        out += "\n\n"
+
 
         return out
 
