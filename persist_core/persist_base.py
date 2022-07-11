@@ -20,6 +20,8 @@ import pandas as pd
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
+import pathlib
+
 
 
 try:
@@ -84,6 +86,11 @@ class Persist(Addon):
             self.opts[k] = self.myopts[k]
 
         self.load_env(self.custom_evars)
+        bs = "\\"
+        myshareddir = opts['persist_shared_dir'][0]
+        if myshareddir[0] == bs and myshareddir[1] != bs:
+            opts['persist_shared_dir'][0] = bs + myshareddir
+
         self.loadPersistedDict()
 
         #shell.user_ns['persist_var'] = self.creation_name
