@@ -203,7 +203,7 @@ class Persist(Addon):
                 tmp_arrow = pa.Table.from_pandas(mydf)
                 pq.write_table(tmp_arrow, sfile)
                 tmp_arrow = None
-                print(f"One-Time Share File created in {shared_dir}")
+                print(f"One-Time Share File created in {shared_path}")
                 print(f"Note this will not be accessible after it has been accessed once or after {self.opts['persist_shared_expire_days'][0]} days - which ever comes first")
                 print("Shared dataframes is NOT meant for storage of data, only transfer")
                 print("")
