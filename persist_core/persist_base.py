@@ -266,7 +266,7 @@ class Persist(Addon):
         shared_path = self.getSharedPath()
 
         if shared_path is not None:
-            cmdlist = line.lower().replace("shared", "").trim().split(" ")
+            cmdlist = line.lower().replace("shared", "").strip().split(" ")
             if cmdlist[0] == "save":
                 dfname = cmdlist[1]
                 if dfname in self.ipy.user_ns:
