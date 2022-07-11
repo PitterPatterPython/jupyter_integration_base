@@ -47,9 +47,9 @@ class Persist(Addon):
 
     magic_name = "persist"
     name_str = "persist"
-    custom_evars = ['persist_addon_dir']
+    custom_evars = ['persist_addon_dir', 'persist_shared_dir']
 
-    custom_allowed_set_opts = ['persist_purge_days', 'persist_purge_data_only', 'persist_auto_purge', 'persist_addon_dir', 'persist_max_queries', 'persist_query_tz']
+    custom_allowed_set_opts = ['persist_purge_days', 'persist_purge_data_only', 'persist_auto_purge', 'persist_addon_dir', 'persist_max_queries', 'persist_query_tz', 'persist_shared_dir']
 
     # Option Format: [ Value, Description]
     # The options for both the base and customer integrations are a little obtuse at first.
@@ -60,6 +60,8 @@ class Persist(Addon):
 
     myopts = {}
     myopts['persist_use_arrow'] = [1, "Use PyArrow if supported, otherwise default to pickle"]
+    myopts['persist_shared_expire_days'] = [7, "Number of days to support shared one time load. If file is older than this date, we will delete"]
+    myopts['persist_shared_dir'] = ['', "Directory for one-time shared datasets. Defaults to '' which is not set"]
     myopts['persist_purge_days'] = [60, "Number of days to keep queries before purge events occur"]
     myopts['persist_default_pkl_size'] = ['KB', "Units to show pickle sizes in. Defaults to KB (kilobytes), Supported: B, KB, MB"]
     myopts['persist_purge_data_only'] = [0, "When purging, only purge data, full records of df only, just the data part of queries (retain the query)"]
@@ -177,6 +179,135 @@ class Persist(Addon):
                 print("Option selected to save with pickle")
             save_method = "pkl"
         return storage_method
+
+    def saveShared(self, mydf):
+        bSave = True
+        retid = None
+        shared_path = self.getSharedPath()
+        if shared_path is None:
+            bSave = False
+
+        if bSave:
+            myid = self.getUUID()
+            fname = myid + ".parq"
+            sfile = shared_path / fname
+            retid = myid
+            try:
+                tmp_arrow = pa.Table.from_pandas(mydf)
+                pq.write_table(tmp_arrow, sfile)
+                tmp_arrow = None
+                print(f"One-Time Share File created in {shared_dir}")
+                print(f"Note this will not be accessible after it has been accessed once or after {self.opts['persist_shared_expire_days'][0]} days - which ever comes first")
+                print("Shared dataframes is NOT meant for storage of data, only transfer")
+                print("")
+                retid = myid
+
+            except Exception as e:
+                print("Error saving Data")
+                print(str(e))
+                retid = None
+
+        return retid
+
+    def loadShared(self, myid):
+        bLoad = True
+        mydf = None
+
+        shared_path = self.getSharedPath()
+        if shared_path is None:
+            bLoad = False
+        else:
+            fname = myid + ".parq"
+            sfile = shared_path  / fname
+            if not os.path.isfile(sfile):
+                print("****** WARNING")
+                print(f"File for id {myid} doesn't exist or is not accessible - NOT loaded")
+                bLoad = False
+
+        if bLoad:
+            try:
+                tmp_arrow = pq.read_table(sfile)
+                mydf = tmp_arrow.to_pandas()
+                tmp_arrow = None
+            except Exception as e:
+                print(f"Load Error for saved id {myid} - NOT loaded")
+                print(str(e))
+                mydf = None
+        return mydf
+
+
+    def getSharedPath(self):
+        shared_path = None
+        shared_dir = self.opts['persist_shared_dir'][0]
+        if shared_dir != '':
+            shared_path = pathlib.Path(shared_dir)
+            if not os.path.isdir(shared_path):
+                print("****** WARNING")
+                print(f"Shared Directory Path: {shared_path} is not a valid directory  - SHARED OPERATIONS DISABLED")
+                shared_path = None
+            else:
+                pass
+        else:
+            print("Shared Locatio not set - Please set via persist_shared_dir or via ENV variable JUPYTER_PERSIST_SHARED_DIR")
+            shared_path = None
+        return shared_path
+
+
+    def procShared(self, line):
+        # shared save mydf
+        # shared load ID mydf
+        shared_path = self.getSharedPath()
+
+        if shared_path is not None:
+            cmdlist = line.lower().replace("shared", "").trim().split(" ")
+            if cmdlist[0] == "save":
+                dfname = cmdlist[1]
+                if dfname in self.ipy.user_ns:
+                    if isinstance(self.ipy.user_ns[dfname], pd.DataFrame):
+                        myid = self.saveShared(self.ipy.user_ns[dfname])
+                        if myid is not None:
+                            print("To Load Dataframe send the following:\n")
+                            print(f"%persist shared load {myid} {dfname}")
+                            print("")
+                    else:
+                        print(f"Provided Dataframe name variable {dfname} is not a valid Pandas Dataframe - Not Saving")
+                else:
+                    print(f"Dataframe name provided {dfname} is not found in current username namespace - Not Saving")
+            elif cmdlist[0] == 'load':
+                loadid = cmdlist[1]
+                dfname = cmdlist[2]
+                if dfname in self.ipy.user_ns:
+                    print(f"variable name {dfname} already exists in namespace, not loading")
+                else:
+                # Try a load
+                    this_df = self.loadShared(loadid)
+                    if this_df is not None:
+                        try:
+                            self.ipy.user_ns[dfname] = this_df
+                            self.deleteShared(loadid)
+                        except Exception as e:
+                            prtin(f"Load failed: {str(e)}")
+            # Load something
+            else:
+                print(f"Command provided is not 'save' or 'load' - {cmdlist[0]}")
+        else:
+            print("Shared Operations Disabled due to Invalid Shared Path")
+
+    def deleteShared(self, myid):
+        shared_path = self.getSharedPath()
+        if shared_path is not None:
+            fname = myid + ".parq"
+            sfile = shared_path / fname
+            if os.path.isfile(sfile):
+                try:
+                    os.remove(sfile)
+                except Exception as e:
+                    print(f"Could not delete file - Error: {str(e)}")
+            else:
+                print(f"Could not remove shared dataset named {fname} in {shared_path} because file doesn't exist")
+        else:
+            print("Shared path error, shouldn't get here")
+
 
     def saveData(self, myid, mydf):
         # Updated for Arrow
@@ -504,6 +635,8 @@ class Persist(Addon):
                     self.persistDF(line)
                 elif line.lower().find("load") == 0:
                     self.loadDF(line)
+                elif line.lower().find("shared") == 0:
+                    self.procShared(line)
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
