@@ -104,16 +104,30 @@ class Helloworld(Addon):
         out = "This is the starting point for all addons and integrations in the Jupyter Integrations package"
         return out
 
+
+    def fillGo(self):
+        if "hello_go" in self.ipy.user_ns:
+            self.ipy.set_next_input(self.ipy.user_ns["hello_go"])
+        else:
+            print("hello_go variable is not set - nothing to do")
+
+
     # This is the magic name.
     @line_cell_magic
     def helloworld(self, line, cell=None):
         if self.debug:
            print("line: %s" % line)
            print("cell: %s" % cell)
-        #line = line.replace("\r", "")
+        line = line.replace("\r", "")
         if cell is None:
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations.
-                print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
+                if line.lower().strip () == "go":
+                    self.fillGo()
+                else:
+                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
             print("No Cell Magic for %s" % self.name_str)
+
+
+
