@@ -88,8 +88,9 @@ class Persist(Addon):
         self.load_env(self.custom_evars)
         bs = "\\"
         myshareddir = self.opts['persist_shared_dir'][0]
-        if myshareddir[0] == bs and myshareddir[1] != bs:
-            self.opts['persist_shared_dir'][0] = bs + myshareddir
+        if len(myshareddir) > 2:
+            if myshareddir[0] == bs and myshareddir[1] != bs:
+                self.opts['persist_shared_dir'][0] = bs + myshareddir
 
         self.loadPersistedDict()
 
