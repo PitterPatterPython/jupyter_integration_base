@@ -17,8 +17,15 @@ import jupyter_integrations_utility as jiu
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 
+
+
 try:
     import qgrid
+except:
+    pass
+
+try:
+    import ipydatagrid
 except:
     pass
 
@@ -37,19 +44,24 @@ class Display(Addon):
                               'display_max_rows',
                               'display_qg_header_autofit', 'display_qg_header_pad', 'display_qg_colmin', 'display_qg_colmax', 'display_qg_text_factor',
                               'display_qg_autofit_cols', 'display_qg_defaultColumnWidth', 'display_qg_minVisibleRows', 'display_qg_maxVisibleRows', 'display_qg_display_idx',
-                              'display_qg_rowHeight'
-                            ]
+                              'display_qg_rowHeight',
+                              'display_ipydg_display_idx', 'display_ipydg_header_autofit', 'display_ipydg_header_pad', 'display_ipydg_colmin', 'display_ipydg_colmax',
+                              'display_ipydg_text_factor', 'display_ipydg_autofit_cols',
+                              'display_ipydg_base_row_size', 'display_ipydg_base_column_size', 'display_ipydg_base_row_header_size', 'display_ipydg_base_column_headersize'
+]
 
     pd_set_vars = ['display_pd_display.max_columns', 'display_pd_max_colwidth']
 
     myopts = {}
+# General
+    myopts['display_max_rows'] = [10000, 'Number of Max Rows displayed']
+# Pandas and HTML Specific
     myopts['display_pd_display_idx'] = [False, "Display the Pandas Index with html output"]
     myopts['display_pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
     myopts['display_pd_display.max_columns'] = [None, 'Max Columns']
-    myopts['display_pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid)']
+    myopts['display_pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid, ipydg)']
 
-    myopts['display_max_rows'] = [10000, 'Number of Max Rows displayed']
-
+# qgrid specific
     myopts['display_qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
     myopts['display_qg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
     myopts['display_qg_colmin'] = [75, 'The minimum size a qgrid column will be']
@@ -61,6 +73,22 @@ class Display(Addon):
     myopts['display_qg_minVisibleRows'] = [8, 'The default min number of rows visible in qgrid - This affects the height of the widget']
     myopts['display_qg_maxVisibleRows'] = [25, 'The default max number of rows visible in qgrid - This affects the height of the widget']
     myopts['display_qg_display_idx'] = [False, "Display the Pandas Index with qgrid output"]
+
+
+# ipydatagrid specific
+    myopts['display_ipydg_display_idx'] = [False, "Display the Pandas Index with ipydg output"]
+    myopts['display_ipydg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
+    myopts['display_ipydg_header_pad'] = [2, 'If qg_header_autofit is true, do we pad the column name to help make it more readable if this > 0 than it is the amount we pad']
+    myopts['display_ipydg_colmin'] = [75, 'The minimum size a qgrid column will be']
+    myopts['display_ipydg_colmax'] = [750, 'The maximum size a qgrid column will be']
+    myopts['display_ipydg_text_factor'] = [8, 'The multiple of the str length to set the column to ']
+    myopts['display_ipydg_autofit_cols'] = [True, 'Do we try to auto fit the columns - Beta may take extra time']
+    myopts['display_ipydg_base_row_size'] = [20, 'The base_row_size for ipydatagrid']
+    myopts['display_ipydg_base_column_size'] = [64, 'The base_column_size for ipydatagrid']
+    myopts['display_ipydg_base_row_header_size'] = [64, 'The base_row_header_size for ipydatagrid']
+    myopts['display_ipydg_base_column_header_size'] = [20, 'The base_column_header_size for ipydatagrid']
+ 
+
 
 
     pd.set_option('display.max_columns', myopts['display_pd_display.max_columns'][0])
@@ -110,6 +138,63 @@ class Display(Addon):
     def retCustomDesc(self):
         out = "This addon allows you to display dataframes using a standard interface. It is also the default addon called post query by integrations"
         return out
+
+
+
+    def ipydgDisplay(self, result_df, mycnt):
+        base_row_size = self.opts['display_ipydg_base_row_size'][0]
+        base_column_size = self.opts['display_ipydg_base_column_size'][0]
+        base_row_header_size = self.opts['display_ipydg_base_row_header_size'][0]
+        base_column_header_size = self.opts['display_ipydg_base_column_header_size'][0]
+
+        # Determine Index width
+        header_visibility="column"
+        if int(self.opts['display_ipydg_display_idx'][0]) == 1:
+            header_visibility = "all"
+        else:
+            header_visibility="column"
+        if self.debug:
+            print(f"header_visibility: {header_visibility}")
+# Autofit
+        if self.opts['display_ipydg_autofit_cols'][0] == True:
+
+            maxColumnLengths = {}
+            mycoldefs = {}
+            for col in result_df.columns.tolist():
+                maxColumnLengths[col] = result_df.loc[:,col].astype(str).apply(len).max()
+
+#                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
+#            dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
+            text_factor = self.opts['display_ipydg_text_factor'][0]
+            colmin = self.opts['display_ipydg_colmin'][0]
+            colmax = self.opts['display_ipydg_colmax'][0]
+            header_autofit = self.opts['display_ipydg_header_autofit'][0]
+            header_pad = self.opts['display_ipydg_header_pad'][0]
+
+            for k in maxColumnLengths.keys():
+                if  k != "index" or k != "key":
+                    if header_autofit:
+                        col_size = len(str(k)) + int(header_pad)
+                        if maxColumnLengths[k] > col_size :
+                            col_size = maxColumnLengths[k]
+                    else:
+                        col_size = maxColumnLengths[k]
+                    mysize =  text_factor * col_size
+                    if mysize < colmin:
+                         mysize = colmin
+                    if mysize > colmax:
+                        mysize = colmax
+                    mycoldefs[k] = mysize
+        self.ipy.user_ns['prev_display'] = ipydatagrid.DataGrid(result_df, base_row_size=base_row_size, base_column_size=base_column_size, 
+                                                                base_row_header_size=base_row_header_size, base_column_header_size=base_column_header_size, 
+                                                                column_widths=mycoldefs, auto_fit_columns=False, editable=True, header_visibility=header_visibility)
+
+        display(self.ipy.user_ns['prev_display'])
+
+
+
+
+
 
     def qgridDisplay(self, result_df, mycnt):
 
@@ -190,6 +275,8 @@ class Display(Addon):
             instance = "dataframe"
 
         display_type = self.opts['display_pd_display_grid'][0]
+
+
         max_display_rows = self.opts['display_max_rows'][0]
         if result_df is not None:
             mycnt = len(result_df)
@@ -215,6 +302,8 @@ class Display(Addon):
                 self.qgridDisplay(result_df, mycnt)
             elif display_type == "html":
                 self.htmlDisplay(result_df, mycnt)
+            elif display_type == "ipydg":
+                self.ipydgDisplay(result_df, mycnt)
             else:
                 print("%s display type not supported" % display_type)
 

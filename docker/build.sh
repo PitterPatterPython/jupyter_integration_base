@@ -1,8 +1,20 @@
 #!/bin/bash
 
+
+MYDEV="1"
+MYJUPDOCK="Dockerfile_jupyter_integrations"
 MYTYPE="$1"
 
+
+if [ -z ${MYTYPE} ]; then
+    echo "No Type selected, defaulting to psf"
+    MYTYPE="psf"
+fi
+
 MYDFILE="Dockerfile_${MYTYPE}"
+
+
+REQFILE="20220824_requirements_39.txt"
 
 
 
@@ -12,6 +24,30 @@ else
     echo "Type $MYTYPE does not have an associated dockerfile"
     exit 1
 fi
+
+
+if [ -f ./${REQFILE} ]; then
+    cp ${REQFILE} ./requirements.txt
+fi
+
+
+
+if [ ${MYDEV} -eq "1" ]; then
+    CURPWD=`pwd`
+    cd ..
+    cd ..
+    tar zcf /tmp/jup_int.tgz jupyter_integration_base
+    cd ${CURPWD}
+    mv /tmp/jup_int.tgz ./
+    tar zxf jup_int.tgz
+
+    echo "DEV VERSION"
+    MYJUPDOCK="${MYJUPDOCK}_dev"
+    echo "Jupyter Dockerfile: ${MYJUPDOCK}"
+else
+    echo "NON DEV"
+fi
+
 
 FULL_VERSION=`grep JIVERSION ${MYDFILE} |sed  "s/ENV JIVERSION=//"`
 
@@ -41,7 +77,8 @@ else
 fi
 
 
-sed "s/~~SRCIMAGE~~/${BASE_TAG}/" Dockerfile_jupyter_integrations > Dockerfile1
+
+sed "s/~~SRCIMAGE~~/${BASE_TAG}/" ${MYJUPDOCK} > Dockerfile1
 
 if [ "${MYTYPE}" == "stacks" ]; then
     sed "s/RUN \/root\/startup_files\.sh//" Dockerfile1 > Dockerfile
@@ -62,3 +99,5 @@ else
     exit 1
 fi
 
+rm -rf ./jupyter_integration_base
+rm jup_int.tgz
