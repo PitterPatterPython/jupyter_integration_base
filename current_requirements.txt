@@ -70,7 +70,7 @@ jupyter_mysql==0.1.0
 jupyter_oracle==0.1.0
 jupyter-packaging==0.11.0
 jupyter_pyodbc==0.1.0
-jupyter-server==1.11.1
+jupyter-server==1.15.4
 jupyter_splunk==0.1.0
 jupyter_taxii==0.1.0
 jupyter_tera==0.1.0
