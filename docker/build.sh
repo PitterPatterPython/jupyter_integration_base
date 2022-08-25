@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MYDEV="1"
+MYDEV="0"
 MYJUPDOCK="Dockerfile_jupyter_integrations"
 MYTYPE="$1"
 

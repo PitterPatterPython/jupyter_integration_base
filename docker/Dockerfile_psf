@@ -2,7 +2,7 @@
 
 FROM python:3.9.6-buster
 
-ENV JIVERSION=psf_1.0.4
+ENV JIVERSION=psf_1.0.5
 
 COPY requirements.txt /root
 COPY startup_files.sh /root
