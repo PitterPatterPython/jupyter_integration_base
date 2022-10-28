@@ -23,14 +23,14 @@ def displayMD(md):
 
 def getHome(debug=False):
     home = ""
-    if "HOME" in os.environ:
-        if debug:
-            print("HOME Found")
-        home = os.environ["HOME"]
-    elif "USERPROFILE" in os.environ:
+    if "USERPROFILE" in os.environ:
         if debug:
             print("USERPROFILE Found")
         home = os.environ["USERPROFILE"]
+    elif "HOME" in os.environ:
+        if debug:
+            print("HOME Found")
+        home = os.environ["HOME"]
     else:
         print("Home not found - Defaulting to ''")
     if home[-1] == "/" or home[-1] == "\\":
