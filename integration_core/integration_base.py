@@ -97,7 +97,8 @@ class Integration(Magics):
                     print("%s not found in user_ns - Running" % chk)
                 objname = addon.capitalize()
                 corename = addon + "_core"
-                runcode = f"from {corename} import objname\n{addon}_base = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({addon}_base)\n"
+                varobjname = addon + "_base"
+                runcode = f"from {corename} import objname\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
                 if self.debug:
                     print(runcode)
                 res = self.ipy.ex(runcode)

@@ -1,137 +1,69 @@
 #!/usr/bin/python
 
-# Base imports for all integrations, only remove these at your own risk!
-import json
-import sys
-import os
-import time
-from collections import OrderedDict
-import requests
-from copy import deepcopy
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
-from IPython.core.display import HTML
-from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
-import pandas as pd
-# Widgets
-from ipywidgets import GridspecLayout, widgets
-import jupyter_integrations_utility as jiu
-try:
-    from pandas_profiling import ProfileReport
-except:
-    print("Could not import pandas_profiling")
-
-from addon_core import Addon
-
+from profile_core._version import __desc__
 @magics_class
-class Profile(Addon):
+class Profile(Magics):
     # Static Variables
-
-    magic_name = "profile"
+    # The name of the integration
     name_str = "profile"
-    custom_evars = []
-
-    custom_allowed_set_opts = ['profile_max_rows_full']
-
-
-    myopts = {}
-    myopts['profile_max_rows_full'] = [10000, "Row threshold for doing full analysis. Over there and we default to minimal analysis with a warning"]
+    magic_name = name_str
+    debug = False
+    # {name_str}_base is used for first load
+    # {name_str}_full is used after first load
 
 
-    def __init__(self, shell, debug=False,  *args, **kwargs):
+    def __init__(self, shell, debug=False, *args, **kwargs):
         super(Profile, self).__init__(shell, debug=debug)
         self.debug = debug
 
-        #Add local variables to opts dict
-        for k in self.myopts.keys():
-            self.opts[k] = self.myopts[k]
-        self.load_env(self.custom_evars)
-#        shell.user_ns['profile_var'] = self.creation_name
+        # Check namespace for integration and addon dicts
+        if "jupyter_loaded_integrations" not in self.shell.user_ns:
+            if self.debug:
+                print("jupyter_loaded_integrations not found in ns: adding")
+            self.shell.user_ns['jupyter_loaded_integrations'] = {}
+        if "jupyter_loaded_addons" not in self.shell.user_ns:
+            if self.debug:
+                print("jupyter_loaded_addons not found in ns: adding")
+            self.shell.user_ns['jupyter_loaded_addons'] = {}
 
-        runcode = "try:\n    from pandas_profiling import ProfileReport\nexcept:\n    pass\n"
-        runres = shell.ex(runcode)
+        # check addons dict for helloworld - Helloworld is needed because integrations are lazy loaded, and addons are loaded on frist integration load
+        if "helloworld" not in self.shell.user_ns['jupyter_loaded_addons']:
+            # Load helloworld
+            runcode = f"from helloworld_core.helloworld_full import Helloworld\nhelloworld_full = Helloworld(ipy, debug={str(self.debug)})\nipy.register_magics(helloworld_full)\n"
+            if self.debug:
+                print(f"Helloworld load code: {runcode}")
+            res = self.shell.ex(runcode)
+            self.shell.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
 
-        try:
-            a = type(ProfileReport)
-        except:
-            print("pandas_profiling doesn't seem to be installed, you will need this")
+        # Check to see if our name_str is in loaded addons (it shouldn't be)
+        if self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
+            print(f"Potenital Multiverse collision of names: {self.name_str}")
+            print(self.shell.user_ns['jupyter_loaded_addons'])
+        else:
+            # This is where add our base version
+            self.shell.user_ns['jupyter_loaded_addons'][self.name_str] = f"{self.name_str}_base"
 
-# Display Help can be customized
-
-    def customHelp(self, curout):
-        n = self.name_str
-        m = "%" + self.name_str
-        mq = "%" + m
-
-        table_header = "| Magic | Description |\n"
-        table_header += "| -------- | ----- |\n"
-
-        out = curout
-        out += table_header
-        out += "| %s | Run Pandas Profiler on profiledf |\n" % (m + " $profiledf")
-        out += "| %s | Run Pandas Profile on profiledf with a title of 'Your Title' |\n" % (m + " %profiledf Your Title")
-        out += "\n\n"
-        out += "**The last report run is stored in a pandas profile variable named prev_profile**\n"
-        out += "\n"
-        return out
-
+    # This returns the description
     def retCustomDesc(self):
-        out = "The profile addon allows an easy to user interface to Pandas Profiling for understanding your datasets"
-        return out
+        return __desc__
 
+    # The line cell magic to fully load this integrations
 
-
-
-    def runProfile(self, line):
-        line = line.replace("\r", "")
-        tar =line.split(" ")
-        if len(tar) == 1:
-            mydfname = tar[0]
-            mytitle = "Adhoc profile report for %s" % mydfname
-        elif len(tar) > 1:
-            mydfname = tar[0]
-            mytitle = " ".join(tar[1:])
-        else:
-            mydfname = 'error'
-            mytitle = 'title error'
-
-        pd.set_option("mode.chained_assignment", None)
-        if self.debug:
-            print("mydfname: %s" % mydfname)
-            print("mytitle: %s" % mytitle)
-
-        try:
-            mydf = self.ipy.user_ns[mydfname]
-        except:
-            mydf = None
-        if isinstance(mydf, pd.DataFrame):
-            if len(mydf) <= self.opts['profile_max_rows_full'][0]:
-                tprofile = ProfileReport(mydf, title=mytitle, explorative=True)
-            else:
-                print("Dataframe %s has more rows (%s) than the profile_max_rows_full (%s) Variable - Performing Minimal Analysis" % (mydfname, len(mydf), self.opts['profile_max_rows_full'][0]))
-                tprofile = ProfileReport(mydf, title=mytitle, minimal=True)
-            self.ipy.user_ns['prev_profile'] = tprofile
-            display(tprofile)
-        else:
-            print("Variable %s does not appear to be a valid Pandas Dataframe in current kernel" % mydfname)
-        pd.set_option("mode.chained_assignment", "warn")
-
-
-    # This is the magic name.
     @line_cell_magic
     def profile(self, line, cell=None):
-        if self.debug:
-           print("line: %s" % line)
-           print("cell: %s" % cell)
-        #line = line.replace("\r", "")
-        if cell is None:
-            line_handled = self.handleLine(line)
-            if not line_handled: # We based on this we can do custom things for integrations. 
-                if line.lower().find("profile") == 0:
-                    newline = line.replace("profile", "").strip()
-                    self.runProfile(newline)
-                elif line.strip().split(" ")[0] in self.ipy.user_ns:
-                    self.profile("profile " + line.strip())
-                else:
-                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
-        else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
-            print("No Cell Magic for %s" % self.name_str)
+        if not self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
+            print(f"Somehow we got here and {self.name_str} is not in loaded addons - Unpossible")
+        else:
+            if self.shell.user_ns['jupyter_loaded_addons'][self.name_str] != f"{self.name_str}_base":
+                print(f"We should only get here with a {self.name_str}_base state. Currently for {self.name_str}: {self.shell.user_ns['jupyter_loaded_addons'][self.name_str]}")
+            else:
+                if self.debug:
+                    print(f"Loading full {self.name_str} from base")
+                full_load = f"from {self.name_str}_core.{self.name_str}_full import {self.name_str.capitalize()}\n{self.name_str}_full = {self.name_str.capitalize()}(ipy, debug={str(self.debug)})\nipy.register_magics({self.name_str}_full)\n"
+                if self.debug:
+                    print("Load Code: {full_load}")
+                self.shell.ex(full_load)
+                self.shell.user_ns['jupyter_loaded_addons'][self.name_str] = f"{self.name_str}_full"
+                self.shell.run_cell_magic(self.name_str, line, cell)
+

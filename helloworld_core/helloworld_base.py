@@ -1,133 +1,69 @@
 #!/usr/bin/python
 
-# Base imports for all integrations, only remove these at your own risk!
-import json
-import sys
-import os
-import time
-import textwrap
-from collections import OrderedDict
-import requests
-from copy import deepcopy
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
-from IPython.core.display import HTML
-from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
-import pandas as pd
-# Widgets
-from ipywidgets import GridspecLayout, widgets
-import jupyter_integrations_utility as jiu
-
-from addon_core import Addon
-
+from helloworld_core._version import __desc__
 @magics_class
-class Helloworld(Addon):
+class Helloworld(Magics):
     # Static Variables
-
-    magic_name = "helloworld"
+    # The name of the integration
     name_str = "helloworld"
-    custom_evars = []
-
-    custom_allowed_set_opts = []
-
-
-    myopts = {}
-#    myopts['profile_max_rows_full'] = [10000, "Row threshold for doing full analysis. Over there and we default to minimal analysis with a warning"]
+    magic_name = name_str
+    debug = False
+    # {name_str}_base is used for first load
+    # {name_str}_full is used after first load
 
 
-    def __init__(self, shell, debug=False,  *args, **kwargs):
+    def __init__(self, shell, debug=False, *args, **kwargs):
         super(Helloworld, self).__init__(shell, debug=debug)
         self.debug = debug
 
-        #Add local variables to opts dict
-        for k in self.myopts.keys():
-            self.opts[k] = self.myopts[k]
-        self.load_env(self.custom_evars)
-#        shell.user_ns['helloworld_var'] = self.creation_name
+        # Check namespace for integration and addon dicts
+        if "jupyter_loaded_integrations" not in self.shell.user_ns:
+            if self.debug:
+                print("jupyter_loaded_integrations not found in ns: adding")
+            self.shell.user_ns['jupyter_loaded_integrations'] = {}
+        if "jupyter_loaded_addons" not in self.shell.user_ns:
+            if self.debug:
+                print("jupyter_loaded_addons not found in ns: adding")
+            self.shell.user_ns['jupyter_loaded_addons'] = {}
 
+        # check addons dict for helloworld - Helloworld is needed because integrations are lazy loaded, and addons are loaded on frist integration load
+        if "helloworld" not in self.shell.user_ns['jupyter_loaded_addons']:
+            # Load helloworld
+            runcode = f"from helloworld_core.helloworld_full import Helloworld\nhelloworld_full = Helloworld(ipy, debug={str(self.debug)})\nipy.register_magics(helloworld_full)\n"
+            if self.debug:
+                print(f"Helloworld load code: {runcode}")
+            res = self.shell.ex(runcode)
+            self.shell.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
 
-    def listIntsAdsMD(self):
-        myout = ""
-        myout += "\n"
-        myout += "Additional help for each integration and addon can be found by running the magic string for each integration or addon\n"
-        myout += "\n"
-        myout += "### Installed Integrations and Addons\n"
-        myout += "---------------\n"
-        myout += "| Integration | Desc |   | Addon | Desc |\n"
-        myout += "| ------ | ------ | --- | ----- | ---------|\n"
-
-        myints = list(self.ipy.user_ns['jupyter_loaded_integrations'].keys())
-        myadds = list(self.ipy.user_ns['jupyter_loaded_addons'].keys())
-        for i in range(max(len(myints), len(myadds))):
-            try:
-                cn = self.ipy.user_ns['jupyter_loaded_integrations'][myints[i]]
-                mn = self.ipy.user_ns[cn].magic_name
-                myintdesc = self.ipy.user_ns[cn].retCustomDesc()
-                myintdesc = "<br>".join(textwrap.wrap(myintdesc, 40))
-
-                myint = "%" + mn
-                myintstatus = str(True)
-            except:
-                myint = " "
-                myintstatus = " "
-                myintdesc = " "
-
-            try:
-                cn = self.ipy.user_ns['jupyter_loaded_addons'][myadds[i]]
-                mn = self.ipy.user_ns[cn].magic_name
-                myadddesc = self.ipy.user_ns[cn].retCustomDesc()
-                myadddesc = "<br>".join(textwrap.wrap(myadddesc, 40))
-                myadd = "%" + mn
-                myaddstatus = str(True)
-            except:
-                myadd = " "
-                myaddstatus = " "
-                myadddesc = " "
-            myout += "| %s | %s |   | %s | %s|\n" % (myint, myintdesc, myadd, myadddesc)
-        myout += "\n"
-        return myout
-
-    def customHelp(self, curout):
-        n = self.name_str
-        m = "%" + self.name_str
-        mq = "%" + m
-
-        table_header = "| Magic | Description |\n"
-        table_header += "| -------- | ----- |\n"
-
-        out = curout
-        out += "\n"
-        out += self.listIntsAdsMD()
-
-        return out
-
-    def retCustomDesc(self):
-        out = "This is the starting point for all addons and integrations in the Jupyter Integrations package"
-        return out
-
-
-    def fillGo(self):
-        if "hello_go" in self.ipy.user_ns:
-            self.ipy.set_next_input(self.ipy.user_ns["hello_go"])
+        # Check to see if our name_str is in loaded addons (it shouldn't be)
+        if self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
+            print(f"Potenital Multiverse collision of names: {self.name_str}")
+            print(self.shell.user_ns['jupyter_loaded_addons'])
         else:
-            print("hello_go variable is not set - nothing to do")
+            # This is where add our base version
+            self.shell.user_ns['jupyter_loaded_addons'][self.name_str] = f"{self.name_str}_base"
 
+    # This returns the description
+    def retCustomDesc(self):
+        return __desc__
 
-    # This is the magic name.
+    # The line cell magic to fully load this integrations
+
     @line_cell_magic
     def helloworld(self, line, cell=None):
-        if self.debug:
-           print("line: %s" % line)
-           print("cell: %s" % cell)
-        line = line.replace("\r", "")
-        if cell is None:
-            line_handled = self.handleLine(line)
-            if not line_handled: # We based on this we can do custom things for integrations.
-                if line.lower().strip () == "go":
-                    self.fillGo()
-                else:
-                    print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
-        else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
-            print("No Cell Magic for %s" % self.name_str)
-
-
+        if not self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
+            print(f"Somehow we got here and {self.name_str} is not in loaded addons - Unpossible")
+        else:
+            if self.shell.user_ns['jupyter_loaded_addons'][self.name_str] != f"{self.name_str}_base":
+                print(f"We should only get here with a {self.name_str}_base state. Currently for {self.name_str}: {self.shell.user_ns['jupyter_loaded_addons'][self.name_str]}")
+            else:
+                if self.debug:
+                    print(f"Loading full {self.name_str} from base")
+                full_load = f"from {self.name_str}_core.{self.name_str}_full import {self.name_str.capitalize()}\n{self.name_str}_full = {self.name_str.capitalize()}(ipy, debug={str(self.debug)})\nipy.register_magics({self.name_str}_full)\n"
+                if self.debug:
+                    print("Load Code: {full_load}")
+                self.shell.ex(full_load)
+                self.shell.user_ns['jupyter_loaded_addons'][self.name_str] = f"{self.name_str}_full"
+                self.shell.run_cell_magic(self.name_str, line, cell)
 
