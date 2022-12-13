@@ -18,14 +18,6 @@ import ipywidgets as widgets
 
 import jupyter_integrations_utility as jiu
 
-# nameing code
-import traceback, threading, time
-# end naming code
-
-class InstanceCreationError(Exception):
-    pass
-
-
 
 #@magics_class
 class Integration(Magics):
@@ -73,9 +65,7 @@ class Integration(Magics):
     # opt['item'][0] is the actual value if opt['item']
     # p[t['item'][1] is a description of the option and it's use for built in description.
 
-    # Pandas Variables
     opts['default_instance_name'] = ['default', "The instance name used as a default"]
- #   opts['pd_display_grid'] = ['na', "This is legacy, and needs to be removed once all integrations that reference it stop using it - It is not used"]
 
     opts['m_replace_a0_20'] = [False, 'Replace hex(a0) with space (hex(20)) on magic submission - On lines and cells']
     opts['m_replace_crlf_lf'] = [True, 'Replace crlf with lf (convert windows to unix line endings) on magic submission - Only on cells, not lines']
@@ -83,10 +73,7 @@ class Integration(Magics):
 
 
     # Class Init function - Obtain a reference to the get_ipython()
-    # We get the self ipy, we set session to None, and we load base_integration level environ variables. 
-
-
-
+    # We get the self ipy,  and we load base_integration level environ variables. 
 
 
 
@@ -98,67 +85,8 @@ class Integration(Magics):
         self.check_req_addons()
         if self.magic_name == "":
             self.magic_name = self.name_str
-#        if 'jupyter_loaded_integrations' not in shell.user_ns:
-#            shell.user_ns['jupyter_loaded_integrations'] = [self.name_str]
-#        else:
-#            shell.user_ns['jupyter_loaded_integrations'].append(self.name_str)
 
-        # Begin Name Code
-        for frame, line in traceback.walk_stack(None):
-            varnames = frame.f_code.co_varnames
-            if varnames == ():
-                break
-            if frame.f_locals[varnames[0]] not in (self, self.__class__):
-                break
-                # if the frame is inside a method of this instance,
-                # the first argument usually contains either the instance or
-                #  its class
-                # we want to find the first frame, where this is not the case
-        else:
-            raise InstanceCreationError("No suitable outer frame found.")
-        self._outer_frame = frame
-        self.creation_module = frame.f_globals["__name__"]
-        self.creation_file, self.creation_line, self.creation_function, \
-            self.creation_text = \
-            traceback.extract_stack(frame, 1)[0]
-        self.creation_name = self.creation_text.split("=")[0].strip()
-        threading.Thread(target=self._check_existence_after_creation).start()
-        if 'jupyter_loaded_integrations' not in shell.user_ns:
-            shell.user_ns['jupyter_loaded_integrations'] = {}
-        shell.user_ns['jupyter_loaded_integrations'][self.name_str] = self.creation_name
-
-    def _check_existence_after_creation(self):
-        while self._outer_frame.f_lineno == self.creation_line:
-            time.sleep(0.01)
-        # this is executed as soon as the line number changes
-        # now we can be sure the instance was actually created
-        error = InstanceCreationError(
-                "\nCreation name not found in creation frame.\ncreation_file: "
-                "%s \ncreation_line: %s \ncreation_text: %s\ncreation_name ("
-                "might be wrong): %s" % (
-                    self.creation_file, self.creation_line, self.creation_text,
-                    self.creation_name))
-        nameparts = self.creation_name.split(".")
-        try:
-            var = self._outer_frame.f_locals[nameparts[0]]
-        except KeyError:
-            raise error
-        finally:
-            del self._outer_frame
-        # make sure we have no permament inter frame reference
-        # which could hinder garbage collection
-        try:
-            for name in nameparts[1:]: var = getattr(var, name)
-        except AttributeError:
-            raise error
-        if var is not self: raise error
-
-    def print_creation_info(self):
-        print(self.creation_name, self.creation_module, self.creation_function,
-                self.creation_line, self.creation_text, sep=", ")
-
-#### End Name code
-
+    # We will maybe have to load helloworld  first
     def check_req_addons(self):
         for addon in self.req_addons:
             chk = addon
@@ -173,10 +101,11 @@ class Integration(Magics):
                 runcode = "from %s import %s\n%s = %s(ipy, debug=%s)\nipy.register_magics(%s)\n" % (corename, objname, varobjname, objname, str(self.debug), varobjname)
                 if self.debug:
                     print(runcode)
-                res = self.ipy.run_cell(runcode)
+                res = self.ipy.ex(runcode)
+                self.ipy.user_ns['jupyter_loaded_addons'][chk] = varobjname
             else:
                 if self.debug:
-                    print("%s found in user_ns - Not starting" % chk)
+                    print("%s found in user_ns - Not loading" % chk)
     def retProxy(self, instance=None):
         proxystr = self.get_proxy_str(instance)
         if self.debug:

@@ -14,7 +14,7 @@ fi
 MYDFILE="Dockerfile_${MYTYPE}"
 
 
-REQFILE="20220824_requirements_39.txt"
+REQFILE="20221213_requirements_39.txt"
 
 
 

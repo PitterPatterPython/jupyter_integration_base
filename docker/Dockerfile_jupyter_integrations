@@ -4,9 +4,15 @@ FROM ~~SRCIMAGE~~
 ENV THISHOME=~~HOME~~
 
 RUN ipython profile create && jupyter lab --generate-config \
-&& sed -i "s/# c.ServerApp.iopub_data_rate_limit = 1000000/c.ServerApp.iopub_data_rate_limit = 100000000/g" $HOME/.jupyter/jupyter_lab_config.py
+&& sed -i "s/# c.ServerApp.iopub_data_rate_limit = 1000000/c.ServerApp.iopub_data_rate_limit = 1000000000/g" $HOME/.jupyter/jupyter_lab_config.py
 
 RUN git clone https://github.com/johnomernik/jupyter_integration_base && cd jupyter_integration_base && python setup.py install && cd .. && rm -rf ./jupyter_integration_base
+
+# Done
+
+
+# Not Done
+
 RUN git clone https://github.com/johnomernik/jupyter_splunk && cd jupyter_splunk && python setup.py install && cd .. && rm -rf ./jupyter_splunk
 RUN git clone https://github.com/johnomernik/jupyter_drill && cd jupyter_drill && python setup.py install && cd .. && rm -rf ./jupyter_drill
 RUN git clone https://github.com/johnomernik/jupyter_pyodbc && cd jupyter_pyodbc && python setup.py install && cd .. && rm -rf ./jupyter_pyodbc
