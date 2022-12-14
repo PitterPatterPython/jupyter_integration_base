@@ -65,7 +65,7 @@ class Helloworld(Addon):
                 objname = addon.capitalize()
                 corename = addon + "_core"
                 varobjname = addon + "_base"
-                runcode = f"from {corename}.{addon}_base import objname\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
+                runcode = f"from {corename}.{addon}_base import {objname}\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
                 if self.debug:
                     print(runcode)
                 res = self.ipy.ex(runcode)
