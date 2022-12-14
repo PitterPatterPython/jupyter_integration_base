@@ -6,7 +6,7 @@ from namedpw_core._version import __desc__
 class Namedpw(Magics):
     # Static Variables
     # The name of the integration
-    name_str = "namwedpw"
+    name_str = "namedpw"
     magic_name = name_str
     debug = False
     # {name_str}_base is used for first load

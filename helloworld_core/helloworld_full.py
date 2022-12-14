@@ -30,7 +30,7 @@ class Helloworld(Addon):
 
     # Addons required to be loaded
     req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
-    req_full_addons = ['display']
+    req_full_addons = ['display', 'namedpw']
     custom_allowed_set_opts = []
 
 

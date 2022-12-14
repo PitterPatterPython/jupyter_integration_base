@@ -6,7 +6,7 @@ ENV THISHOME=~~HOME~~
 RUN ipython profile create && jupyter lab --generate-config \
 && sed -i "s/# c.ServerApp.iopub_data_rate_limit = 1000000/c.ServerApp.iopub_data_rate_limit = 1000000000/g" $HOME/.jupyter/jupyter_lab_config.py
 
-RUN echo "hi1234"
+RUN echo "hi1234567"
 RUN git clone https://github.com/johnomernik/jupyter_integration_base && cd jupyter_integration_base && python setup.py install && cd .. && rm -rf ./jupyter_integration_base
 
 # Done
@@ -15,16 +15,18 @@ RUN git clone https://github.com/johnomernik/jupyter_splunk && cd jupyter_splunk
 RUN git clone https://github.com/johnomernik/jupyter_taxii && cd jupyter_taxii && python setup.py install && cd .. && rm -rf ./jupyter_taxii
 RUN git clone https://github.com/johnomernik/jupyter_pyodbc && cd jupyter_pyodbc && python setup.py install && cd .. && rm -rf ./jupyter_pyodbc
 RUN git clone https://github.com/johnomernik/jupyter_drill && cd jupyter_drill && python setup.py install && cd .. && rm -rf ./jupyter_drill
+RUN git clone https://github.com/johnomernik/jupyter_tera && cd jupyter_tera && python setup.py install && cd .. && rm -rf ./jupyter_tera
+RUN git clone https://github.com/johnomernik/jupyter_hive && cd jupyter_hive && python setup.py install && cd .. && rm -rf ./jupyter_hive
+RUN git clone https://github.com/johnomernik/jupyter_impala && cd jupyter_impala && python setup.py install && cd .. && rm -rf ./jupyter_impala
+RUN git clone https://github.com/johnomernik/jupyter_oracle && cd jupyter_oracle && python setup.py install && cd .. && rm -rf ./jupyter_oracle
+RUN git clone https://github.com/johnomernik/jupyter_mssql && cd jupyter_mssql && python setup.py install && cd .. && rm -rf ./jupyter_mssql
 
 
 # Not Done
 
-# RUN git clone https://github.com/johnomernik/jupyter_impala && cd jupyter_impala && python setup.py install && cd .. && rm -rf ./jupyter_impala
-# RUN git clone https://github.com/johnomernik/jupyter_hive && cd jupyter_hive && python setup.py install && cd .. && rm -rf ./jupyter_hive
-# RUN git clone https://github.com/johnomernik/jupyter_tera && cd jupyter_tera && python setup.py install && cd .. && rm -rf ./jupyter_tera
+
 # RUN git clone https://github.com/johnomernik/jupyter_es && cd jupyter_es && python setup.py install && cd .. && rm -rf ./jupyter_es
 # RUN git clone https://github.com/johnomernik/jupyter_mysql && cd jupyter_mysql && python setup.py install && cd .. && rm -rf ./jupyter_mysql
-# RUN git clone https://github.com/johnomernik/jupyter_oracle && cd jupyter_oracle && python setup.py install && cd .. && rm -rf ./jupyter_oracle
 
 RUN git clone https://github.com/johnomernik/qgrid && cd qgrid && \
     python setup.py install && \

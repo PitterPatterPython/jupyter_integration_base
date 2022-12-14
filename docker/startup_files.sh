@@ -23,10 +23,9 @@ echo "from helloworld_core.helloworld_full import Helloworld" > $CUR
 echo "helloworld_full = Helloworld${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(helloworld_full)" >> $CUR
 
-
 CUR="${SU}11_drill.py"
 echo "Creating $CUR"
-echo "from drill_core import Drill" > $CUR
+echo "from drill_core.drill_base import Drill" > $CUR
 echo "drill_base = Drill${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(drill_base)" >> $CUR
 
@@ -42,23 +41,23 @@ echo "ipy.register_magics(splunk_base)" >> $CUR
 #echo "myMysql = Mysql${OBJ_VAL}" >> $CUR
 #echo "ipy.register_magics(myMysql)" >> $CUR
 
-#CUR="${SU}14_impala.py"
-#echo "Creating $CUR"
-#echo "from impala_core import Impala" > $CUR
-#echo "myImpala = Impala${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myImpala)" >> $CUR
+CUR="${SU}14_impala.py"
+echo "Creating $CUR"
+echo "from impala_core.impala_base import Impala" > $CUR
+echo "impala_base = Impala${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(impala_base)" >> $CUR
 
-#CUR="${SU}15_hive.py"
-#echo "Creating $CUR"
-#echo "from hive_core import Hive" > $CUR
-#echo "myHive = Hive${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myHive)" >> $CUR
+CUR="${SU}15_hive.py"
+echo "Creating $CUR"
+echo "from hive_core.hive_base import Hive" > $CUR
+echo "hive_base = Hive${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(hive_base)" >> $CUR
 
-#CUR="${SU}16_tera.py"
-#echo "Creating $CUR"
-#echo "from tera_core import Tera" > $CUR
-#echo "myTera = Tera${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myTera)" >> $CUR
+CUR="${SU}16_tera.py"
+echo "Creating $CUR"
+echo "from tera_core.tera_base import Tera" > $CUR
+echo "tera_base = Tera${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(tera_base)" >> $CUR
 
 #CUR="${SU}17_es.py"
 #echo "Creating $CUR"
@@ -72,17 +71,23 @@ echo "from taxii_core.taxii_base import Taxii" > $CUR
 echo "taxii_base = Taxii${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(taxii_base)" >> $CUR
 
-#CUR="${SU}19_oracle.py"
-#echo "Creating $CUR"
-#echo "from oracle_core import Oracle" > $CUR
-#echo "myOracle = Oracle${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myOracle)" >> $CUR
+CUR="${SU}19_oracle.py"
+echo "Creating $CUR"
+echo "from oracle_core.oracle_base import Oracle" > $CUR
+echo "oracle_base = Oracle${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(oracle_base)" >> $CUR
 
 CUR="${SU}20_pyodbc.py"
 echo "Creating $CUR"
-echo "from pyodbc_core import Pyodbc" > $CUR
+echo "from pyodbc_core.pyodbc_base import Pyodbc" > $CUR
 echo "pyodbc_base = Pyodbc${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(pyodbc_base)" >> $CUR
+
+CUR="${SU}21_mssql.py"
+echo "Creating $CUR"
+echo "from mssql_core.mssql_base import Mssql" > $CUR
+echo "mssql_base = Mssql${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(mssql_base)" >> $CUR
 
 echo "Startup Files Complete"
 
