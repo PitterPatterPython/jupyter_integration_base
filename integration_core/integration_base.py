@@ -600,6 +600,11 @@ class Integration(Magics):
         starttime = int(time.time())
         run_query = self.validateQuery(query, instance)
 
+        self.instances[instance]['last_query'] = query
+        self.instances[instance]['last_query_ts'] = int(time.time())
+        if query.strip().find("use ") == 0:
+            self.instances[instance]['last_use'] = query
+
         if run_query:
             if self.instances[instance]['connected'] == True:
                 mydf, status = self.customQuery(query, instance)
