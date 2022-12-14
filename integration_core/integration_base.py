@@ -527,9 +527,9 @@ class Integration(Magics):
                             print("Time Since Last Query exceed the query_recon_delta: Reconnecting")
                             brecon = True
 
-                if brcon:
+                if brecon:
                     self.disconnect(instance=instance)
-                    self.connect(instance)
+                    self.connect(instance=instance)
                 result_df, qtime, status = self.runQuery(cell, instance)
                 if status.find("Failure") == 0:
                     print("Error from instance %s: %s" % (instance, status))
