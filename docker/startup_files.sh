@@ -35,11 +35,11 @@ echo "from splunk_core.splunk_base import Splunk" > $CUR
 echo "splunk_base = Splunk${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(splunk_base)" >> $CUR
 
-#CUR="${SU}13_mysql.py"
-#echo "Creating $CUR"
-#echo "from mysql_core import Mysql" > $CUR
-#echo "myMysql = Mysql${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myMysql)" >> $CUR
+CUR="${SU}13_mysql.py"
+echo "Creating $CUR"
+echo "from mysql_core.mysql_base import Mysql" > $CUR
+echo "mysql_base = Mysql${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(mysql_base)" >> $CUR
 
 CUR="${SU}14_impala.py"
 echo "Creating $CUR"
@@ -59,11 +59,11 @@ echo "from tera_core.tera_base import Tera" > $CUR
 echo "tera_base = Tera${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(tera_base)" >> $CUR
 
-#CUR="${SU}17_es.py"
-#echo "Creating $CUR"
-#echo "from es_core import Es" > $CUR
-#echo "myEs = Es${OBJ_VAL}" >> $CUR
-#echo "ipy.register_magics(myEs)" >> $CUR
+CUR="${SU}17_es.py"
+echo "Creating $CUR"
+echo "from es_core.es_base import Es" > $CUR
+echo "es_base = Es${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(es_base)" >> $CUR
 
 CUR="${SU}18_taxii.py"
 echo "Creating $CUR"

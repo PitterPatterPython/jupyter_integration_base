@@ -295,6 +295,7 @@ class Integration(Magics):
             if result == 0:
                 inst["connected"] = True
                 jiu.displayMD("**%s - Connected** - %s\n\n" % (self.name_str.capitalize(), inst['conn_url']))
+                inst['last_connect_ts'] = int(time.time())
             else:
                 inst['connect_pass'] = None
                 inst['enc_pass'] = None
@@ -508,6 +509,27 @@ class Integration(Magics):
                 if self.instances[instance]['connect_pass'] is not None or self.instances[self.opts[self.name_str + "_conn_default"][0]]['connect_pass'] is not None or self.req_password(instance) == False:
                     self.connect(instance)
             if self.instances[instance]['connected'] == True:
+                con_recon_delta = int(self.instances[instance]['options'].get('con_recon_delta', 0))
+                query_recon_delta = int(self.instances[instance]['options'].get('query_recon_delta', 0))
+                brecon = False
+                if con_recon_delta > 0:
+                    curtime = int(time.time())
+                    last_conn = self.instances[instance].get('last_connect_ts', 0)
+                    if last_conn > 0:
+                        if curtime - last_conn > con_recon_delta:
+                            print("Time Since Last Connection exceeds the con_recon_delta: Reconnecting")
+                            brecon = True
+                if not brecon and query_recon_delta > 0:
+                    curtime = int(time.time())
+                    last_query_ts = self.instances[instance].get('last_query_ts', 0)
+                    if last_query_ts > 0:
+                        if curtime - last_query_ts > query_recon_delta:
+                            print("Time Since Last Query exceed the query_recon_delta: Reconnecting")
+                            brecon = True
+
+                if brcon:
+                    self.disconnect(instance=instance)
+                    self.connect(instance)
                 result_df, qtime, status = self.runQuery(cell, instance)
                 if status.find("Failure") == 0:
                     print("Error from instance %s: %s" % (instance, status))
@@ -968,7 +990,7 @@ class Integration(Magics):
                                     print("Could not set instance variable %s - Instance %s not created yet" % (base_var, instance))
 
     def fill_instance(self, inst_name, conn_url):
-        self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "enc_pass": None, "last_use": "", "last_query": ""}
+        self.instances[inst_name] = {"conn_url": conn_url , "connected": False, "session": None, "connect_pass": None, "enc_pass": None, "last_use": "", "last_query": "", "last_query_ts": 0}
 
     def parse_instances(self, parse_inst=None):
         if parse_inst is None: # Parse all instances
