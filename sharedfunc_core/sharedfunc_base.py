@@ -56,5 +56,5 @@ class Sharedfunc(Magics):
                     print("Load Code: {full_load}")
                 self.shell.ex(full_load)
                 self.shell.user_ns['jupyter_loaded_addons'][self.name_str] = f"{self.name_str}_full"
-                self.shell.run_cell_magic(self.name_str, line, cell)
+                self.shell.run_cell_magic(self.magic_name, line, cell)
 
