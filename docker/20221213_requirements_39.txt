@@ -62,7 +62,7 @@ jupyterlab-server
 jupyterlab-widgets==1.1.1
 kiwisolver==1.3.2
 libclang==12.0.0
-lxml==4.6.4
+lxml==4.9.1
 MarkupSafe==2.0.1
 matplotlib
 matplotlib-inline
