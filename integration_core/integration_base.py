@@ -82,7 +82,8 @@ class Integration(Magics):
         super(Integration, self).__init__(shell)
         self.ipy = shell
         self.load_env(self.global_evars)
-        self.check_req_addons()
+        # Removed for lazy load
+        # self.check_req_addons()
         if self.magic_name == "":
             self.magic_name = self.name_str
 

@@ -27,15 +27,6 @@ class Display(Magics):
                 print("jupyter_loaded_addons not found in ns: adding")
             self.shell.user_ns['jupyter_loaded_addons'] = {}
 
-        # check addons dict for helloworld - Helloworld is needed because integrations are lazy loaded, and addons are loaded on frist integration load
-        if "helloworld" not in self.shell.user_ns['jupyter_loaded_addons']:
-            # Load helloworld
-            runcode = f"from helloworld_core.helloworld_full import Helloworld\nhelloworld_full = Helloworld(ipy, debug={str(self.debug)})\nipy.register_magics(helloworld_full)\n"
-            if self.debug:
-                print(f"Helloworld load code: {runcode}")
-            res = self.shell.ex(runcode)
-            self.shell.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
-
         # Check to see if our name_str is in loaded addons (it shouldn't be)
         if self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
             print(f"Potenital Multiverse collision of names: {self.name_str}")

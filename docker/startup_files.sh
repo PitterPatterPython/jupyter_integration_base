@@ -17,11 +17,12 @@ echo "import pandas as pd" >> $CUR
 echo "%splunk instances" >> $CUR
 echo "\"\"\"" >> $CUR
 
-CUR="${SU}10_pyodbc.py"
+CUR="${SU}10_helloworld.py"
 echo "Creating $CUR"
-echo "from pyodbc_core import Pyodbc" > $CUR
-echo "pyodbc_base = Pyodbc${OBJ_VAL}" >> $CUR
-echo "ipy.register_magics(pyodbc_base)" >> $CUR
+echo "from helloworld_core.helloword_full import Helloworld" > $CUR
+echo "helloworld_full = Helloworld${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(helloworld_full)" >> $CUR
+
 
 CUR="${SU}11_drill.py"
 echo "Creating $CUR"
@@ -76,6 +77,12 @@ echo "ipy.register_magics(taxii_base)" >> $CUR
 #echo "from oracle_core import Oracle" > $CUR
 #echo "myOracle = Oracle${OBJ_VAL}" >> $CUR
 #echo "ipy.register_magics(myOracle)" >> $CUR
+
+CUR="${SU}20_pyodbc.py"
+echo "Creating $CUR"
+echo "from pyodbc_core import Pyodbc" > $CUR
+echo "pyodbc_base = Pyodbc${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(pyodbc_base)" >> $CUR
 
 echo "Startup Files Complete"
 

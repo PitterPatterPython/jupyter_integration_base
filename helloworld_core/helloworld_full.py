@@ -43,7 +43,38 @@ class Helloworld(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
+        if 'jupyter_loaded_addons' not in self.ipy.user_ns:
+            self.ipy.user_ns['jupyter_loaded_addons'] = {}
+        self.ipy.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
+        self.check_req_addons()
+
 #        shell.user_ns['helloworld_var'] = self.creation_name
+
+    # We will maybe have to load helloworld  first
+    def check_req_addons(self):
+        req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
+        for addon in self.req_addons:
+            chk = addon
+            if 'jupyter_loaded_addons' not in self.ipy.user_ns:
+                self.ipy.user_ns['jupyter_loaded_addons'] = {}
+            if chk not in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+                if self.debug:
+                    print("%s not found in user_ns - Running" % chk)
+                objname = addon.capitalize()
+                corename = addon + "_core"
+                varobjname = addon + "_base"
+                runcode = f"from {corename}.{addon}_base import objname\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
+                if self.debug:
+                    print(runcode)
+                res = self.ipy.ex(runcode)
+                self.ipy.user_ns['jupyter_loaded_addons'][chk] = varobjname
+            else:
+                if self.debug:
+                    print("%s found in user_ns - Not loading" % chk)
+
+
+
+
 
 
     def listIntsAdsMD(self):

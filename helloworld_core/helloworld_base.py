@@ -36,6 +36,7 @@ class Helloworld(Magics):
             res = self.shell.ex(runcode)
             self.shell.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
 
+
         # Check to see if our name_str is in loaded addons (it shouldn't be)
         if self.name_str in self.shell.user_ns['jupyter_loaded_addons']:
             print(f"Potenital Multiverse collision of names: {self.name_str}")
