@@ -19,7 +19,7 @@ echo "\"\"\"" >> $CUR
 
 CUR="${SU}10_helloworld.py"
 echo "Creating $CUR"
-echo "from helloworld_core.helloword_full import Helloworld" > $CUR
+echo "from helloworld_core.helloworld_full import Helloworld" > $CUR
 echo "helloworld_full = Helloworld${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(helloworld_full)" >> $CUR
 

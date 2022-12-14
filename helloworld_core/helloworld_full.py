@@ -28,6 +28,9 @@ class Helloworld(Addon):
     name_str = "helloworld"
     custom_evars = []
 
+    # Addons required to be loaded
+    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
+
     custom_allowed_set_opts = []
 
 
@@ -52,7 +55,6 @@ class Helloworld(Addon):
 
     # We will maybe have to load helloworld  first
     def check_req_addons(self):
-        req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
         for addon in self.req_addons:
             chk = addon
             if 'jupyter_loaded_addons' not in self.ipy.user_ns:
