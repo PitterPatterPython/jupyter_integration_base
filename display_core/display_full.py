@@ -279,15 +279,16 @@ class Display(Addon):
 
         max_display_rows = self.opts['display_max_rows'][0]
         if result_df is not None:
-            mycnt = result_df.shape
+            myshape = result_df.shape
+            mycnt = myshape[0]
         else:
             mycnt = 0
 
         if qtime is not None:
-            print(f"{mycnt} Rows,Cols from instance {instance} in Approx {qtime} seconds")
+            print(f"{myshape} Rows,Cols from instance {instance} in Approx {qtime} seconds")
             print("")
         else:
-            print(f"{mycnt} Rows,Cols")
+            print(f"{myshape} Rows,Cols")
             print("")
 
         if self.debug:
