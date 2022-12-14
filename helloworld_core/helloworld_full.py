@@ -30,7 +30,7 @@ class Helloworld(Addon):
 
     # Addons required to be loaded
     req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
-
+    req_full_addons = ['display']
     custom_allowed_set_opts = []
 
 
@@ -64,8 +64,13 @@ class Helloworld(Addon):
                     print("%s not found in user_ns - Running" % chk)
                 objname = addon.capitalize()
                 corename = addon + "_core"
-                varobjname = addon + "_base"
-                runcode = f"from {corename}.{addon}_base import {objname}\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
+                if addon in self.req_full_addons:
+                    varobjname = addon + "_full"
+                else:
+                    varobjname = addon + "_base"
+
+                runcode = f"from {corename}.{varobjname} import {objname}\n{varobjname} = {objname}(ipy, debug={str(self.debug)})\nipy.register_magics({varobjname})\n"
+
                 if self.debug:
                     print(runcode)
                 res = self.ipy.ex(runcode)
