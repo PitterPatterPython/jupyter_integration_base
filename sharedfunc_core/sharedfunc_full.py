@@ -17,7 +17,7 @@ import pandas as pd
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 import importlib
-from sharedfunc._version import __desc__
+from sharedfunc_core._version import __desc__
 
 from addon_core import Addon
 

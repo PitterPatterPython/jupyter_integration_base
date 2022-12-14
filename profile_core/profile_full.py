@@ -12,7 +12,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, li
 from IPython.core.display import HTML
 from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
 import pandas as pd
-from profile._version import __desc__
+from profile_core._version import __desc__
 
 # Widgets
 from ipywidgets import GridspecLayout, widgets
