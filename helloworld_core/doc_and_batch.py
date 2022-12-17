@@ -598,7 +598,7 @@ def get_func_doc_item(func_name, keyname, myglobals, debug=False):
 
 def is_query_func(func_name, myglobals, debug=False):
     bQueryFunc = None
-    doc_dict = parse_docstr(func_name, myglobaals, display_error=False, silent=True, debug=debug)
+    doc_dict = parse_docstr(func_name, myglobals, display_error=False, silent=True, debug=debug)
     if doc_dict is not None:
         bQueryFunc = False
         for a in doc_dict['args']:
