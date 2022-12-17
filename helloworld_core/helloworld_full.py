@@ -169,7 +169,7 @@ class Helloworld(Addon):
         out += "---------------\n"
         out += table_header
         out += f"| {m + ' doc_and_batch'} | Print the doc_and_batch_help() (Same as typing doc_and_batch() )  |\n"
-        out += f"| {m + ' go' | Put the helloworld go (defined in the variable hello_go) into the next cell. You can specify this in an py file in the .ipython profile_default startup folder |\n"
+        out += f"| {m + ' go'} | Put the helloworld go (defined in the variable hello_go) into the next cell. You can specify this in an py file in the .ipython profile_default startup folder |\n"
         out += "\n\n"
         out += "\n"
         out += self.listIntsAdsMD()
