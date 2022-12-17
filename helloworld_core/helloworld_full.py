@@ -128,14 +128,22 @@ class Helloworld(Addon):
         return myout
 
     def customHelp(self, curout):
-        n = self.name_str
-        m = "%" + self.name_str
+        n = self.magic_name
+        m = "%" + n
         mq = "%" + m
 
         table_header = "| Magic | Description |\n"
         table_header += "| -------- | ----- |\n"
 
         out = curout
+
+        out += "\n"
+        out += f"### {m} line magics\n"
+        out += "---------------\n"
+        out += table_header
+        out += "| {m + ' doc_and_batch'} | Print the doc_and_batch_help() (Same as typing doc_and_batch() )  |\n"
+        out += "| {m + ' go' | Put the helloworld go (defined in the variable hello_go) into the next cell. You can specify this in an py file in the .ipython profile_default startup folder |\n"
+        out += "\n\n"
         out += "\n"
         out += self.listIntsAdsMD()
 
