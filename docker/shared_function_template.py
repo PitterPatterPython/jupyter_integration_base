@@ -116,8 +116,8 @@ def example_query(list_items=[], list_field="myid", myop="IN", date_start=None, 
     """
 
     myname = sys._getframe().f_code.co_name
-    integration = get_func_doc_item(myname, "integration")
-    instance = get_func_doc_item(myname, "instance")
+    integration = get_func_doc_item(myname, "integration", globals())
+    instance = get_func_doc_item(myname, "instance", globals())
 
     date_start = resolve_start_date(date_start)
     out_df = None
