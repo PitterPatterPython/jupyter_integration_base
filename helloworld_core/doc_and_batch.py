@@ -53,7 +53,7 @@ def doc_and_batch_help(func_name=None, debug=False):
     }
 
 
-    main_help(title, help_func, doc_functions, myglobals=globals(), exp_func=exp_func, func_name=func_name, debug=debug)
+    main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
     loaded_helpers.append("doc_and_batch")
 
 

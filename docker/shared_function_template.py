@@ -38,7 +38,7 @@ def shared_function_help(func_name=None, debug=False):
     if debug:
         print("Running with debug")
 
-    main_help(title, help_func, doc_functions, exp_func=exp_func, func_name=func_name, debug=debug)
+    main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
     if functions_name not in loaded_helpers:
         loaded_helpers.append(functions_name)
 
