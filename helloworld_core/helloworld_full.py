@@ -172,8 +172,10 @@ class Helloworld(Addon):
         if cell is None:
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations.
-                if line.lower().strip () == "go":
+                if line.lower().strip() == "go":
                     self.fillGo()
+                elif line.lower().strip() == "doc_and_batch":
+                    self.ipy.ex("doc_and_batch_help()")
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
