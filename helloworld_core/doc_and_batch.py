@@ -617,20 +617,22 @@ def get_list_field(func_name, debug=False):
                 break
     return retval
 
-def function_in_kernel(func_name):
+def function_in_kernel(func_name, debug=False):
     bFound = False
     try:
         doc_str = globals()[func_name].__doc__
         bFound = True
     except:
-        pass
+        if debug:
+            print("Not found: here's the globals"
+            print(globals())
 
     return bFound
 
 def parse_docstr(func_name, display_error=False, silent=False, debug=False):
     bFound = False
     out_md = ""
-    bFound = function_in_kernel(func_name)
+    bFound = function_in_kernel(func_name, debug=debug)
     if bFound:
         doc_str = globals()[func_name].__doc__
     else:

@@ -6,6 +6,20 @@ source jupyter_integrations.cfg
 
 ########
 
+if [ -d "$NOTEBOOKDIR" ]; then
+    echo "Notebook directory found"
+else
+    mkdir $NOTEBOOKDIR
+fi
+
+if [ -f "$NOTEBOOKDIR/shared_function_template.py" ]; then
+    echo "Shared function template exists"
+else
+    cp shared_function_template.py ${NOTEBOOKDIR}/
+fi
+
+
+
 MYTYPE="$1"
 MYPORT="$2"
 
