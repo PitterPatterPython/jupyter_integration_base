@@ -60,9 +60,9 @@ def doc_and_batch_help(func_name=None, debug=False):
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, debug=False):
 
 
-    if func_name is not None and func_name != "basic":
+    if func_name is not None:
         if isfunction(func_name):
-            func_name = myglobals[func_name].__name__
+            func_name = func_name.__name__
 
     if func_name is None:
         out_md = ""
