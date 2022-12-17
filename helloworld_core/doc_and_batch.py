@@ -624,7 +624,7 @@ def function_in_kernel(func_name, debug=False):
         bFound = True
     except:
         if debug:
-            print("Not found: here's the globals"
+            print("Not found: here's the globals")
             print(globals())
 
     return bFound

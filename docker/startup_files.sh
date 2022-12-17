@@ -14,6 +14,7 @@ CUR="${SU}08_helloworldgo.py"
 echo "Creating $CUR"
 echo "hello_go = r\"\"\"import datetime" > $CUR
 echo "import pandas as pd" >> $CUR
+echo "%run -i /root/Notebooks/shared_function_template.py" >> $CUR
 echo "%splunk instances" >> $CUR
 echo "\"\"\"" >> $CUR
 
