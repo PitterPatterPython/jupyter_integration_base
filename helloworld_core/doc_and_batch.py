@@ -53,16 +53,16 @@ def doc_and_batch_help(func_name=None, debug=False):
     }
 
 
-    main_help(title, help_func, doc_functions, exp_func=exp_func, func_name=func_name, debug=debug)
+    main_help(title, help_func, doc_functions, myglobals=globals(), exp_func=exp_func, func_name=func_name, debug=debug)
     loaded_helpers.append("doc_and_batch")
 
 
-def main_help(title, help_func, func_dict, exp_func="my_awesome_function", func_name=None, debug=False):
+def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, debug=False):
 
 
     if func_name is not None:
-        if isfunction(func_name):
-            func_name = func_name.__name__
+        if isfunction(myglobals[func_name]):
+            func_name = myglobals[func_name].__name__
 
     if func_name is None:
         out_md = ""
@@ -84,12 +84,12 @@ def main_help(title, help_func, func_dict, exp_func="my_awesome_function", func_
             out_md += "| function | description | Default list_field | function loaded | query function |\n"
             out_md += "| -------- | ----------- | ------------------- | --------------- | -------------- |\n"
             for f in func_dict[cat]:
-                myQ = is_query_func(f, debug=debug)
-                myFound = function_in_kernel(f)
-                mylistfield = get_list_field(f)
+                myQ = is_query_func(f, myglobals, debug=debug)
+                myFound = function_in_kernel(f, myglobals)
+                mylistfield = get_list_field(f, myglobals)
                 if myQ is None:
                     myQ = ""
-                out_md += f"| {f} | {get_func_doc_item(f, 'desc', debug=debug)} | {mylistfield} | {myFound} | {myQ} |\n"
+                out_md += f"| {f} | {get_func_doc_item(f, 'desc', myglobals, debug=debug)} | {mylistfield} | {myFound} | {myQ} |\n"
             out_md += "\n"
         display(Markdown(out_md))
     elif func_name=="basic":
@@ -98,7 +98,7 @@ def main_help(title, help_func, func_dict, exp_func="my_awesome_function", func_
         out_md += f"Type `{help_func}()` to see extended help and available functions/queries\n\n"
         display(Markdown(out_md))
     else:
-        parse_docs(func_name, debug=debug)
+        parse_docs(func_name, myglobals, debug=debug)
 
 
 
@@ -573,7 +573,7 @@ def df_expand_col(newdf, srccol, make_json=False, remove_srccol=False):
     return newdf
 
 
-def get_func_doc_item(func_name, keyname, debug=False):
+def get_func_doc_item(func_name, keyname, myglobals, debug=False):
     if debug:
         de = True
         s = False
@@ -581,7 +581,7 @@ def get_func_doc_item(func_name, keyname, debug=False):
         de = False
         s = True
 
-    doc_dict = parse_docstr(func_name, display_error=de, silent=s, debug=debug)
+    doc_dict = parse_docstr(func_name, myglobals, display_error=de, silent=s, debug=debug)
     if doc_dict is not None:
         if keyname in doc_dict:
             retval = doc_dict[keyname]
@@ -596,9 +596,9 @@ def get_func_doc_item(func_name, keyname, debug=False):
     return retval
 
 
-def is_query_func(func_name, debug=False):
+def is_query_func(func_name, myglobals, debug=False):
     bQueryFunc = None
-    doc_dict = parse_docstr(func_name, display_error=False, silent=True, debug=debug)
+    doc_dict = parse_docstr(func_name, myglobaals, display_error=False, silent=True, debug=debug)
     if doc_dict is not None:
         bQueryFunc = False
         for a in doc_dict['args']:
@@ -607,9 +607,9 @@ def is_query_func(func_name, debug=False):
                 break
     return bQueryFunc
 
-def get_list_field(func_name, debug=False):
+def get_list_field(func_name, myglobals, debug=False):
     retval = "NA"
-    doc_dict = parse_docstr(func_name, display_error=False, silent=True, debug=debug)
+    doc_dict = parse_docstr(func_name, myglobals, display_error=False, silent=True, debug=debug)
     if doc_dict is not None:
         for a in doc_dict['args']:
             if a['name'] == 'list_field':
@@ -617,24 +617,24 @@ def get_list_field(func_name, debug=False):
                 break
     return retval
 
-def function_in_kernel(func_name, debug=False):
+def function_in_kernel(func_name, myglobals, debug=False):
     bFound = False
     try:
-        doc_str = globals()[func_name].__doc__
+        doc_str = myglobals[func_name].__doc__
         bFound = True
     except:
         if debug:
             print("Not found: here's the globals")
-            print(globals())
+            print(myglobals)
 
     return bFound
 
-def parse_docstr(func_name, display_error=False, silent=False, debug=False):
+def parse_docstr(func_name, myglobals, display_error=False, silent=False, debug=False):
     bFound = False
     out_md = ""
-    bFound = function_in_kernel(func_name, debug=debug)
+    bFound = function_in_kernel(func_name, myglobals, debug=debug)
     if bFound:
-        doc_str = globals()[func_name].__doc__
+        doc_str = myglobals[func_name].__doc__
     else:
         out_md += "## Function not found\n"
         out_md += f"Function {func_name} not found in current kernel. Please check to ensure imports worked correctly\n\n"
@@ -659,16 +659,16 @@ def parse_docstr(func_name, display_error=False, silent=False, debug=False):
         display(Markdown(out_md))
     return doc_dict
 
-def parse_docs(func_name, debug=False):
+def parse_docs(func_name, myglobals, debug=False):
     out_md = ""
     bQueryFunc = False
     if debug:
         disp_err = True
     else:
         disp_err = False
-    doc_dict = parse_docstr(func_name, display_error=disp_err, debug=debug)
+    doc_dict = parse_docstr(func_name, myglobals, display_error=disp_err, debug=debug)
     if doc_dict is not None:
-        bQueryFunc = is_query_func(func_name, debug=debug)
+        bQueryFunc = is_query_func(func_name, myglobals, debug=debug)
 
         out_md += f"# {doc_dict['name']}\n"
         out_md += "---------------\n"

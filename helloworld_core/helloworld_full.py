@@ -51,32 +51,7 @@ class Helloworld(Addon):
         self.ipy.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
         self.check_req_addons()
         # Loading doc_and_batch
-#        self.ipy.ex("from helloworld_core.doc_and_batch import *\n")
-        self.ipy.ex('from helloworld_core.doc_and_batch import Markdown')
-        self.ipy.ex('from helloworld_core.doc_and_batch import batch_by_date')
-        self.ipy.ex('from helloworld_core.doc_and_batch import batch_list_in')
-        self.ipy.ex('from helloworld_core.doc_and_batch import datetime')
-        self.ipy.ex('from helloworld_core.doc_and_batch import df_expand_col')
-        self.ipy.ex('from helloworld_core.doc_and_batch import display')
-        self.ipy.ex('from helloworld_core.doc_and_batch import doc_and_batch_help')
-        self.ipy.ex('from helloworld_core.doc_and_batch import function_in_kernel')
-        self.ipy.ex('from helloworld_core.doc_and_batch import get_func_doc_item')
-        self.ipy.ex('from helloworld_core.doc_and_batch import get_list_field')
-        self.ipy.ex('from helloworld_core.doc_and_batch import handle_dates')
-        self.ipy.ex('from helloworld_core.doc_and_batch import is_query_func')
-        self.ipy.ex('from helloworld_core.doc_and_batch import isfunction')
-        self.ipy.ex('from helloworld_core.doc_and_batch import json')
-        self.ipy.ex('from helloworld_core.doc_and_batch import loaded_helpers')
-        self.ipy.ex('from helloworld_core.doc_and_batch import main_help')
-        self.ipy.ex('from helloworld_core.doc_and_batch import make_list_like_any')
-        self.ipy.ex('from helloworld_core.doc_and_batch import parse_docs')
-        self.ipy.ex('from helloworld_core.doc_and_batch import parse_docstr')
-        self.ipy.ex('from helloworld_core.doc_and_batch import print_query')
-        self.ipy.ex('from helloworld_core.doc_and_batch import range_dates')
-        self.ipy.ex('from helloworld_core.doc_and_batch import range_hist')
-        self.ipy.ex('from helloworld_core.doc_and_batch import resolve_start_date')
-        self.ipy.ex('from helloworld_core.doc_and_batch import sample_doc')
-        self.ipy.ex('from helloworld_core.doc_and_batch import test_doc_n_batch')
+        self.ipy.ex("from helloworld_core.doc_and_batch import *\n")
 
 
 
