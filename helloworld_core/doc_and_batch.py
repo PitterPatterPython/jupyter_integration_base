@@ -61,7 +61,7 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
 
 
     if func_name is not None and func_name != "basic":
-        if isfunction(myglobals[func_name]):
+        if isfunction(func_name):
             func_name = myglobals[func_name].__name__
 
     if func_name is None:
