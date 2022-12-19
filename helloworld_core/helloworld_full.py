@@ -155,11 +155,17 @@ class Helloworld(Addon):
         return __desc__
 
 
-    def fillGo(self):
-        if "hello_go" in self.ipy.user_ns:
-            self.ipy.set_next_input(self.ipy.user_ns["hello_go"])
+    def fillGo(self, varname):
+
+        fullvar = f"hello_{varname}"
+
+        if fullvar in self.ipy.user_ns:
+            self.ipy.set_next_input(self.ipy.user_ns[fullvar])
+        elif fullvar == "hello_go":
+            print(f"{fullvar} variable is not set - nothing to do")
         else:
-            print("hello_go variable is not set - nothing to do")
+            print("We shouldn't get here")
+
 
 
     # This is the magic name.
@@ -173,9 +179,11 @@ class Helloworld(Addon):
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations.
                 if line.lower().strip() == "go":
-                    self.fillGo()
+                    self.fillGo("go")
                 elif line.lower().strip() == "doc_and_batch":
                     self.ipy.ex("doc_and_batch_help()")
+                elif f"hello_{line.lower().strip()}" in self.ipy.user_ns:
+                    self.fillGo(line.lower().strip())
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
