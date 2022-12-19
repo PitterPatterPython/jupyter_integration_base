@@ -17,6 +17,11 @@ echo "import pandas as pd" >> $CUR
 echo "%run -i /root/Notebooks/shared_function_template.py" >> $CUR
 echo "%splunk instances" >> $CUR
 echo "\"\"\"" >> $CUR
+echo "" >> $CUR
+echo "hello_other = r\"\"\"import sys" >> $CUR
+echo "print('Other Helloworld')" >> $CUR
+echo "\"\"\"" >> $CUR
+
 
 CUR="${SU}10_helloworld.py"
 echo "Creating $CUR"
