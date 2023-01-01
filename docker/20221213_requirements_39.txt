@@ -196,3 +196,11 @@ ismember
 colourmap
 ipydatagrid
 rapidfuzz
+d3blocks
+d3graph
+geopandas
+ip2geotools
+ipyleaflet
+pycountry
+itables
+pyvis

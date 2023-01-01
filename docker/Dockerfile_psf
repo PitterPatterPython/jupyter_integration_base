@@ -24,7 +24,7 @@ RUN echo "[FreeTDS]\n\
 Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
-
+#RUN echo "hi"
 RUN pip install --use-deprecated=legacy-resolver -r /root/requirements.txt
 
 RUN pip install --trusted-host pypi.python.org pyodbc==4.0.30
