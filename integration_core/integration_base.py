@@ -5,6 +5,7 @@ import json
 import sys
 import os
 import time
+import datetime
 import pandas as pd
 import urllib.parse
 
@@ -294,7 +295,8 @@ class Integration(Magics):
 
             if result == 0:
                 inst["connected"] = True
-                jiu.displayMD("**%s - Connected** - %s\n\n" % (self.name_str.capitalize(), inst['conn_url']))
+                curout = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                jiu.displayMD(f"**{curout} - {self.name_str.capitalize()} - Connected** - {inst['conn_url']}\n\n")
                 inst['last_connect_ts'] = int(time.time())
             else:
                 inst['connect_pass'] = None
