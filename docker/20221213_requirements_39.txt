@@ -204,3 +204,5 @@ ipyleaflet
 pycountry
 itables
 pyvis
+matplotlib_venn
+supervenn
