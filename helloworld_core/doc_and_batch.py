@@ -111,7 +111,7 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
 # general utility
 # Documentation: Complete
 #
-def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, dedupe=True, remove_none=True, debug=False):
+def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, list_quotes='single', list_sep=', ', dedupe=True, remove_none=True, debug=False):
     """ {"name": "batch_list_in",
          "desc": "Take in a query, list, integration, and instance and split the list up into batched, returning all results as one dataframe",
          "return": "A dataframe with the result of all batches combined",
