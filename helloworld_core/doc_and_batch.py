@@ -736,9 +736,12 @@ def parse_docs(func_name, myglobals, debug=False):
         display(Markdown(out_md))
 
 
-def print_query(q, integ, inst):
+def print_query(q, integ, inst, retval=False):
     print("")
     print("Replace ~~here~~ with a list of the item you'd want to search for")
     print("")
-    print(f"\n%%{integ} {inst}\n{q}")
-    print("")
+    p_val = f"\n%%{integ} {inst}\n{q}"
+    if retval:
+        return p_val
+    else:
+        print(f"\n%%{integ} {inst}\n{q}")
