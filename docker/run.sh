@@ -99,7 +99,10 @@ echo  "Running on port $LOCAL_PORT"
 echo ""
 echo ""
 
-docker run -p${LOCAL_PORT}:8888 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:${DHOME}/Notebooks ${RUN_IMG} ${CMD}
+
+echo "Also running on port 5678"
+
+docker run -p${LOCAL_PORT}:8888 -p5678:5678 --env-file=${ENV_FILE} -v $NOTEBOOKDIR:${DHOME}/Notebooks ${RUN_IMG} ${CMD}
 
 
 

@@ -19,6 +19,7 @@ RUN git clone https://github.com/johnomernik/jupyter_oracle && cd jupyter_oracle
 RUN git clone https://github.com/johnomernik/jupyter_mssql && cd jupyter_mssql && python setup.py install && cd .. && rm -rf ./jupyter_mssql
 RUN git clone https://github.com/johnomernik/jupyter_es && cd jupyter_es && python setup.py install && cd .. && rm -rf ./jupyter_es
 RUN git clone https://github.com/johnomernik/jupyter_mysql && cd jupyter_mysql && python setup.py install && cd .. && rm -rf ./jupyter_mysql
+RUN git clone https://github.com/johnomernik/jupyter_dummy && cd jupyter_dummy && python setup.py install && cd .. && rm -rf ./jupyter_dummy
 
 
 

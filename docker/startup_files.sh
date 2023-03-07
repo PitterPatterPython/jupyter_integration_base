@@ -95,6 +95,14 @@ echo "from mssql_core.mssql_base import Mssql" > $CUR
 echo "mssql_base = Mssql${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(mssql_base)" >> $CUR
 
+CUR="${SU}22_dummy.py"
+echo "Creating $CUR"
+echo "from dummy_core.dummy_base import Dummy" > $CUR
+echo "dummy_base = Dummy${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(dummy_base)" >> $CUR
+
+
+
 echo "Startup Files Complete"
 
 
