@@ -15,6 +15,11 @@ try:
 except:
     loaded_helpers = []
 
+load_name = "function_doc"
+if load_name not in loaded_helpers:
+    loaded_helpers.append(load_name)
+
+
 
 # NOTE: These functions are not to be called by users
 
@@ -26,7 +31,6 @@ def function_doc_help(func_name=None, debug=False):
     title = "Function Documentation Helpers"
     help_func = "function_doc_help"
     exp_func = "parse_docs"
-    load_name = "function_doc"
 
     doc_functions = {
         "Display": [
@@ -36,8 +40,6 @@ def function_doc_help(func_name=None, debug=False):
 
 
     main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
-    if load_name not in loaded_helpers:
-        loaded_helpers.append(load_name)
 
 
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, debug=False):

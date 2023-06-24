@@ -10,6 +10,11 @@ import pandas as pd
 from jupyter_integrations_utility.funcdoc import *
 
 
+load_name = "batch_query"
+if load_name not in loaded_helpers:
+    loaded_helpers.append(load_name)
+
+
 def batch_query_help(func_name=None, debug=False):
     if debug:
         print("Running with debug")
@@ -17,7 +22,6 @@ def batch_query_help(func_name=None, debug=False):
     title = "Batch Query Helpers"
     help_func = "batch_query_help"
     exp_func = "batch_list_in"
-    load_name = "batch_query"
 
     doc_functions = {
     "general utility": [
@@ -36,8 +40,6 @@ def batch_query_help(func_name=None, debug=False):
 
 
     main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
-    if load_name not in loaded_helpers:
-        loaded_helpers.append(load_name)
 
 
 
