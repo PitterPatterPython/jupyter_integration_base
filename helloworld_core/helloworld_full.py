@@ -52,6 +52,7 @@ class Helloworld(Addon):
         self.check_req_addons()
         # Loading doc_and_batch
 #        self.ipy.ex("from helloworld_core.doc_and_batch import *\n")
+#        self.ipy.ex("from jupyter_integrations_utility.doc_and_batch import *\n")
         self.ipy.ex("from jupyter_integrations_utility.funcdoc import *\n")
         self.ipy.ex("from jupyter_integrations_utility.batchquery import *\n")
 

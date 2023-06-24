@@ -5,7 +5,7 @@ ENV THISHOME=~~HOME~~
 
 RUN ipython profile create && jupyter lab --generate-config \
 && sed -i "s/# c.ServerApp.iopub_data_rate_limit = 1000000/c.ServerApp.iopub_data_rate_limit = 1000000000/g" $HOME/.jupyter/jupyter_lab_config.py
-
+RUN echo "hi"
 RUN git clone https://github.com/johnomernik/jupyter_integration_base && cd jupyter_integration_base && python setup.py install && cd .. && rm -rf ./jupyter_integration_base
 
 RUN git clone https://github.com/johnomernik/jupyter_splunk && cd jupyter_splunk && python setup.py install && cd .. && rm -rf ./jupyter_splunk

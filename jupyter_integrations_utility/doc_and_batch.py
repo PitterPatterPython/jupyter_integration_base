@@ -7,15 +7,37 @@ import os
 import operator
 from inspect import isfunction
 import pandas as pd
-from jupyter_integrations_utility.funcdoc import *
+loaded_helpers = []
 
+sample_doc = """ {"name": "",
+         "desc": "",
+         "return": "",
+         "examples": [],
+         "args": [{"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""},
+                  {"name": "", "default": "", "required": "", "type": "", "desc": ""}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": []
+         }
+    """
 
-def batch_query_help(func_name=None, debug=False):
+def test_doc_n_batch():
+    print("I halped")
+    pass
+
+def doc_and_batch_help(func_name=None, debug=False):
     if debug:
         print("Running with debug")
 
-    title = "Batch Query Helpers"
-    help_func = "batch_query_help"
+    title = "Documentation and Batch Helpers"
+    help_func = "doc_and_batch_help"
     exp_func = "batch_list_in"
 
     doc_functions = {
@@ -35,7 +57,53 @@ def batch_query_help(func_name=None, debug=False):
 
 
     main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
-    loaded_helpers.append("batch_query")
+    loaded_helpers.append("doc_and_batch")
+
+
+def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, debug=False):
+
+
+    if func_name is not None:
+        if isfunction(func_name):
+            func_name = func_name.__name__
+
+    if func_name is None:
+        out_md = ""
+        out_md += f"# {title} Include File\n"
+        out_md += "--------------------\n"
+        out_md += "To view this help type:\n\n"
+        out_md += f"`{help_func}()`\n\n"
+        out_md += "\n"
+        out_md += "To view the help for a specific function type:\n\n"
+        out_md += f"`{help_func}('function_name')`\n\n"
+        out_md += "Example:\n\n"
+        out_md += f"`{help_func}('{exp_func}')`\n\n"
+        out_md += "\n"
+        out_md += "## Helper Categories\n"
+        out_md += "---------------------\n"
+        for cat in func_dict.keys():
+            out_md += f"### {cat}\n"
+            out_md += "-------------------------\n"
+            out_md += "| function | description | Default list_field | function loaded | query function |\n"
+            out_md += "| -------- | ----------- | ------------------- | --------------- | -------------- |\n"
+            for f in func_dict[cat]:
+                myQ = is_query_func(f, myglobals, debug=debug)
+                myFound = function_in_kernel(f, myglobals)
+                mylistfield = get_list_field(f, myglobals)
+                if myQ is None:
+                    myQ = ""
+                out_md += f"| {f} | {get_func_doc_item(f, 'desc', myglobals, debug=debug)} | {mylistfield} | {myFound} | {myQ} |\n"
+            out_md += "\n"
+        display(Markdown(out_md))
+    elif func_name=="basic":
+        out_md = ""
+        out_md += f"### {title} Include File Loaded\n"
+        out_md += f"Type `{help_func}()` to see extended help and available functions/queries\n\n"
+        display(Markdown(out_md))
+    else:
+        parse_docs(func_name, myglobals, debug=debug)
+
+
 
 
 
@@ -250,55 +318,6 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                 print(f"No results on {loops} batch")
     return out_df
 
-def df_expand_col(newdf, srccol, make_json=False, remove_srccol=False):
-    """ {"name": "df_expand_col",
-         "desc": "Takes a column name that should be a dictionary and expands that column into columns for each dict item",
-         "return": "A list of the tables extenstions needed provided the list of dates",
-         "examples": ["mydf = df_expand_col(mydf, 'my_dict_col')"],
-         "args": [{"name": "newdf", "default": "None", "required": "True", "type": "pd.DataFrame", "desc": "The Dataframe with a column that has a dictionary in it"},
-                  {"name": "srccol", "default": "None", "required": "True", "type": "string", "desc": "The name of the column with the dictionary in it"},
-                  {"name": "make_json", "default": "False", "required": "False", "type": "boolean", "desc": "Try a json.loads on the column prior to parsing the column"},
-                  {"name": "remove_srccol", "default": "False", "required": "False", "type": "boolean", "desc": "Remove the srccol (and the 'parsed' col if make_json==True) from the returned Dataframe"}
-                  ],
-         "integration": "na",
-         "instance": "na",
-         "access_instructions": "na",
-         "limitations": ["Tries and just makes a note if it fails"]
-         }
-    """
-    orig_src = srccol
-    if make_json:
-        try:
-            newdf['parsed'] = newdf.apply(lambda row: json.loads(row[srccol]) if row[srccol] is not None else None, axis=1)
-            srccol = 'parsed'
-        except:
-            pass
-    try: # Try to load as a string representation of a dict (i.e. JSON)
-        newdf['col_levels'] = newdf.apply(lambda row: list(json.loads(row[srccol]).keys()) if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else list(json.loads("{}").keys()), axis=1)
-    except TypeError: # If it's a type error, it may just be a a real dict try that...
-        newdf['col_levels'] = newdf.apply(lambda row: list(row[srccol].keys()) if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else [], axis=1)
-
-    col_items = list({x for l in newdf['col_levels'].tolist() for x in l})
-    for col in col_items:
-        try:
-            newdf[srccol + "." + col] = newdf.apply(lambda row: json.loads(row[srccol]).get(col, "") if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else None, axis=1)
-        except TypeError:
-            newdf[srccol + "." + col] = newdf.apply(lambda row: row[srccol].get(col, "") if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else None, axis=1)
-    newdf.drop(columns=['col_levels'], inplace=True)
-
-    if remove_srccol:
-        if not make_json:
-            newdf.drop(columns=[srccol], inplace=True)
-        else:
-            newdf.drop(columns=['parsed'], inplace=True)
-            newdf.drop(columns=[orig_src], inplace=True)
-            try:
-                newdf.drop(columns=[orig_src], inplace=True)
-            except:
-                pass
-    return newdf
-
-
 def make_list_like_any(inlist, preany=True, postany=True):
     """ {"name": "make_list_like_any", 
          "desc": "Take any list of items and add % before, after, or both(default) to the item for use in a like any or like all query",
@@ -510,6 +529,219 @@ def range_hist(start_date, hist_str="_hs_", current_str="_ct", hist_format='%Y%m
 #--FROM cods.auth_pos_hs_202204			pos		-- uses auth_pos_ct for current or _hs_yyyymm for historical
     return batches
 
+#####################################################################################################################################################
+###################################################################
+# Display/Doc Functions
+# Documentation: In progress
+#
 
 
 
+def df_expand_col(newdf, srccol, make_json=False, remove_srccol=False):
+    """ {"name": "df_expand_col",
+         "desc": "Takes a column name that should be a dictionary and expands that column into columns for each dict item",
+         "return": "A list of the tables extenstions needed provided the list of dates",
+         "examples": ["mydf = df_expand_col(mydf, 'my_dict_col')"],
+         "args": [{"name": "newdf", "default": "None", "required": "True", "type": "pd.DataFrame", "desc": "The Dataframe with a column that has a dictionary in it"},
+                  {"name": "srccol", "default": "None", "required": "True", "type": "string", "desc": "The name of the column with the dictionary in it"},
+                  {"name": "make_json", "default": "False", "required": "False", "type": "boolean", "desc": "Try a json.loads on the column prior to parsing the column"},
+                  {"name": "remove_srccol", "default": "False", "required": "False", "type": "boolean", "desc": "Remove the srccol (and the 'parsed' col if make_json==True) from the returned Dataframe"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "na",
+         "limitations": ["Tries and just makes a note if it fails"]
+         }
+    """
+    orig_src = srccol
+    if make_json:
+        try:
+            newdf['parsed'] = newdf.apply(lambda row: json.loads(row[srccol]) if row[srccol] is not None else None, axis=1)
+            srccol = 'parsed'
+        except:
+            pass
+    try: # Try to load as a string representation of a dict (i.e. JSON)
+        newdf['col_levels'] = newdf.apply(lambda row: list(json.loads(row[srccol]).keys()) if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else list(json.loads("{}").keys()), axis=1)
+    except TypeError: # If it's a type error, it may just be a a real dict try that...
+        newdf['col_levels'] = newdf.apply(lambda row: list(row[srccol].keys()) if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else [], axis=1)
+
+    col_items = list({x for l in newdf['col_levels'].tolist() for x in l})
+    for col in col_items:
+        try:
+            newdf[srccol + "." + col] = newdf.apply(lambda row: json.loads(row[srccol]).get(col, "") if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else None, axis=1)
+        except TypeError:
+            newdf[srccol + "." + col] = newdf.apply(lambda row: row[srccol].get(col, "") if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else None, axis=1)
+    newdf.drop(columns=['col_levels'], inplace=True)
+
+    if remove_srccol:
+        if not make_json:
+            newdf.drop(columns=[srccol], inplace=True)
+        else:
+            newdf.drop(columns=['parsed'], inplace=True)
+            newdf.drop(columns=[orig_src], inplace=True)
+            try:
+                newdf.drop(columns=[orig_src], inplace=True)
+            except:
+                pass
+    return newdf
+
+
+def get_func_doc_item(func_name, keyname, myglobals, debug=False):
+    if debug:
+        de = True
+        s = False
+    else:
+        de = False
+        s = True
+
+    doc_dict = parse_docstr(func_name, myglobals, display_error=de, silent=s, debug=debug)
+    if doc_dict is not None:
+        if keyname in doc_dict:
+            retval = doc_dict[keyname]
+        else:
+            retval = None
+            if not s:
+                print(f"{keyname} not in docdict")
+    else:
+        retval = None
+        if not s:
+            print(f"Unable to parse {func_name} docstring")
+    return retval
+
+
+def is_query_func(func_name, myglobals, debug=False):
+    bQueryFunc = None
+    doc_dict = parse_docstr(func_name, myglobals, display_error=False, silent=True, debug=debug)
+    if doc_dict is not None:
+        bQueryFunc = False
+        for a in doc_dict['args']:
+            if a['name'] == 'print_only':
+                bQueryFunc = True
+                break
+    return bQueryFunc
+
+def get_list_field(func_name, myglobals, debug=False):
+    retval = "NA"
+    doc_dict = parse_docstr(func_name, myglobals, display_error=False, silent=True, debug=debug)
+    if doc_dict is not None:
+        for a in doc_dict['args']:
+            if a['name'] == 'list_field':
+                retval = a['default']
+                break
+    return retval
+
+def function_in_kernel(func_name, myglobals, debug=False):
+    bFound = False
+    try:
+        doc_str = myglobals[func_name].__doc__
+        bFound = True
+    except:
+        if debug:
+            print("Not found: here's the globals")
+            print(myglobals)
+
+    return bFound
+
+def parse_docstr(func_name, myglobals, display_error=False, silent=False, debug=False):
+    bFound = False
+    out_md = ""
+    bFound = function_in_kernel(func_name, myglobals, debug=debug)
+    if bFound:
+        doc_str = myglobals[func_name].__doc__
+    else:
+        out_md += "## Function not found\n"
+        out_md += f"Function {func_name} not found in current kernel. Please check to ensure imports worked correctly\n\n"
+        doc_dict = None
+    if bFound:
+        try:
+            doc_dict = json.loads(doc_str)
+            if debug:
+                print("")
+                print(doc_dict)
+        except Exception as e:
+            doc_dict = None
+            out_md += "## Function found - Docstrings did not parse\n"
+            out_md += f"Function {func_name} exists but the doc strings did not parse properly, therefore we don't have docs\n\n"
+            if display_error:
+                out_md += "-----------------\n"
+                out_md += "Parse Error:\n\n"
+                out_md += f"{str(e)}\n\n"
+                out_md += f"``` {doc_str} ```\n\n"
+
+    if out_md != "" and not silent:
+        display(Markdown(out_md))
+    return doc_dict
+
+def parse_docs(func_name, myglobals, debug=False):
+    out_md = ""
+    bQueryFunc = False
+    if debug:
+        disp_err = True
+    else:
+        disp_err = False
+    doc_dict = parse_docstr(func_name, myglobals, display_error=disp_err, debug=debug)
+    if doc_dict is not None:
+        bQueryFunc = is_query_func(func_name, myglobals, debug=debug)
+
+        out_md += f"# {doc_dict['name']}\n"
+        out_md += "---------------\n"
+        if doc_dict['integration'] != 'na' and doc_dict['instance'] != 'na':
+            out_md += f"**Integration:** {doc_dict['integration']} - **Instance(s):** {doc_dict['instance']}\n\n" 
+            out_md += "--------------------\n"
+        out_md += f"**Description:** {doc_dict['desc']}\n\n"
+        out_md += f"**Returns:** {doc_dict['return']}\n\n"
+        if doc_dict['access_instructions'] != "na":
+            out_md += "------------------\n"
+            out_md += f"**Access Instructions:** {doc_dict['access_instructions']}\n\n"
+        if bQueryFunc is not None and bQueryFunc == True:
+            out_md += f"In addition to print_only, you can print the underlying query by typing: `{doc_dict['name']}([])`\n\n"
+        out_md += "------------------------\n"
+        if len(doc_dict['examples']) > 0:
+            out_md += "**Examples**\n\n"
+            out_md += "---------------------\n"
+            out_md += "| Example | Notes |\n"
+            out_md += "| ------- | ----- |\n"
+            for e in doc_dict['examples']:
+                ex = ""
+                nt = ""
+                if isinstance(e, list):
+                    ex = e[0]
+                    nt = e[1]
+                else:
+                    if e.find("#") >= 0:
+                        ex = e.split("#")[0]
+                        nt = e.split("#")[1]
+                    else:
+                        ex = e
+                        nt = "N/A"
+                out_md += f"| `{ex}` | {nt} |\n"
+            out_md += "\n"
+        out_md += "## Arguments\n"
+        out_md += "---------------------\n"
+        out_md += "| Arg | Req? | Default | Type | Description|\n"
+        out_md += "| --- | ---- | ------- | ---- | -----------|\n"
+        for a in doc_dict['args']:
+            out_md += f"| {a['name']} | {a['required']} | {a['default']} | {a['type']} | {a['desc']} |\n"
+        out_md  += "\n"
+
+        if len(doc_dict['limitations']) > 0:
+            out_md += "### Limitations\n"
+            out_md += "------------\n"
+            for l in doc_dict['limitations']:
+                out_md += f"- {l}\n"
+    if debug:
+        print("out_md:")
+        print(out_md)
+    if out_md != "":
+        display(Markdown(out_md))
+
+
+def print_query(q, integ, inst, retval=False):
+    print("")
+    print("Replace ~~here~~ with a list of the item you'd want to search for")
+    print("")
+    p_val = f"\n%%{integ} {inst}\n{q}"
+    if retval:
+        return p_val
+    else:
+        print(f"\n%%{integ} {inst}\n{q}")
