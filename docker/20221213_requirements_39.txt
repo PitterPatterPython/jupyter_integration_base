@@ -40,7 +40,7 @@ greenlet==1.1.2
 htmlmin==0.1.12
 idna==3.3
 ImageHash==4.2.1
-importlib-metadata==4.8.1
+importlib-metadata==4.8.3
 intel-openmp==2021.4.0
 ipykernel
 ipysheet==0.5.0
@@ -207,3 +207,6 @@ itables
 pyvis
 matplotlib_venn
 supervenn
+pytesseract
+opencv-python
+imutils
