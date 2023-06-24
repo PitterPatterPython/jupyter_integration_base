@@ -17,6 +17,7 @@ def batch_query_help(func_name=None, debug=False):
     title = "Batch Query Helpers"
     help_func = "batch_query_help"
     exp_func = "batch_list_in"
+    load_name = "batch_query"
 
     doc_functions = {
     "general utility": [
@@ -35,7 +36,9 @@ def batch_query_help(func_name=None, debug=False):
 
 
     main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
-    loaded_helpers.append("batch_query")
+    if load_name not in loaded_helpers:
+        loaded_helpers.append(load_name)
+
 
 
 
