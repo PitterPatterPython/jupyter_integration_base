@@ -92,17 +92,17 @@ class Feat(Addon):
     # This is the list of functions you are sharing.
     # Each dictionary key is a group title, and then the value is list of the function names.
     # This has to be changed if you want to add a function into the listed functions in the help file
-    #       
+    #
 
    # Custom code for current include
-   
+
         doc_functions = {
         "Helper Functions": [
             "reapply_all",
             "ret_var_name",
         "   increase_date_window"
         ],
-        "General Feature Functions": [ 
+        "General Feature Functions": [
             "feature_compare",
             "apply_features",
             "apply_custom_clauses",
@@ -116,10 +116,10 @@ class Feat(Addon):
 
 
 # Do not change the rest of this function
-    if debug:
-        print("Running with debug")
+        if debug:
+            print("Running with debug")
 
-    jupyter_integrations_utility.funcdoc.main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
+        jupyter_integrations_utility.funcdoc.main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
 #    if functions_name not in loaded_helpers:
 #        loaded_helpers.append(functions_name)
 
