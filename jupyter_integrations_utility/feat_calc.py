@@ -184,7 +184,7 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, d
                 print(f"Clause {k} already exists in data set and rerun_apply is False - Not Running")
 
     if not show_copy_errors:
-        pd.options.mode.chained_assignment = 'warn
+        pd.options.mode.chained_assignment = 'warn'
 
     return apply_df
 
