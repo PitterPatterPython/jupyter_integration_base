@@ -18,7 +18,7 @@ from feat_core._version import __desc__
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 import jupyter_integrations_utility.funcdoc
-
+from jupyter_integrations_utility.feat_calc import *
 from addon_core import Addon
 
 @magics_class
@@ -119,7 +119,7 @@ class Feat(Addon):
         if debug:
             print("Running with debug")
 
-        jupyter_integrations_utility.funcdoc.main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
+        jupyter_integrations_utility.funcdoc.main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, magic_src=self.magic_name, debug=debug)
 #    if functions_name not in loaded_helpers:
 #        loaded_helpers.append(functions_name)
 

@@ -42,7 +42,7 @@ def function_doc_help(func_name=None, debug=False):
     main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
 
 
-def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, debug=False):
+def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, magic_src=None, debug=False):
 
 
     if func_name is not None:
@@ -51,15 +51,29 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
 
     if func_name is None:
         out_md = ""
-        out_md += f"# {title} Include File\n"
+        if magic_src is None:
+            out_md += f"# {title} Include File\n"
+        else:
+            out_md += f"# {title} magic %{magic_src}"
         out_md += "--------------------\n"
         out_md += "To view this help type:\n\n"
-        out_md += f"`{help_func}()`\n\n"
+        if magic_src is None:
+            out_md += f"`{help_func}()`\n\n"
+        else:
+            out_md += f"`%{magic_src} functions`\n\n"
+
+
         out_md += "\n"
         out_md += "To view the help for a specific function type:\n\n"
-        out_md += f"`{help_func}('function_name')`\n\n"
-        out_md += "Example:\n\n"
-        out_md += f"`{help_func}('{exp_func}')`\n\n"
+        if magic_src is None:
+            out_md += f"`{help_func}('function_name')`\n\n"
+            out_md += "Example:\n\n"
+            out_md += f"`{help_func}('{exp_func}')`\n\n"
+        else:
+            out_md += f"`%{magic_src} functions function_name`\n\n"
+            out_md += "Example:\n\n"
+            out_md += f"`%{magic_src} functions {exp_func}`\n\n"
+
         out_md += "\n"
         out_md += "## Helper Categories\n"
         out_md += "---------------------\n"
@@ -79,8 +93,13 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
         display(Markdown(out_md))
     elif func_name=="basic":
         out_md = ""
-        out_md += f"### {title} Include File Loaded\n"
-        out_md += f"Type `{help_func}()` to see extended help and available functions/queries\n\n"
+        if magic_src is None:
+            out_md += f"### {title} Include File Loaded\n"
+            out_md += f"Type `{help_func}()` to see extended help and available functions/queries\n\n"
+        else:
+            out_md += f"### {title} magic %{magic_src} Loaded\n"
+            out_md += f"Type `%{magic_src} functions` to see extended help and available functions/queries\n\n"
+            
         display(Markdown(out_md))
     else:
         parse_docs(func_name, myglobals, debug=debug)
