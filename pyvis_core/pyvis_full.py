@@ -82,7 +82,7 @@ class Pyvis(Addon):
    # Variables
         title = "Pyvis Graph Help Magic"     # The title of this shared function file. (Good to group them, queries, features, enrichment, utility etc)
         help_func = "pyvis_help"          # The name of the help function (i.e. this function i.e shared_function_help)
-        exp_func = "pyvis_help"                     # An example function you can use to demostrate how to get help on a function (It should exist below)
+        exp_func = "graph_pyvis_network"                     # An example function you can use to demostrate how to get help on a function (It should exist below)
         functions_name = "pyvis_help" # The name of this file you can use in other files to check if this one is loaded (if there are dependent functions
 
 

@@ -54,7 +54,7 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
         if magic_src is None:
             out_md += f"# {title} Include File\n"
         else:
-            out_md += f"# {title} magic %{magic_src}"
+            out_md += f"# {title} magic %{magic_src}\n"
         out_md += "--------------------\n"
         out_md += "To view this help type:\n\n"
         if magic_src is None:
