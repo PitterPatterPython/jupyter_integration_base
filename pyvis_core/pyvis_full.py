@@ -12,32 +12,33 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, li
 from IPython.core.display import HTML
 from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
 import pandas as pd
-from feat_core._version import __desc__
+from pyvis_core._version import __desc__
 
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 import jupyter_integrations_utility.funcdoc
-from jupyter_integrations_utility.feat_calc import *
+from jupyter_integrations_utility.pyvis_help import *
+
 from addon_core import Addon
 
 @magics_class
-class Feat(Addon):
+class Pyvis(Addon):
     # Static Variables
 
-    magic_name = "feat"
-    name_str = "feat"
+    magic_name = "pyvis"
+    name_str = "pyvis"
     custom_evars = []
 
-    custom_allowed_set_opts = ['feat_desc']
+    custom_allowed_set_opts = ['pyvis_desc']
 
 
     myopts = {}
-    myopts['feat_desc'] = ["I describe", "A statement of description"]
+    myopts['pyvis_desc'] = ["I describe", "A statement of description"]
 
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
-        super(Feat, self).__init__(shell, debug=debug)
+        super(Pyvis, self).__init__(shell, debug=debug)
         self.debug = debug
 
         #Add local variables to opts dict
@@ -45,9 +46,9 @@ class Feat(Addon):
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
 
-        self.ipy.ex("from jupyter_integrations_utility.feat_calc import *\n")
+        self.ipy.ex("from jupyter_integrations_utility.pyvis_help import *\n")
 
-        self.feature_calc_help("basic")
+        self.pyvis_help("basic")
 
 #        shell.user_ns['profile_var'] = self.creation_name
 
@@ -67,7 +68,7 @@ class Feat(Addon):
         out = curout
         out += table_header
         out += f"| {m + ' functions'} |  List all functions|\n"
-        out += f"| {m + ' functions output_features'} |  List docs for output_features function|\n"
+        out += f"| {m + ' functions graph_pyvis_network'} |  List docs for graph_pyvis_network function|\n"
         out += "\n\n"
         return out
 
@@ -76,13 +77,13 @@ class Feat(Addon):
 
 
 
-    def feature_calc_help(self, func_name=None, debug=False):
+    def pyvis_help(self, func_name=None, debug=False):
 
    # Variables
-        title = "Feature Description, Application, Calculation, and Display Functions"     # The title of this shared function file. (Good to group them, queries, features, enrichment, utility etc)
-        help_func = "feature_calc_help"          # The name of the help function (i.e. this function i.e shared_function_help)
-        exp_func = "reapply_all"                     # An example function you can use to demostrate how to get help on a function (It should exist below)
-        functions_name = "feature_calc" # The name of this file you can use in other files to check if this one is loaded (if there are dependent functions
+        title = "Pyvis Graph Help Magic"     # The title of this shared function file. (Good to group them, queries, features, enrichment, utility etc)
+        help_func = "pyvis_help"          # The name of the help function (i.e. this function i.e shared_function_help)
+        exp_func = "pyvis_help"                     # An example function you can use to demostrate how to get help on a function (It should exist below)
+        functions_name = "pyvis_help" # The name of this file you can use in other files to check if this one is loaded (if there are dependent functions
 
 
 
@@ -97,20 +98,11 @@ class Feat(Addon):
    # Custom code for current include
 
         doc_functions = {
-        "Helper Functions": [
-            "reapply_all",
-            "ret_var_name",
-            "increase_date_window"
-        ],
-        "General Feature Functions": [
-            "feature_compare",
-            "apply_features",
-            "apply_custom_clauses",
-            "parse_custom_clause",
-            "ret_custom_clause_group",
-            "ret_custom_clause_desc",
-            "calculate_features",
-            "output_features"
+        "general graphing": [
+            "graph_pyvis_network",
+            "color_2_htmlcol",
+            "ret_bank_cols", 
+            "node_or_edge_format"
         ]
         }
 
@@ -128,7 +120,7 @@ class Feat(Addon):
 
     # This is the magic name.
     @line_cell_magic
-    def feat(self, line, cell=None):
+    def pyvis(self, line, cell=None):
         if self.debug:
            print("line: %s" % line)
            print("cell: %s" % cell)
@@ -139,9 +131,9 @@ class Feat(Addon):
                 if line.lower().find("functions") == 0:
                     newline = line.replace("functions", "").strip()
                     if newline == "":
-                        self.feature_calc_help(None)
+                        self.pyvis_help(None)
                     else:
-                        self.feature_calc_help(newline)
+                        self.pyvis_help(newline)
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query

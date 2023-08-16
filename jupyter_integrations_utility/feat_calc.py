@@ -24,6 +24,8 @@ def reapply_all(dfname="mydf", dfitem="zeropadded_accountnumber", featname="all_
         }
     """
 
+    ipy = get_ipython()
+
     out_str = f"{dfname} = apply_features({dfname}, {featname}, rerun_apply=False, dry_run=False)\n"
     out_str += f"{dfname} = apply_custom_clauses({dfname}, {featname}, {clausename}, rerun_apply=False, dry_run=False, debug=False)\n"
     out_str += f"df_out = output_features({featname}, custom_clauses={clausename}, event_df={dfname}, calc_features=True, event_item='{dfitem}', "
@@ -55,7 +57,7 @@ def ret_var_name(var):
     return [var_name for var_name, var_val in callers_local_vars if var_val is var]
 
 def increase_date_window(dstart, dend, numdays):
-    """ {"name": "increase_date_window", 
+    """ {"name": "increase_date_window",
          "desc": "Take a start and end date, and increse the number of days on either end",
          "return": "Datestart and dateend both increased by the number of days ", 
          "examples": ["trans_add_zelle = add_zelle_info_to_dda_trans(transdf, batchsize=1000, debug=False)"], 

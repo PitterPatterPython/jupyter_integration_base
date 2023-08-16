@@ -29,7 +29,7 @@ class Helloworld(Addon):
     custom_evars = []
 
     # Addons required to be loaded
-    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw', 'feat']
+    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw', 'feat', 'pyvis']
     req_full_addons = ['display', 'namedpw']
     custom_allowed_set_opts = []
 
