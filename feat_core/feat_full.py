@@ -47,7 +47,7 @@ class Feat(Addon):
 
         self.ipy.ex("from jupyter_integrations_utility.feat_calc import *\n")
 
-        self.feature_calc_help("basic")
+        #self.feature_calc_help("basic")
 
 #        shell.user_ns['profile_var'] = self.creation_name
 

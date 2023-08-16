@@ -48,7 +48,7 @@ class Pyvis(Addon):
 
         self.ipy.ex("from jupyter_integrations_utility.pyvis_help import *\n")
 
-        self.pyvis_help("basic")
+#        self.pyvis_help("basic")
 
 #        shell.user_ns['profile_var'] = self.creation_name
 
