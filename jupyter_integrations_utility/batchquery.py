@@ -240,8 +240,8 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
             t_d_end = dl[1]
 
             if range_splunk:
-                t_d_start = ret_splunk_date(t_d_start)
-                t_d_end = ret_splunk_date(t_d_end)
+                t_d_start = get_splunk_date(t_d_start)
+                t_d_end = get_splunk_date(t_d_end)
 
             if range_add_ts or range_splunk:
                 if range_splunk:
