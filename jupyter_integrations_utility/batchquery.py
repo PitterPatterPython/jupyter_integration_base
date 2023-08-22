@@ -31,6 +31,7 @@ def batch_query_help(func_name=None, debug=False):
         "make_list_like_any"
     ],
     "date handling": [
+        "get_splunk_date",
         "resolve_start_date",
         "handle_dates",
         "range_dates",
@@ -162,7 +163,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                   {"name": "date_start", "default": "None", "required": "False", "type": "string or None", "desc": "Start date of the query, if not passed we use 90 days prior today"},
                   {"name": "date_end", "default": "now", "required": "False", "type": "string", "desc": "End date of the query (or now for today)"},
                   {"name": "range_batchdays", "default": "30", "required": "False", "type": "integer", "desc": "Number of days to batch if using range"},
-                  {"name": "range_splunk", default": "False", "required": "False", "type": "boolean", "desc": "Use Splunk earliest and latest, and splunk format instead of date field"}, 
+                  {"name": "range_splunk", "default": "False", "required": "False", "type": "boolean", "desc": "Use Splunk earliest and latest, and splunk format instead of date field"},
                   {"name": "range_datefield", "default": "asofdate", "required": "False", "type": "string", "desc": "Name of datefield to replace in where clause"},
                   {"name": "range_add_ts", "default": "False", "required": "False", "type": "boolean", "desc": "Add ' 00:00:00' to dates for Teradata timestamps"},
                   {"name": "hist_str", "default": "_hs_", "required": "False", "type": "string", "desc": "Static string on history tables if using hist"},
