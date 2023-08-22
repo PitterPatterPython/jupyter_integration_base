@@ -149,7 +149,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
     return out_df
 
 
-def batch_by_date(base_query, integration, instance, list_items, date_batch_type, date_start, date_end, range_batchdays=30, range_datefield="asofdate", range_add_ts=False, hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[], batchsize=500, print_only=False, debug=False):
+def batch_by_date(base_query, integration, instance, list_items, date_batch_type, date_start, date_end, range_batchdays=30, range_splunk=False, range_datefield="asofdate", range_add_ts=False, hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[], batchsize=500, print_only=False, debug=False):
     """ {"name": "batch_by_date",
          "desc": "Take a query and date range and break it up in date chunks for handling long combined queries. Also uses the batch list function to lots of items.",
          "return": "Dataframe of combined results",
@@ -162,6 +162,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                   {"name": "date_start", "default": "None", "required": "False", "type": "string or None", "desc": "Start date of the query, if not passed we use 90 days prior today"},
                   {"name": "date_end", "default": "now", "required": "False", "type": "string", "desc": "End date of the query (or now for today)"},
                   {"name": "range_batchdays", "default": "30", "required": "False", "type": "integer", "desc": "Number of days to batch if using range"},
+                  {"name": "range_splunk", default": "False", "required": "False", "type": "boolean", "desc": "Use Splunk earliest and latest, and splunk format instead of date field"}, 
                   {"name": "range_datefield", "default": "asofdate", "required": "False", "type": "string", "desc": "Name of datefield to replace in where clause"},
                   {"name": "range_add_ts", "default": "False", "required": "False", "type": "boolean", "desc": "Add ' 00:00:00' to dates for Teradata timestamps"},
                   {"name": "hist_str", "default": "_hs_", "required": "False", "type": "string", "desc": "Static string on history tables if using hist"},
@@ -236,12 +237,24 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
         elif date_batch_type == "range":
             t_d_start = dl[0]
             t_d_end = dl[1]
-            if range_add_ts:
-                t_d_start = f"{t_d_start} 00:00:00"
-                t_d_end = f"{t_d_end} 00:00:00"
+
+            if range_splunk:
+                t_d_start = ret_splunk_date(t_d_start)
+                t_d_end = ret_splunk_date(t_d_end)
+
+            if range_add_ts or range_splunk:
+                if range_splunk:
+                    mysep = ":"
+                else:
+                    mysep = " "
+                t_d_start = f"{t_d_start}{mysep}00:00:00"
+                t_d_end = f"{t_d_end}{mysep}00:00:00"
 
             print(f"Loop {loops} running for Dates {t_d_start} to {t_d_end}")
-            date_where = f"{range_datefield} >= '{t_d_start}' and {range_datefield} < '{t_d_end}'"
+            if not range_splunk:
+                date_where = f"{range_datefield} >= '{t_d_start}' and {range_datefield} < '{t_d_end}'"
+            else:
+                date_where = f'earliest="{t_d_start}" AND latest="{t_d_end}"'
             this_query = base_query.replace("~~date~~", date_where)
         if print_only:
             print_query(this_query, integration, instance)
@@ -254,6 +267,26 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
             else:
                 print(f"No results on {loops} batch")
     return out_df
+
+def get_splunk_date(strdate):
+    """ {"name": "get_splunk_date",
+         "desc": "Takes a date in YYYY-MM-DD format and outputs in splunk M/D/YYYY format",
+         "return": "A string of the converted date",
+         "examples": [["mysplunkdate = get_splunk_date('2023-05-01')", "Convert 2023-05-01 to 5/1/2023"]],
+         "args": [{"name": "strdate", "default": "None", "required": "True", "type": "string", "desc": "Date in YYYY-MM-DD format"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "na",
+         "limitations": []
+         }
+    """
+    mydt = datetime.datetime.strptime(strdate, "%Y-%m-%d")
+    myday = str(int(datetime.datetime.strftime(mydt, "%d")))
+    mymon = str(int(datetime.datetime.strftime(mydt, "%m")))
+    myyear = datetime.datetime.strftime(mydt, "%Y")
+    myretdate = f"{mymon}/{myday}/{myyear}"
+    return myretdate
 
 def df_expand_col(newdf, srccol, make_json=False, remove_srccol=False):
     """ {"name": "df_expand_col",
