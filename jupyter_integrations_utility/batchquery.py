@@ -101,7 +101,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         batchlist = [x for x in batchlist if x is not None and pd.isna(x) == False]
 
     list_cnt = len(batchlist)
-    print("Total Items in Batchlist: %s" % list_cnt)
+    print("\t Total Items in Batchlist: %s" % list_cnt)
 
     curs = 0
     next_run = True
@@ -111,6 +111,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
 
 
     full_s_time = int(time.time())
+    print(f"\t Starting Batch Run")
     while next_run:
         loops += 1
         stidx = curs
@@ -131,7 +132,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         else:
             print("Error must use single or double as your list_quotes")
 
-        print("Batch: %s - %s - %s" % (stidx, enidx, this_len))
+        print("\t\t Batch: %s - %s - %s" % (stidx, enidx, this_len))
         this_query = base_query.replace("~~here~~", this_str)
         try:
             del ipy.user_ns[results_var]
@@ -156,8 +157,8 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         t_qt_time = t_q_time - t_s_time
         t_c_time = t_f_time - t_q_time
 
-        print(f"{len(these_df)} results in list batch {loops} - total: {len(out_df)}")
-        print(f"{t_t_time:,} seconds in batch (Query: {t_qt_time:,} seconds - DF Concat: {t_c_time:,} seconds)")
+        print(f"\t\t\t {len(these_df)} results in list batch {loops} - total: {len(out_df)}")
+        print(f"\t\t\t {t_t_time:,} seconds in batch (Query: {t_qt_time:,} seconds - DF Concat: {t_c_time:,} seconds)")
         these_df = None
 
     full_e_time = int(time.time())
@@ -283,9 +284,9 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
             cur_df = batch_list_in(list_items, this_query, integration, instance, batchsize=batchsize, debug=debug)
             if len(cur_df) > 0:
                 out_df = pd.concat([out_df, cur_df], ignore_index=True)
-                print(f"{len(cur_df)} results in date batch {loops} - total: {len(out_df)}")
+                print(f"\t {len(cur_df)} results in date batch {loops} - total: {len(out_df)}")
             else:
-                print(f"No results on {loops} batch")
+                print(f"\t No results on {loops} date batch")
     return out_df
 
 def get_splunk_date(strdate):
