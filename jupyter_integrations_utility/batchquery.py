@@ -1,6 +1,7 @@
 # Doc Functions
 from IPython.display import display, Markdown
 import datetime
+import time
 import json
 import sys
 import os
@@ -108,6 +109,8 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
     loops = 0
     results_var = "prev_%s_%s" % (integration, instance)
 
+
+    full_s_time = int(time.time())
     while next_run:
         loops += 1
         stidx = curs
@@ -138,15 +141,31 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
             print("")
             print("Cur Query")
             print(this_query)
+        t_s_time = int(time.time())
         ipy.run_cell_magic(integration, instance + " -d", this_query)
+        t_q_time = int(time.time())
         try:
             these_df = ipy.user_ns[results_var]
         except:
             these_df = pd.DataFrame()
             print("Error on batch")
         out_df = pd.concat([out_df, these_df], ignore_index=True)
+        t_f_time = int(time.time())
+
+        t_t_time = t_f_time - t_s_time
+        t_qt_time = t_q_time - t_s_time
+        t_c_time = t_f_time - t_q_time
+
         print(f"{len(these_df)} results in list batch {loops} - total: {len(out_df)}")
+        print(f"{t_t_time:,} seconds in batch (Query: {t_qt_time:,} seconds - DF Concat: {t_c_time:,} seconds)")
         these_df = None
+
+    full_e_time = int(time.time())
+    full_t_time = full_e_time - full_s_time
+    a_time = full_t_time / loops
+    print(f"Total time: {full_t_time:,} seconds (Average of {a_time:.2f} seconds over {loops} loops)")
+
+
     return out_df
 
 
