@@ -4,17 +4,23 @@
 MYDEV="0"
 MYJUPDOCK="Dockerfile_jupyter_integrations"
 MYTYPE="$1"
-
+PVER="$2"
 
 if [ -z ${MYTYPE} ]; then
     echo "No Type selected, defaulting to psf"
     MYTYPE="psf"
 fi
 
-MYDFILE="Dockerfile_${MYTYPE}"
+if [ -z ${PVER} ]; then
+    echo "No Python version provided, defaulting to 310 (3.10)"
+    PVER="310"
+fi
 
+MYDFILE="Dockerfile_${MYTYPE}_${PVER}"
 
-REQFILE="20221213_requirements_39.txt"
+REQFILE="requirements_${PVER}.txt"
+
+#REQFILE="20230829_requirements_39.txt"
 
 
 
@@ -25,10 +31,14 @@ else
     exit 1
 fi
 
-
 if [ -f ./${REQFILE} ]; then
-    cp ${REQFILE} ./requirements.txt
+    echo "Found Requirements file for ${PVER} - Continuing"
+else
+    echo "Requirements file for ${PVER} (${REQFILE}) not found - exiting"
+    exit 1
 fi
+
+cp ${REQFILE} ./requirements.txt
 
 
 
@@ -51,13 +61,14 @@ fi
 
 FULL_VERSION=`grep JIVERSION ${MYDFILE} |sed  "s/ENV JIVERSION=//"`
 
-VERSION=`echo -n ${FULL_VERSION}|sed "s/${MYTYPE}_//"`
-BASE_TAG="integrations_base_${MYTYPE}:$VERSION"
+VERSION=`echo -n ${FULL_VERSION}|sed "s/${MYTYPE}//"`
+BASE_TAG="integrations_base_${MYTYPE}_${PVER}:$VERSION"
 
-FINAL_TAG="jupyter_integrations_${MYTYPE}:$VERSION"
+FINAL_TAG="jupyter_integrations_${MYTYPE}_${PVER}:$VERSION"
 
 
 echo "MYTYPE: $MYTYPE"
+echo "PVER: $PVER"
 echo "MYDFILE: $MYDFILE"
 echo "FULL_VERSION: $FULL_VERSION"
 echo "VERSION: $VERSION"
@@ -72,7 +83,7 @@ if [ $? -eq 0 ]; then
     echo "Complete with base build - Proceeding to Integrations Build"
     rm ./Dockerfile
 else
-    echo "Base build for $MYTYPE failed - exiting"
+    echo "Base build for $MYTYPE - $PVER failed - exiting"
     exit 1
 fi
 
@@ -92,10 +103,10 @@ docker build -t ${FINAL_TAG} .
 
 if [ $? -eq 0 ]; then
     echo "Final Build Complete"
-    docker tag ${FINAL_TAG} jupyter_integrations_${MYTYPE}:latest
+    docker tag ${FINAL_TAG} jupyter_integrations_${MYTYPE}_${PVER}:latest
     rm ./Dockerfile
 else
-    echo "Final Build for $MYTYPE failed - exiting"
+    echo "Final Build for $MYTYPE $PVER failed - exiting"
     exit 1
 fi
 

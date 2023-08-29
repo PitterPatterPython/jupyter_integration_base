@@ -217,6 +217,7 @@ class Integration(Magics):
         dec_PW = self.ipy.user_ns[namedpw_var].dec_data(enc_PW)
         return dec_PW
 
+
 ##### connect should not need to be overwritten by custom integration
     def connect(self, instance=None, prompt=False):
         if self.debug:
@@ -321,6 +322,13 @@ class Integration(Magics):
 
 
 
+####  reconnect should not need to be overwritten by custom integration - Note this is just a shortcut for "disconnect -> connect"
+    def reconnect(self, instance=None, prompt=False):
+        self.disconnect(instance=instance)
+        self.connect(instance=instance, prompt=prompt)
+
+
+
 ##### disconnect should not need to be overwritten by customer integration
     def disconnect(self, instance=None):
         if instance is None:
@@ -422,6 +430,16 @@ class Integration(Magics):
         elif line.lower().find("setproxypass") == 0:
             bMischiefManaged = True
             t = self.set_proxy_pass("%s Integration Proxy Pass" % self.name_str, "integration")
+        elif line.lower().strip().find("reconnect") == 0:
+            myinstance = None
+            instcheck = line.lower().strip().replace("reconnect", "").strip()
+            if instcheck != "":
+                if instcheck in self.instances.keys():
+                    myinstance = instcheck
+                else:
+                    myinstance = None
+            self.reconnect(instance=myinstance)
+            bMischiefManaged = True
         elif line.lower().strip().find("disconnect") == 0:
             myinstance = None
             instcheck = line.lower().strip().replace("disconnect", "").strip()
@@ -664,6 +682,7 @@ class Integration(Magics):
         out += "| %s | Show defined instances and their status |\n" % (m + " instances")
         out += "| %s | Connect to (optional) 'instance' (uses default if ommited) with defined settings. Use alt to override url and user settings |\n" % (m + " connect 'instance' [alt]")
         out += "| %s | Disconnect from  (optional) <instance> (uses default if ommitted). |\n" % (m + " disconnect <instance>")
+        out += "| %s | Reconnect from  (optional) <instance> (uses default if ommitted). |\n" % (m + " reconnect <instance>")
  #       out += "| %s | Set password for (optional) <instance> (uses default if ommitted). |\n" % (m + " setpass <instance>")
         out += "\n\n"
         out = self.customHelp(out)

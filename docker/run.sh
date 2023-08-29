@@ -21,7 +21,19 @@ fi
 
 
 MYTYPE="$1"
-MYPORT="$2"
+PVER="$2"
+MYPORT="$3"
+
+if [ -z ${MYTYPE} ]; then
+    echo "No Type selected, defaulting to psf"
+    MYTYPE="psf"
+fi
+
+if [ -z ${PVER} ]; then
+    echo "No Python version provided, defaulting to 310 (3.10)"
+    PVER="310"
+fi
+
 
 if [ "$MYPORT" == "" ]; then
     echo "No port provided, using port 8888"
@@ -31,11 +43,11 @@ else
     LOCAL_PORT="$MYPORT"
 fi
 
-MYDFILE="Dockerfile_${MYTYPE}"
+MYDFILE="Dockerfile_${MYTYPE}_${PVER}"
 
 if [ -f ./${MYDFILE} ]; then
-    echo "Found Dockerfile for $MYTYPE - Continuing"
-    RUN_IMG="jupyter_integrations_${MYTYPE}"
+    echo "Found Dockerfile for $MYTYPE - $PVER - Continuing"
+    RUN_IMG="jupyter_integrations_${MYTYPE}_${PVER}"
 else
     docker image inspect $MYTYPE >  /dev/null
     if [ $? -eq 0 ]; then
