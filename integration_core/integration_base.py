@@ -126,7 +126,12 @@ class Integration(Magics):
         puser = self.get_global_eval("proxy_user", instance)
         pscheme = self.get_global_eval("proxy_scheme", instance)
         pport = self.get_global_eval("proxy_port", instance)
-        purl = "%s://%s@%s:%s" % (pscheme, puser, phost, pport)
+
+        if puser is None or puser.strip() == "":
+            purl = f"{pscheme}://{phost}:{pport}"
+        else:
+            purl = f"{pscheme}://{puser}@{phost}:{pport}"
+#            purl = "%s://%s@%s:%s" % (pscheme, puser, phost, pport)
         return purl
 
     def get_proxy_pass(self, proxy_str, instance=None):

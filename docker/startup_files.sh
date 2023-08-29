@@ -101,6 +101,12 @@ echo "from dummy_core.dummy_base import Dummy" > $CUR
 echo "dummy_base = Dummy${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(dummy_base)" >> $CUR
 
+CUR="${SU}23_dtools.py"
+echo "Creating $CUR"
+echo "from dtools_core.dtools_base import Dtools" > $CUR
+echo "dtools_base = Dtools${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(dtools_base)" >> $CUR
+
 
 
 echo "Startup Files Complete"
