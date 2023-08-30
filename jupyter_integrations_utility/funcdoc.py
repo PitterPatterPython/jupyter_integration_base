@@ -212,7 +212,7 @@ def parse_docs(func_name, myglobals, debug=False):
             out_md += "------------------\n"
             out_md += f"**Access Instructions:** {doc_dict['access_instructions']}\n\n"
         if bQueryFunc is not None and bQueryFunc == True:
-            out_md += f"In addition to print_only, you can print the underlying query by typing: `{doc_dict['name']}([])`\n\n"
+            out_md += f"In addition to print_only, you can print the underlying query by typing: `{doc_dict['name']}([])` or `{doc_dict['name']}()`\n\n"
         out_md += "------------------------\n"
         if len(doc_dict['examples']) > 0:
             out_md += "**Examples**\n\n"
