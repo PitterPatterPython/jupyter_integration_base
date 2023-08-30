@@ -125,7 +125,7 @@ class Namedpw(Addon):
     def clear_named_PW(self, namedpw):
         pw_list = self.get_PW_list()
         if namedpw in pw_list.keys():
-            print("Clearning password for namedpw %s" % namedpw)
+            print("Clearing password for namedpw %s" % namedpw)
             del pw_list[namedpw]
         else:
             print("Named password %s does not exist - Password not cleared" % namedpw)
