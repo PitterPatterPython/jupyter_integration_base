@@ -188,3 +188,4 @@ matplotlib_venn
 pivottablejs
 colour
 domaintools_api
+jira
