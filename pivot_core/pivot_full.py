@@ -98,15 +98,16 @@ class Pivot(Addon):
                     mywidth = self.opts['pivot_width'][0]
                     myheight = self.opts['pivot_height'][0]
                     myfname = f"{self.opts['pivot_prefix'][0]}{newline}.html"
-                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'], outfile_path={myfname})")
                     frame_str = f"IFrame('{myfname}', width={mywidth}, height={myheight})"
+
                     if self.debug:
                         print(f"Dataframe: {newline}")
                         print(f"Width: {mywidth}")
                         print(f"Height: {myheight}")
-                        print(f"Outfile: myfname")
+                        print(f"Outfile: {myfname}")
                         print(f"Frame Str: {frame_str}")
 
+                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'], outfile_path={myfname})")
                     display(IFrame(myfname, width=mywidth, height=myheight))
 #                    self.ipy.ex(frame_str)
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
