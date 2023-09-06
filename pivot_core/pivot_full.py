@@ -47,6 +47,8 @@ class Pivot(Addon):
         runcode = "try:\n    from pivottablejs  import pivot_ui\nexcept:\n    pass\n"
         runres = shell.ex(runcode)
 
+        runres2 = self.ipy.ex("from IPython.core.display import HTML")
+
         try:
             a = type(pivot_ui)
         except:
@@ -87,7 +89,7 @@ class Pivot(Addon):
                     newline = line.replace("pivot", "").strip()
                     #pivot_ui(self.ipy.user_ns[newline])
                     self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'])")
-                    display(HTML("pivottablejs.html"))
+                    self.ipy.ex('display(HTML("pivottablejs.html"))')
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
                     self.pivot("pivot " + line.strip())
                 else:
