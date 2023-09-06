@@ -38,8 +38,8 @@ class Pivot(Addon):
 
 
     myopts = {}
-    myopts['pivot_height'] = [800, "Height used in Pivot JS display"]
-    myopts['pivot_width'] = [1200, "Width used in Pivot JS display"]
+    myopts['pivot_height'] = ["600", "Height used in Pivot JS display"]
+    myopts['pivot_width'] = ["100%", "Width used in Pivot JS display"]
     myopts['pivot_prefix'] = ['pivot_js_', "Prefix to put on outputfiles. Then we put dfname then .html"]
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
@@ -99,15 +99,17 @@ class Pivot(Addon):
                     myheight = self.opts['pivot_height'][0]
                     myfname = f"{self.opts['pivot_prefix'][0]}{newline}.html"
                     frame_str = f"IFrame('{myfname}', width={mywidth}, height={myheight})"
-
+                    run_str = f"pivot_ui(ipy.user_ns['{newline}'], outfile_path={myfname})"
                     if self.debug:
                         print(f"Dataframe: {newline}")
                         print(f"Width: {mywidth}")
                         print(f"Height: {myheight}")
                         print(f"Outfile: {myfname}")
                         print(f"Frame Str: {frame_str}")
+                        print(f"Run Str: {run_str}")
 
-                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'], outfile_path={myfname})")
+#                    self.ipy.ex(run_str)
+                    pivot_ui(self.ipy.user_ns[newline], output_file=myfname)
                     display(IFrame(myfname, width=mywidth, height=myheight))
 #                    self.ipy.ex(frame_str)
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
