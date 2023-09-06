@@ -95,7 +95,8 @@ class Pivot(Addon):
                     newline = line.replace("pivot", "").strip()
                     #pivot_ui(self.ipy.user_ns[newline])
                     self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'])")
-                    self.ipy.ex(f"IFrame('pivottablejs.html', width={self.opts['pivot_width']}, height={self.opts['pivot_height']})")
+#                    IFrame('pivottablejs.html', width=self.ops['pivot_width'][0], height=self.opts['pivot_height'][0])
+                    self.ipy.ex(f"IFrame('pivottablejs.html', width={self.opts['pivot_width'][0]}, height={self.opts['pivot_height'][0]})")
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
                     self.pivot("pivot " + line.strip())
                 else:
