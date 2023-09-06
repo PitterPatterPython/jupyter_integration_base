@@ -146,7 +146,8 @@ class Helloworld(Addon):
         out += f"### {m} line magics\n"
         out += "---------------\n"
         out += table_header
-        out += f"| {m + ' doc_and_batch'} | Print the doc_and_batch_help() (Same as typing doc_and_batch() )  |\n"
+        out += f"| {m + ' batch'} | Print the batch_query_help() (Same as typing batch_query_help() )  |\n"
+        out += f"| {m + ' func'} | Print the function_doc_help() (Same as typing function_doc_help() )  |\n"
         out += f"| {m + ' go'} | Put the helloworld go (defined in the variable hello_go) into the next cell. You can specify this in an py file in the .ipython profile_default startup folder |\n"
         out += "\n\n"
         out += "\n"
@@ -183,8 +184,10 @@ class Helloworld(Addon):
             if not line_handled: # We based on this we can do custom things for integrations.
                 if line.lower().strip() == "go":
                     self.fillGo("go")
-                elif line.lower().strip() == "doc_and_batch":
-                    self.ipy.ex("doc_and_batch_help()")
+                elif line.lower().strip() == "batch":
+                    self.ipy.ex("batch_query_help()")
+                elif line.lower().strip() == "func":
+                    self.ipy.ex("function_doc_help()")
                 elif f"hello_{line.lower().strip()}" in self.ipy.user_ns:
                     self.fillGo(line.lower().strip())
                 else:
