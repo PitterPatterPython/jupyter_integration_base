@@ -26,6 +26,7 @@ def batch_query_help(func_name=None, debug=False):
 
     doc_functions = {
     "general utility": [
+        "write_xlsx",
         "batch_list_in",
         "batch_by_date",
         "df_expand_col",
@@ -51,6 +52,47 @@ def batch_query_help(func_name=None, debug=False):
 # general utility
 # Documentation: Complete
 #
+
+def write_xlsx(outputfile, dfsheets):
+    """ {"name": "write_xlsx",
+         "desc": "Write an xlsx file with one or more dataframes on defined worksheets",
+         "return": "None - But does output an excel file",
+         "examples": [["write_xlsx("my_excel_file_name.xlsx", {"Worksheet1": df1, "Worksheet2": df2}), "Writes an excel file named my_excel_file_name.xlsx with two worksheets named Worksheet1 and Worksheet2"]],
+         "args": [{"name": "outputfile", "default": "NA", "required": "True", "type": "string", "desc": "Name of spreadsheet to output (full name)"},
+                  {"name": "dfsheets", "default": "NA", "required": "True", "type": "boolean", "desc": "Dictionary with keys being worksheet names and values being dataframes to write."}
+                  ],
+         "integration": "Any",
+         "instance": "Any",
+         "access_instructions": "na",
+         "limitations": ["Requires xlsxwriter"]
+         }
+    """
+    try:
+        import xlsxwriter
+    except:
+        print(f"xlsxwriter did not properly import - No XLSX outputted")
+        return None
+
+    wbwriter = pd.ExcelWriter(outputfile, engine='xlsxwriter', datetime_format='yyyy-mm-dd hh:mm:ss')
+    mywb = wbwriter.book
+    for mysheet in dfsheets.keys():
+        mydf = dfsheets[mysheet]
+        mydf.to_excel(wbwriter, sheet_name=mysheet, startrow=1, header=False, index=False)
+
+        myws = wbwriter.sheets[mysheet]
+        col_settings = [{'header': column} for column in mydf.columns]
+        (max_row, max_col) = mydf.shape
+        myws.add_table(0, 0, max_row, max_col - 1, {'columns': col_settings})
+        len_list = [min(max([len(str(r)) for r in mydf[col].tolist() + [col + "   "]]), 100) for col in mydf.columns]
+        for i, w, in enumerate(len_list):
+            myws.set_column(i, i, w)
+        myws.freeze_panes(1, 0)
+
+    mywb.close()
+    print(f"XLSX Output to {outputfile} complete")
+
+
+
 def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, list_quotes='single', list_sep=', ', dedupe=True, remove_none=True, debug=False):
     """ {"name": "batch_list_in",
          "desc": "Take in a query, list, integration, and instance and split the list up into batched, returning all results as one dataframe",

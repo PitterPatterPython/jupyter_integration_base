@@ -189,3 +189,4 @@ pivottablejs
 colour
 domaintools_api
 jira
+ydata_profiling

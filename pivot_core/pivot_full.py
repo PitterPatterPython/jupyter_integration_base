@@ -85,7 +85,8 @@ class Pivot(Addon):
             if not line_handled: # We based on this we can do custom things for integrations. 
                 if line.lower().find("pivot") == 0:
                     newline = line.replace("pivot", "").strip()
-                    pivot_ui(self.ipy.user_ns[newline])
+                    #pivot_ui(self.ipy.user_ns[newline])
+                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'])")
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
                     self.pivot("pivot " + line.strip())
                 else:

@@ -2,7 +2,7 @@
 
 FROM python:3.10.13-bookworm
 
-ENV JIVERSION=psf_3.10.13.1.0.05
+ENV JIVERSION=psf_3.10.13.1.0.06
 
 COPY requirements.txt /root
 # COPY startup_files.sh /root
@@ -27,7 +27,7 @@ RUN echo "[FreeTDS]\n\
 Description = FreeTDS unixODBC Driver\n\
 Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
 Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so" >> /etc/odbcinst.ini
-RUN echo "hi2"
+RUN echo "hi1"
 
 
 RUN pip install --use-deprecated=legacy-resolver -r /root/requirements.txt
