@@ -18,9 +18,9 @@ from profile_core._version import __desc__
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
 try:
-    from pandas_profiling import ProfileReport
+    from ydata_profiling import ProfileReport
 except:
-    print("Could not import pandas_profiling")
+    print("Could not import ydata_profiling")
 
 from addon_core import Addon
 
@@ -49,13 +49,13 @@ class Profile(Addon):
         self.load_env(self.custom_evars)
 #        shell.user_ns['profile_var'] = self.creation_name
 
-        runcode = "try:\n    from pandas_profiling import ProfileReport\nexcept:\n    pass\n"
+        runcode = "try:\n    from ydata_profiling import ProfileReport\nexcept:\n    pass\n"
         runres = shell.ex(runcode)
 
         try:
             a = type(ProfileReport)
         except:
-            print("pandas_profiling doesn't seem to be installed, you will need this")
+            print("ydata_profiling doesn't seem to be installed, you will need this")
 
 # Display Help can be customized
 
