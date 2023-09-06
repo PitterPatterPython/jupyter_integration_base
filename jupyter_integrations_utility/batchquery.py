@@ -57,7 +57,9 @@ def write_xlsx(outputfile, dfsheets):
     """ {"name": "write_xlsx",
          "desc": "Write an xlsx file with one or more dataframes on defined worksheets",
          "return": "None - But does output an excel file",
-         "examples": [['write_xlsx("my_excel_file_name.xlsx", {"Worksheet1": df1, "Worksheet2": df2})', "Writes an excel file named my_excel_file_name.xlsx with two worksheets named Worksheet1 and Worksheet2"]],
+         "examples": [
+            ['write_xlsx("my_excel_file_name.xlsx", {"Worksheet1": df1, "Worksheet2": df2})', "Writes an excel file named my_excel_file_name.xlsx with two worksheets named Worksheet1 and Worksheet2"]
+         ],
          "args": [{"name": "outputfile", "default": "NA", "required": "True", "type": "string", "desc": "Name of spreadsheet to output (full name)"},
                   {"name": "dfsheets", "default": "NA", "required": "True", "type": "boolean", "desc": "Dictionary with keys being worksheet names and values being dataframes to write."}
                   ],
