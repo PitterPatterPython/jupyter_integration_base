@@ -32,14 +32,15 @@ class Pivot(Addon):
     name_str = "pivot"
 
 
-    custom_evars = ['pivot_height', 'pivot_width']
+    custom_evars = ['pivot_height', 'pivot_width', 'pivot_prefix']
 
-    custom_allowed_set_opts = ['pivot_height', 'pivot_width']
+    custom_allowed_set_opts = ['pivot_height', 'pivot_width', 'pivot_prefix']
 
 
     myopts = {}
     myopts['pivot_height'] = [800, "Height used in Pivot JS display"]
     myopts['pivot_width'] = [1200, "Width used in Pivot JS display"]
+    myopts['pivot_prefix'] = ['pivot_js_', "Prefix to put on outputfiles. Then we put dfname then .html"]
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
         super(Pivot, self).__init__(shell, debug=debug)
@@ -94,9 +95,20 @@ class Pivot(Addon):
                 if line.lower().find("pivot") == 0:
                     newline = line.replace("pivot", "").strip()
                     #pivot_ui(self.ipy.user_ns[newline])
-                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'])")
-                    IFrame('pivottablejs.html', width=self.opts['pivot_width'][0], height=self.opts['pivot_height'][0])
-#                    self.ipy.ex(f"IFrame('pivottablejs.html', width={self.opts['pivot_width'][0]}, height={self.opts['pivot_height'][0]})")
+                    mywidth = self.opts['pivot_width'][0]
+                    myheight = self.opts['pivot_height'][0]
+                    myfname = f"{self.opts['pivot_prefix'][0]}{newline}.html"
+                    self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'], outfile_path={myfname})")
+                    frame_str = f"IFrame('{myfname}', width={mywidth}, height={myheight})"
+                    if self.debug:
+                        print(f"Dataframe: {newline}")
+                        print(f"Width: {mywidth}")
+                        print(f"Height: {myheight}")
+                        print(f"Outfile: myfname")
+                        print(f"Frame Str: {frame_str}")
+
+                    display(IFrame(myfname, width=mywidth, height=myheight))
+#                    self.ipy.ex(frame_str)
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
                     self.pivot("pivot " + line.strip())
                 else:
