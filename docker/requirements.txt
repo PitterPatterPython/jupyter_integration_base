@@ -96,7 +96,7 @@ pscript
 ptyprocess
 pyarrow
 pycparser
-pydantic
+pydantic==1.*
 pyee
 Pygments
 PyMySQL

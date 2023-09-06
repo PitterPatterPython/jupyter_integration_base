@@ -10,7 +10,7 @@ import requests
 from copy import deepcopy
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.display import HTML
-from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image
+from IPython.display import display_html, display, Markdown, Javascript, FileLink, FileLinks, Image, IFrame
 import pandas as pd
 from pivot_core._version import __desc__
 
@@ -30,10 +30,16 @@ class Pivot(Addon):
 
     magic_name = "pivot"
     name_str = "pivot"
-    custom_evars = []
+
+
+    custom_evars = ['pivot_height', 'pivot_width']
+
+    custom_allowed_set_opts = ['pivot_height', 'pivot_width']
+
 
     myopts = {}
-
+    myopts['pivot_height'] = [800, "Height used in Pivot JS display"]
+    myopts['pivot_width'] = [1200, "Width used in Pivot JS display"]
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
         super(Pivot, self).__init__(shell, debug=debug)
@@ -47,7 +53,7 @@ class Pivot(Addon):
         runcode = "try:\n    from pivottablejs  import pivot_ui\nexcept:\n    pass\n"
         runres = shell.ex(runcode)
 
-        runres2 = self.ipy.ex("from IPython.core.display import HTML")
+        runres2 = self.ipy.ex("from IPython.display import IFrame")
 
         try:
             a = type(pivot_ui)
@@ -89,7 +95,7 @@ class Pivot(Addon):
                     newline = line.replace("pivot", "").strip()
                     #pivot_ui(self.ipy.user_ns[newline])
                     self.ipy.ex(f"pivot_ui(ipy.user_ns['{newline}'])")
-                    self.ipy.ex('display(HTML("pivottablejs.html"))')
+                    self.ipy.ex(f"IFrame('pivottablejs.html', width={self.opts['pivot_width']}, height={self.opts['pivot_height']})")
                 elif line.strip().split(" ")[0] in self.ipy.user_ns:
                     self.pivot("pivot " + line.strip())
                 else:
