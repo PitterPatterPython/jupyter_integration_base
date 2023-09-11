@@ -107,6 +107,12 @@ echo "from dtools_core.dtools_base import Dtools" > $CUR
 echo "dtools_base = Dtools${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(dtools_base)" >> $CUR
 
+CUR="${SU}24_urlscan.py"
+echo "Creating $CUR"
+echo "from urlscan_core.urlscan_base import Urlscan" > $CUR
+echo "urlscan_base = Urlscan${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(urlscan_base)" >> $CUR
+
 
 
 echo "Startup Files Complete"

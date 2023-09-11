@@ -207,6 +207,9 @@ itables
 pyvis
 matplotlib_venn
 supervenn
-pytesseract
-opencv-python
-imutils
+pivottablejs
+colour
+domaintools_api
+jira
+ydata_profiling
+pymongo
