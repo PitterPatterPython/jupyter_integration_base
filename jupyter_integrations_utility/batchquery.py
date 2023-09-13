@@ -105,7 +105,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
                   {"name": "integration", "default": "None", "required": "True", "type": "string", "desc": "The integration the query will be submitted to (i.e. splunk, tera, impala)"},
                   {"name": "instance", "default": "None", "required": "True", "type": "string", "desc": "The instance of the previously provided integration that will be used (i.e. prod, dev)"},
                   {"name": "batchsize", "default": "500", "required": "False", "type": "integer", "desc": "The max number of items in a batch."},
-                  {"name": "list_quotes", "default": "single", "required": "False", "type": "string", "desc": "Whether to use single or double quotes on list items. Single is default best for SQLish, double may work better for Splunk types"},
+                  {"name": "list_quotes", "default": "single", "required": "False", "type": "string", "desc": "Whether to use single or double quotes, or blank  on list items. Single is default best for SQLish, double may work better for Splunk types"},
                   {"name": "list_sep", "default": ", ", "required": "False", "type": "string", "desc": "How the list gets seperated. ', ' is the default and works for SQL IN clauses. Consider ' OR ' for SPLUNK index queries"},
                   {"name": "dedupe", "default": "True", "required": "False", "type": "boolean", "desc": "Deduplicate the list, prior to submitting"},
                   {"name": "remove_none", "default": "True", "required": "False", "type": "boolean", "desc": "Remove null values from the list. "},
@@ -173,6 +173,8 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         elif list_quotes == "double":
             this_str = f'"{list_sep}"'.join(thisbatch)
             this_str = f'"{this_str}"'
+        elif list_quotes == "blank":
+            this_str = f"{list_sep}".join(thisbatch)
         else:
             print("Error must use single or double as your list_quotes")
 
