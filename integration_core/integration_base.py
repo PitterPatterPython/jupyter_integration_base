@@ -809,7 +809,12 @@ class Integration(Magics):
         out += table_header
         for ex in examples:
             line1 = mq + " " + ex[0]
-            out += "| %s | %s |\n" % (line1.strip() + "<br>" + ex[1].strip(), ex[2].strip())
+            next_lines = ex[1].strip().replace("\n", "<br>")
+            mag_str = f"{line1}<br>{next_lines}"
+            desc_str = ex[2].strip().replace("\n", "<br>")
+            out += f"| {mag_str} | {desc_str} |\n"
+#            out += "| %s | %s |\n" % (line1.strip() + "<br>" + ex[1].strip(), ex[2].strip())
+
         out += "\n\n"
         out += "## Query Notes\n"
         out += "- If the number of results is less than the %display subsystem display_max_rows, results will be displayed directly after query\n"
