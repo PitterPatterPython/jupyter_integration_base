@@ -145,7 +145,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         batchlist = [x for x in batchlist if x is not None and pd.isna(x) == False]
 
     list_cnt = len(batchlist)
-    print("\t Total Items in Batchlist: %s" % list_cnt)
+    print("Total Items in Batchlist: %s" % list_cnt)
 
     curs = 0
     next_run = True
@@ -155,7 +155,7 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
 
 
     full_s_time = int(time.time())
-    print(f"\t Starting Batch Run")
+    print(f"Starting Batch List In")
     while next_run:
         loops += 1
         stidx = curs
@@ -176,9 +176,9 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         elif list_quotes == "blank":
             this_str = f"{list_sep}".join(thisbatch)
         else:
-            print("Error must use single or double as your list_quotes")
+            print("\t Error must use single or double as your list_quotes")
 
-        print("\t\t Batch: %s - %s - %s" % (stidx, enidx, this_len))
+        print(f"\t Batch: {loops} - {this_len} Items - {stidx} to {enidx}")
         this_query = base_query.replace("~~here~~", this_str)
         try:
             del ipy.user_ns[results_var]
@@ -189,13 +189,17 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
             print("Cur Query")
             print(this_query)
         t_s_time = int(time.time())
-        ipy.run_cell_magic(integration, instance + " -d", this_query)
+        if this_len > 0:
+            ipy.run_cell_magic(integration, instance + " -d", this_query)
+        else:
+            print("Batch is a final batch and you connected perfectly with batch size - skipping due to no more items!")
         t_q_time = int(time.time())
         try:
             these_df = ipy.user_ns[results_var]
         except:
             these_df = pd.DataFrame()
-            print("Error on batch")
+            if this_len > 0:
+                print("Error on batch")
         out_df = pd.concat([out_df, these_df], ignore_index=True)
         t_f_time = int(time.time())
 
@@ -203,8 +207,8 @@ def batch_list_in(batchlist, base_query, integration, instance, batchsize=500, l
         t_qt_time = t_q_time - t_s_time
         t_c_time = t_f_time - t_q_time
 
-        print(f"\t\t\t {len(these_df)} results in list batch {loops} - total: {len(out_df)}")
-        print(f"\t\t\t {t_t_time:,} seconds in batch (Query: {t_qt_time:,} seconds - DF Concat: {t_c_time:,} seconds)")
+        print(f"\t\t {len(these_df)} results in list batch {loops} - total: {len(out_df)}")
+        print(f"\t\t {t_t_time:,} seconds in batch (Query: {t_qt_time:,} seconds - DF Concat: {t_c_time:,} seconds)")
         these_df = None
 
     full_e_time = int(time.time())
@@ -277,7 +281,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
         if loops > 1 and print_only == True:
             break
         if date_batch_type == "hist":
-            print(f"Loop {loops} running for Dates {dl}")
+            print(f"*** Date Loop {loops} running for Dates {dl}")
             this_query = base_query.replace("~~date~~", dl)
             if len(hist_date_clauses) > 0:
                 for myclause in hist_date_clauses:

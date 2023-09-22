@@ -113,6 +113,12 @@ echo "from urlscan_core.urlscan_base import Urlscan" > $CUR
 echo "urlscan_base = Urlscan${OBJ_VAL}" >> $CUR
 echo "ipy.register_magics(urlscan_base)" >> $CUR
 
+CUR="${SU}25_mongo.py"
+echo "Creating $CUR"
+echo "from mongo_core.mongo_base import Mongo" > $CUR
+echo "mongo_base = Mongo${OBJ_VAL}" >> $CUR
+echo "ipy.register_magics(mongo_base)" >> $CUR
+
 
 
 echo "Startup Files Complete"
