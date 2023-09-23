@@ -94,10 +94,10 @@ def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_funct
     elif func_name=="basic":
         out_md = ""
         if magic_src is None:
-            out_md += f"### {title} Include File Loaded\n"
+            out_md += f"**{title} Include File Loaded**\n"
             out_md += f"Type `{help_func}()` to see extended help and available functions/queries\n\n"
         else:
-            out_md += f"### {title} magic %{magic_src} Loaded\n"
+            out_md += f"**{title} magic %{magic_src} Loaded**\n"
             out_md += f"Type `%{magic_src} functions` to see extended help and available functions/queries\n\n"
             
         display(Markdown(out_md))
