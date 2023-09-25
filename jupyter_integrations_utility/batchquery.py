@@ -428,7 +428,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
             # In this case, we need pull the full table results. 
             print(f"Note: Total results for this table is {res_cnt} - Pulling results large results will take some time")
             pull_query = f"select * from {vol_dict['table_name']}"
-            ipy.run_cell_magic(integration, instance + " -c", pull_queyr)
+            ipy.run_cell_magic(integration, instance + " -c", pull_query)
             out_df = ipy.user_ns[results_var]
         else:
             print(f"Temp Table Loaded with {res_cnt} rows in table: {vol_dict['table_name']}")
