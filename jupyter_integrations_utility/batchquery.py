@@ -312,7 +312,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                     "pull_final_results": False
                }
 
-
+    ipy = get_ipython()
     if tmp_dict is not None:
         vol_dict.update(tmp_dict)
 
