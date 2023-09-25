@@ -104,7 +104,7 @@ def batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, bat
                   {"name": "base_query", "default": "None", "required": "True", "type": "string", "desc": "Query that is complete except for the string ~~here~~ which will be replaced with the current batch"},
                   {"name": "integration", "default": "None", "required": "True", "type": "string", "desc": "The integration the query will be submitted to (i.e. splunk, tera, impala)"},
                   {"name": "instance", "default": "None", "required": "True", "type": "string", "desc": "The instance of the previously provided integration that will be used (i.e. prod, dev)"},
-                  {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table"},
+                  {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table, pass the table name to use temp, and pull_final_results if you want all results back"},
                   {"name": "batchsize", "default": "500", "required": "False", "type": "integer", "desc": "The max number of items in a batch."},
                   {"name": "list_quotes", "default": "single", "required": "False", "type": "string", "desc": "Whether to use single or double quotes, or blank  on list items. Single is default best for SQLish, double may work better for Splunk types"},
                   {"name": "list_sep", "default": ", ", "required": "False", "type": "string", "desc": "How the list gets seperated. ', ' is the default and works for SQL IN clauses. Consider ' OR ' for SPLUNK index queries"},
@@ -289,7 +289,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                   {"name": "hist_format", "default": "%Y%m", "required": "False", "type": "string", "desc": "Date format for hist tables (%Y%m and %y%m supported)"},
                   {"name": "hist_current_str", "default": "_ct", "required": "False", "type": "string", "desc": "String for the current table if using hist"},
                   {"name": "hist_date_clauses", "default": "[]", "required": "False", "type": "list", "desc": "A list of 4 item lists that can be used to replace parts of the query based on the hist date - Careful"},
-                  {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table"},
+                  {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table, pass the table name to use temp, and pull_final_results if you want all results back"},
                   {"name": "batchsize", "default": "500", "required": "False", "type": "integer", "desc": "Number of items in list to batch (this is done per date)"},
                   {"name": "print_only", "default": "False", "required": "False", "type": "boolean", "desc": "Only print one iteration of the query"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Print debug messages"}
@@ -415,7 +415,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                     print(f"\t No results on {loops} date batch")
             else:
                 if vol_dict['created'] == False:
-                    col_dict['created'] = True
+                    vol_dict['created'] = True
 
     if bTemp:
         test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
