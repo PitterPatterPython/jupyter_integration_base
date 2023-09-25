@@ -252,7 +252,7 @@ def batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, bat
     a_time = full_t_time / loops
     print(f"Total time: {full_t_time:,} seconds (Average of {a_time:.2f} seconds over {loops} loops)")
 
-    if btemp:
+    if bTemp:
         test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
         ipy.run_cell_magic(integration, instance + " -d", test_query)
         cnt_df = ipy.user_ns[results_var]
@@ -407,7 +407,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
         else:
             cur_df = pd.DataFrame()
             cur_df = batch_list_in(list_items, this_query, integration, instance, tmp_dict=vol_dict, batchsize=batchsize, debug=debug)
-            if btemp == False:
+            if bTemp == False:
                 if len(cur_df) > 0:
                     out_df = pd.concat([out_df, cur_df], ignore_index=True)
                     print(f"\t {len(cur_df)} results in date batch {loops} - total: {len(out_df)}")
@@ -417,7 +417,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                 if vol_dict['created'] == False:
                     col_dict['created'] = True
 
-    if btemp:
+    if bTemp:
         test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
         ipy.run_cell_magic(integration, instance + " -d", test_query)
         cnt_df = ipy.user_ns[results_var]
