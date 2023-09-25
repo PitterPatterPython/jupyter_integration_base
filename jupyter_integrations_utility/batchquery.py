@@ -138,6 +138,7 @@ def batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, bat
     if vol_dict['table_name'] is not None:
         bTemp = True
 
+    results_var = f"prev_{integration}_{instance}"
     ipy = get_ipython()
 
     if debug:
@@ -174,7 +175,6 @@ def batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, bat
     next_run = True
     out_df = pd.DataFrame()
     loops = 0
-    results_var = "prev_%s_%s" % (integration, instance)
 
 
     full_s_time = int(time.time())
@@ -313,6 +313,8 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                }
 
     ipy = get_ipython()
+    results_var = f"prev_{integration}_{instance}"
+
     if tmp_dict is not None:
         vol_dict.update(tmp_dict)
 
