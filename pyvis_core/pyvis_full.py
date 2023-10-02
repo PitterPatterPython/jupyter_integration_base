@@ -100,9 +100,14 @@ class Pyvis(Addon):
         doc_functions = {
         "general graphing": [
             "graph_pyvis_network",
-            "color_2_htmlcol",
-            "ret_bank_cols", 
             "node_or_edge_format"
+        ],
+        "icon colors": [
+            "display_icon_colors",
+            "add_transparency_from_png",
+            "change_png_color",
+            "node_or_edge_format",
+            "getcolor"
         ]
         }
 

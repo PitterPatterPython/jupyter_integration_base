@@ -98,9 +98,83 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
         display(IFrame(out_file, width=width+200, height=height+200))
     return mynet
 
+def node_or_edge_format(srcnodeoredge, format_map=None, default_node_format={"color": "#000000", "size": 30, "shape":"dot"}, default_edge_format={"color": "#000000"}, first_hit=True, always_use_default=False, matchlen=3, debug=False):
+    """{"name": "node_or_edge_format", 
+         "desc": "Provide a method to format nodes and edges based on string matching of the id",
+         "return": "A node or edge dictionary with the formatting added if needed", 
+         "examples": [["col_dict = ret_bank_cols()", "Returns Zelle Bank to Color List by default"]
+         ], 
+         "args": [{"name": "nodeoredge", "default": "", "required": "True", "type": "dict", "desc": "Dictionary of a node or edge. Must have an id column at a minimum"},
+                  {"name": "format_map", "default": "None", "required": "False", "type": "dict or None", "desc": "Dictionary that has a key of a match string and value of a format dictionary. If None, nothing is added to the node"},
+                  {"name": "default_node_format", "default": "{'color': 'Black', 'size': 30, 'shape':'dot'}", "required": "False", "type": "dict", "desc": "If a match occurs, and a certain item is not included this is the default for a node"},
+                  {"name": "default_edge_format", "default": "{'color': 'Black'}", "required": "False", "type": "dict", "desc": "If a match occurs, and a certain item is not included this is the default for a edge"},
+                  {"name": "first_hit", "default": "True", "required": "False", "type": "Bool", "desc": "Uses the first hit in a format_map. If False, uses the last hit in the format map"},
+                  {"name": "always_use_default", "default": "False", "required": "False", "type": "Bool", "desc": "If there is not a hit on the format_map, still use the node or edge defaults. Defaults to False which just returns the node with no formating added."},
+                  {"name": "matchlen", "default": "3", "required": "False", "type": "integer", "desc": "How much of the ID we should check against the format map"},
+                  {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": [""]
+         }
+    """
+    nodeoredge = srcnodeoredge.copy()
+    if format_map is None:
+        return nodeoredge # If no dict is provided, don't even add the defaults
+
+    if "source" in nodeoredge:
+        format_type = "edge"
+    else:
+        format_type = "node"
+    fullid = nodeoredge['id']
+    matchid = fullid[0:matchlen]
+    format_dict = None
+    if format_type == "edge":
+        format_dict = default_edge_format.copy()
+    else:
+        format_dict = default_node_format.copy()
+    hit_dict = format_dict
+    for m in format_map.keys():
+        if debug:
+            print(f"ID: {fullid}")
+            print(f"Match ID: {matchid}")
+            print(f"Match Key: {m}")
+        if m[0] == "~":
+            full_match = m.replace("~", "")
+            if fullid.find(full_match) >= 0:
+                hit_dict = format_map[m].copy()
+                if first_hit:
+                    break
+        elif m.find(matchid) >= 0:
+            hit_dict = format_map[m].copy()
+            if first_hit:
+                break
+    if hit_dict is not None:
+        format_dict.update(hit_dict)
+        nodeoredge.update(format_dict)
+    else:
+        if always_use_default:
+            nodeoredge.update(format_dict)
+    return nodeoredge
 
 
-def remove_transparency_from_png(b64encoded_in):
+def add_transparency_from_png(b64encoded_in):
+    """{"name": "add_transparency_from_png",
+         "desc": "Take a PNG with a solid background and make it transparent ",
+         "return": "The same base64 encoded PNG (with our without the data tag for IMG tags) with a transparent background",
+         "examples": [["trans_b64_png = add_transparency_from_png(b64_png)", "Add transparency"]
+         ],
+         "args": [{"name": "b64encoded_in", "default": "None", "required": "True", "type": "string", "desc": "Base64 encoded PNG file with a background"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": ["Can happen with or without the data prefix for image tags"]
+         }
+    """
+
+
     data_pre = False
     if b64encoded_in.find("data:image/png;base64,") == 0:
         b64encoded_in = b64encoded_in.replace("data:image/png;base64,", "")
@@ -123,7 +197,24 @@ def remove_transparency_from_png(b64encoded_in):
 
     return retval
 
+
 def change_png_color(b64_black_png, color):
+    """{"name": "change_png_color", 
+         "desc": "Take a PNG with a solid black color and change the color to the specified color ",
+         "return": "The same base64 encoded PNG in a different color", 
+         "examples": [["red_png_b64 = change_png_color(black_png_b64, "red")", "Change the color to red"]
+         ], 
+         "args": [{"name": "b64_black_png", "default": "None", "required": "True", "type": "string", "desc": "Base64 encoded PNG file with a backgroung"},
+                  {"name": "color", "default": "None", "required": "True", "type": "string", "desc": "Color to change to"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": ["Color must be in allowed colors list"]
+         }
+    """ 
+
+
     data_pre = False
     if b64_black_png.find("data:image/png;base64,") == 0:
         b64_black_png = b64_black_png.replace("data:image/png;base64,", "")
@@ -169,7 +260,20 @@ def change_png_color(b64_black_png, color):
     return ret_val
 
 def display_icon_colors(icons, colors=['black', 'red', 'green', 'blue']):
-
+    """{"name": "display_icon_colors", 
+         "desc": "Take a dict of icons and show them displayed in the provided colors (or use all to see all colors)",
+         "return": "None - It displays in a notebook", 
+         "examples": [["display_icon_colors(pyvis_icons, ['all'])", "Show all Pyvis Icons"]
+         ], 
+         "args": [{"name": "icons", "default": "None", "required": "True", "type": "dict", "desc": "A dict with keys as names and values as b64encoded PNGs"},
+                  {"name": "colors", "default": "None", "required": "True", "type": "list", "desc": "A list of colors" }
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": ["All is more like 'most']
+         }
+    """ 
     if colors[0] == 'all':
         colors = ['red', 'darkred', 
                   'maroon', 'springgreen', 'green', 'darkgreen', 
@@ -189,23 +293,40 @@ def display_icon_colors(icons, colors=['black', 'red', 'green', 'blue']):
     for k, v in icons.items():
         out_html += f"<TR><TD>{k}</TD>\n"
         out_html += f"<TD><img src='{v}'></TD>\n"
-        out_html += f"<TD><img src='{remove_transparency_from_png(v)}'></TD>\n"
+        out_html += f"<TD><img src='{add_transparency_from_png(v)}'></TD>\n"
         for c in colors: 
-            out_html += f"<TD><img src='{change_png_color(remove_transparency_from_png(v), c)}'></TD>\n"
+            out_html += f"<TD><img src='{change_png_color(add_transparency_from_png(v), c)}'></TD>\n"
         out_html += "</TR>"
     out_html += "</TABLE>"
     display(HTML(out_html))
 
-
 def getcolor(incolor, myformat):
+    """{"name": "getcolor", 
+         "desc": "Take a color and return it in a specific format",
+         "return": "The color represented by the requested format", 
+         "examples": [["red_html = getcolor('red', "html")", "Red represented has Hex for HTML"],
+                      ["green_strtup = getcolor('green', "strtup")", "Green as a RGB String tuple like 0,255,0"]
+         ],
+         "args": [{"name": "incolor", "default": "None", "required": "True", "type": "string", "desc": "Name of the color"},
+                  {"name": "myformat", "default": "None", "required": "True", "type": "string", "desc": "html or strtup"}
+                  ],
+         "integration": "na",
+         "instance": "na",
+         "access_instructions": "",
+         "limitations": ["Color must be in allowed colors list"]
+         }
+    """
+
     allowed_colors = [
     'black',
-    'blue',
+    'blue', 
+    'lightblue', # JPM
     'darkblue',
     'gray',
     'green', #Wells
     'darkgreen',
-    'springgreen',
+    'springgreen'
+    'lavender', # BBT
     'purple', #Citi
     'maroon',
     'red', #BAC
@@ -214,12 +335,13 @@ def getcolor(incolor, myformat):
     'orange',
     'white',
     'brown',
+    'peachpuff', #USB
     'yellow',
     'gold', #PNC
     'pink',
     'deeppink',
     'magenta',
-    'cyan', # Teal
+    'cyan', # H50
     'honeydew' # Ally
     ]
 
@@ -239,148 +361,3 @@ def getcolor(incolor, myformat):
         return outstr
 
 
-def color_2_htmlcol(colorname, default_color=None, debug=False):
-    """{"name": "color_2_htmlcol", 
-         "desc": "Convert a list of colors to HTML colors",
-         "return": "Html Color of provided color or just return the color if not in list unless default_color is specified", 
-         "examples": [["Used in calling of graph_network", "Most basic call"]
-         ], 
-         "args": [{"name": "colorname", "default": "None", "required": "True", "type": "string", "desc": "Color to convert to HTML"},
-                  {"name": "default_color", "default": "None", "required": "False", "type": "string or None", "desc": "If a color is provided use this as the default html color otherwise return the string passed in (when None)"},
-                  {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
-                  ],
-         "integration": "na",
-         "instance": "na",
-         "access_instructions": "",
-         "limitations": ["Only a basic list as a helper"]
-         }
-    """    
-    hcol = {
-                    "Black": "#000000",
-                    "Blue": "#0000FF",
-                    "Gray": "#808080",
-                    "Green": "#00FF00", # Wells
-                    "Spring_Green": "#00FF7F",
-                    "Purple": "#800080", #Citi
-                    "Maroon": "#800000",
-                    "Red": "#FF0000",    # BAC
-                    "Coral": "#FF7F50",
-                    "Orange": "#FFA500",
-                    "White": "#FFFFFF",
-                    "Yellow": "#FFFF00",
-                    "Gold": "#FFD700", # PNC
-                    "Pink": "#FF69B4",
-                    "Deep_Pink": "#FF1493", 
-                    "Magenta": "#FF00FF",
-                    "Teal": "#00FFFF", # Huntington
-                    "Honey_Dew": "#F0FFF0", # Ally
-                    "Pale_Blue": "#AFEEEE", # US Bank
-                    "Light_Purple": "#BB8FCE", #Truist
-                    "Light_Blue": "#1E90FF" # Chase
-                }
-    retval = colorname
-    if colorname not in hcol:
-        if default_color is not None and default_color in hcol:
-            retval = hcol[default_color]
-            if debug:
-                print(f"Color provided {colorname} not in color_list, using provided default color {default_color}")
-        else:
-            print(f"Default color provided not in color list: color provided: {colorname} not in color list - default_color provided: {default_color} also not in color list")
-    else:
-        retval = hcol[colorname]
-        
-    return retval
-    
-def ret_bank_cols(bank_str_format="zelle", debug=False):
-    """{"name": "ret_bank_cols", 
-         "desc": "Locked in colors for certain banks based on the string to keep visuals consistent",
-         "return": "A dict of colors to send to color_basic function", 
-         "examples": [["col_dict = ret_bank_cols()", "Returns Zelle Bank to Color List by default"]
-         ], 
-         "args": [{"name": "bank_str_format", "default": "zelle", "required": "False", "type": "string", "desc": "Format of strings, defaults to three letter codes for zelle"},
-                  {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
-                  ],
-         "integration": "na",
-         "instance": "na",
-         "access_instructions": "",
-         "limitations": ["Knowing how to send data into this function is important"]
-         }
-    """
-    col_dict = {}
-    if debug:
-        print(f"Bank Code: {bank_str_format}")
-    if bank_str_format == "zelle":
-        col_dict={"JPM":"Light_Blue", "WFC":"Green", "CTI": "Purple", "H50": "Teal", "PNC": "Gold", "BAC": "Red", "ALB": "Honey_Dew", "BBT": "Light_Purple", "USB": "Pale_Blue"}
-    else:
-        print(f"Unknown bank_str_format {bank_str_format} - Currently supported: zelle")
-    return col_dict
-
-
-def node_or_edge_format(srcnodeoredge, format_map=None, default_node_format={"color": "#000000", "size": 30, "shape":"dot"}, default_edge_format={"color": "#000000"}, first_hit=True, always_use_default=False, matchlen=3, debug=False):
-    """{"name": "node_or_edge_format", 
-         "desc": "Provide a method to format nodes and edges based on string matching of the id",
-         "return": "A node or edge dictionary with the formatting added if needed", 
-         "examples": [["col_dict = ret_bank_cols()", "Returns Zelle Bank to Color List by default"]
-         ], 
-         "args": [{"name": "nodeoredge", "default": "", "required": "True", "type": "dict", "desc": "Dictionary of a node or edge. Must have an id column at a minimum"},
-                  {"name": "format_map", "default": "None", "required": "False", "type": "dict or None", "desc": "Dictionary that has a key of a match string and value of a format dictionary. If None, nothing is added to the node"},
-                  {"name": "default_node_format", "default": "{'color': 'Black', 'size': 30, 'shape':'dot'}", "required": "False", "type": "dict", "desc": "If a match occurs, and a certain item is not included this is the default for a node"},
-                  {"name": "default_edge_format", "default": "{'color': 'Black'}", "required": "False", "type": "dict", "desc": "If a match occurs, and a certain item is not included this is the default for a edge"},
-                  {"name": "first_hit", "default": "True", "required": "False", "type": "Bool", "desc": "Uses the first hit in a format_map. If False, uses the last hit in the format map"},
-                  {"name": "always_use_default", "default": "False", "required": "False", "type": "Bool", "desc": "If there is not a hit on the format_map, still use the node or edge defaults. Defaults to False which just returns the node with no formating added."},
-                  {"name": "matchlen", "default": "3", "required": "False", "type": "integer", "desc": "How much of the ID we should check against the format map"},
-                  {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
-                  ],
-         "integration": "na",
-         "instance": "na",
-         "access_instructions": "",
-         "limitations": [""]
-         }
-    """
-    
-    nodeoredge = srcnodeoredge.copy()
-    if format_map is None:
-        return nodeoredge # If no dict is provided, don't even add the defaults
-
-    
-    
-    
-    if "source" in nodeoredge:
-        format_type = "edge"
-    else:
-        format_type = "node"
-    
-    
-    fullid = nodeoredge['id']
-    matchid = fullid[0:matchlen]
-    format_dict = None
-    if format_type == "edge":
-        format_dict = default_edge_format.copy()
-    else:
-        format_dict = default_node_format.copy()
-    
-    hit_dict = format_dict
-    for m in format_map.keys():
-        if debug:
-            print(f"ID: {fullid}")
-            print(f"Match ID: {matchid}")
-            print(f"Match Key: {m}")
-            
-        if m[0] == "~":
-            full_match = m.replace("~", "")
-            if fullid.find(full_match) >= 0:
-                hit_dict = format_map[m].copy()
-                if first_hit:
-                    break
-        elif m.find(matchid) >= 0:
-            hit_dict = format_map[m].copy()
-            if first_hit:
-                break
-    if hit_dict is not None:
-        format_dict.update(hit_dict)
-        nodeoredge.update(format_dict)
-    else:
-        if always_use_default:
-            nodeoredge.update(format_dict)
-    return nodeoredge
-    
