@@ -331,7 +331,7 @@ def getcolor(incolor, myformat):
     'gray',
     'green', #Wells
     'darkgreen',
-    'springgreen'
+    'springgreen',
     'lavender', # BBT
     'purple', #Citi
     'maroon',
