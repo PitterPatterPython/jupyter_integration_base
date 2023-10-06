@@ -100,7 +100,7 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
 
     if physics_options is not None:
         if isinstance(physics_options, dict):
-            mynet.options.physics = physics_options
+            mynet.set_options(physics_options)
         else:
             print(f"physics_options provided is not a dictionary, ignoring")
 
