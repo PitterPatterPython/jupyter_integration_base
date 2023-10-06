@@ -45,7 +45,7 @@ pyvis_icons = {
 
 
 
-def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.html", nbdisplay=False, filter_menu=False, toggle_physics=True, buttons=[''], width=1800, height=1000, debug=False):
+def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.html", nbdisplay=False, filter_menu=False, toggle_physics=True, buttons=[''], width=1800, height=1000, physics_options=None, debug=False):
     """{"name": "graph_pyvis_network", 
          "desc": "Take a list of nodes and a list of edges and graph them with pyvis.",
          "return": "In addition to the html file with the pyvis output, also return a pyvis object", 
@@ -61,6 +61,7 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
                   {"name": "buttons", "default": "['']", "required": "False", "type": "list", "desc": "List of widgets to add to the html output. We've seen physics as the most common"},
                   {"name": "width", "default": "1800", "required": "False", "type": "integer", "desc": "Number of pixels to use as the width for the graph"},
                   {"name": "height", "default": "1000", "required": "False", "type": "integer", "desc": "Number of pixels to use as the height for the graph"},
+                  {"name": "physics_options", "default": "None", "required": "False", "type": "dict  or None", "Physics options passed directly to Network object. Should be a dict and is not validated"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
                   ],
          "integration": "na",
@@ -96,6 +97,13 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
         mynet.add_edge(tfrom, tto, **tedge)
     mynet.toggle_physics(toggle_physics)
     mynet.show_buttons(filter_=buttons)
+
+    if physics_options is not None:
+        if isinstance(physics_options, dict):
+            mynet.options.physics = physics_options
+        else:
+            print(f"physics_options provided is not a dictionary, ignoring")
+
     full_path = f"{out_dir}\\{out_file}"
     mynet.save_graph(out_file)
     #mynet.generate_html(name=out_file, local=False, notebook=True)
