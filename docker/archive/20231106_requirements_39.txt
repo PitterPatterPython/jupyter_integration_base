@@ -213,4 +213,3 @@ domaintools_api
 jira
 ydata_profiling
 pymongo
-jmespath
