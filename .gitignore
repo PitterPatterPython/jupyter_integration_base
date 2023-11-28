@@ -12,5 +12,8 @@ dist
 dist/*
 dist/**
 build
+env
 *.env
 **.env
+*.ipynb
+prep_dev_env.py
