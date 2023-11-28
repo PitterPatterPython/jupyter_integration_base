@@ -113,19 +113,19 @@ class Integration(Magics):
         if self.debug:
            print("Proxy String: %s" % proxystr)
 
-        if proxstr.find("@") >= 0:
-            prox_pass = self.get_proxy_pass(proxystr, instance)
-            if prox_pass is None:
+        if proxystr.find("@") >= 0:
+            proxy_pass = self.get_proxy_pass(proxystr, instance)
+            if proxy_pass is None:
                 print("No proxy pass found - using a blank password")
-                prox_pass = ""
-            enc_prox_pass = urllib.parse.quote(prox_pass)
-            proxurl = proxystr.replace("@", ":" + enc_prox_pass + "@")
+                proxy_pass = ""
+            enc_proxy_pass = urllib.parse.quote(proxy_pass)
+            proxyurl = proxystr.replace("@", ":" + enc_proxy_pass + "@")
         else:
             if self.debug:
                 print(f"** No user (i.e. no @ sign) specified in proxy url: Assuming no Password")
                 print("")
-            proxurl = proxystr
-        proxies = {'http': proxurl, 'https': proxurl}
+            proxyurl = proxystr
+        proxies = {'http': proxyurl, 'https': proxyurl}
         return proxies
 
     def get_proxy_str(self, instance=None):
