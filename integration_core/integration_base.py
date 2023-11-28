@@ -112,12 +112,19 @@ class Integration(Magics):
         proxystr = self.get_proxy_str(instance)
         if self.debug:
            print("Proxy String: %s" % proxystr)
-        prox_pass = self.get_proxy_pass(proxystr, instance)
-        if prox_pass is None:
-            print("No proxy pass found - using a blank password")
-            prox_pass = ""
-        enc_prox_pass = urllib.parse.quote(prox_pass)
-        proxurl = proxystr.replace("@", ":" + enc_prox_pass + "@")
+
+        if proxstr.find("@") >= 0:
+            prox_pass = self.get_proxy_pass(proxystr, instance)
+            if prox_pass is None:
+                print("No proxy pass found - using a blank password")
+                prox_pass = ""
+            enc_prox_pass = urllib.parse.quote(prox_pass)
+            proxurl = proxystr.replace("@", ":" + enc_prox_pass + "@")
+        else:
+            if self.debug:
+                print(f"** No user (i.e. no @ sign) specified in proxy url: Assuming no Password")
+                print("")
+            proxurl = proxystr
         proxies = {'http': proxurl, 'https': proxurl}
         return proxies
 
@@ -953,32 +960,44 @@ class Integration(Magics):
         # The lowest set item is returned. (i.e. if if instance is set, that is what is returned)
         # If isntance is none, then we start at the integration level
         retval = None
+        if self.debug:
+            print(f"Requested global_vars - Variable: {var} - Instance: {instance}")
         if var in self.global_evars:
+
             if instance is not None:
                 if var in self.instances[instance]:
+                    if self.debug:
+                        print(f"\tInstance Result: Found {var} in {instance} - Returning")
                     retval = self.instances[instance][var]
                 else:
                     if self.debug:
-                        print("Instance %s provided, but var %s not found in instance vars" % (instance, var))
+                        print(f"\tInstance Result: {var} not found in instance variables")
+            else:
+                print(f"\tInstance Results: Instance is None")
             if retval is None: # Even if the instance is here, if retval is still None, we didn't find the variables
                 myname = self.name_str
                 int_var = myname + "_" + var
                 if int_var in self.opts:
+                    if self.debug:
+                        print(f"\t\tIntegration Result: Found {var} in Integration Level Variables {int_var} - Returning")
                     retval = self.opts[int_var][0]
                 else:
                     if self.debug:
-                        print("%s not found in integration level variable %s" % (var, int_var))
+                        print(f"\t\tIntegration Result: {var} not found in integration variables {int_var}")
                     if var in self.opts:
                         if self.debug:
-                            print("Variable %s found at global - value: %s" % (var, self.opts[var][0]))
+                            print(f"\t\t\tGlobal Result: Found {var} at Global level")
                         retval = self.opts[var][0]
                     else:
                         if self.debug:
-                            print("Variable %s is in global_evars, but not set at the instance, integration, or global level" % var)
-                # We have a integration level global:
+                            print(f"\t\t\tGlobal Level: Variable {var} is listed in the global_evars, but is not set at the instance, integration, or global level - Not Returning")
         else:
             if self.debug:
-                print("Varible requested: %s is not a global_evar: %s" % (var, self.global_evars))
+                print(f"**** Variable requested: {var} is not a global_evar. Current global_evars: {self.global_evars}")
+        print("")
+        if self.debug:
+            print(f"\tReturning {retval} for {var} - Instance {instance}")
+        print("")
         return retval
 
     def load_env(self, evars):
