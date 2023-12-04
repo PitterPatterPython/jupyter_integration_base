@@ -5,7 +5,7 @@ The Jupyter Integrations are a system of tools and base classes that allows folk
 Jupyter integrations proivide two main abstractions
 
 - Integrations
-  - Integrations are used to connect to a source of data and return it back as a Dataframe to the notebook
+  - Integrations are used to connect to a source of data and return it back as a DataFrame to the notebook
   - It handles connections, authentications, objects, error checking, query validation, help, and parsing of results.
   - It is a base class that can be extened and customized for every data source from DMBS, to ODBC, to API, to custom objects. 
 - Addons
