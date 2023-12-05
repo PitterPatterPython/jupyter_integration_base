@@ -2,5 +2,5 @@ from jupyter_integrations_utility._version import __version__
 from jupyter_integrations_utility.util import displayMD
 from jupyter_integrations_utility.util import getHome
 from jupyter_integrations_utility.util import escapeMD
-
+from jupyter_integrations_utility.util import load_json_config
 

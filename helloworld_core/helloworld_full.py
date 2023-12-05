@@ -56,6 +56,16 @@ class Helloworld(Addon):
         self.ipy.ex("from jupyter_integrations_utility.funcdoc import *\n")
         self.ipy.ex("from jupyter_integrations_utility.batchquery import *\n")
 
+        try:
+            env_dir = os.environ['VIRTUAL_ENV']
+        except:
+            print("No VIRTUAL_ENV directory found - Config not loaded")
+            env_dir = None
+
+        if 'integrations_cfg' not in self.ipy.user_ns and env_dir is not None:
+            self.ipy.user_ns['integrations_cfg'] = jiu.load_json_config(file_loc=f"{env_dir}\\integrations_cfg.py")
+        else:
+            self.ipy.user_ns['integrations_cfg'] = None
 
 
 #        shell.user_ns['helloworld_var'] = self.creation_name
