@@ -27,12 +27,17 @@ INTS=("helloworld" "drill" "splunk" "mysql" "impala" "hive" "tera" "es" "oracle"
 create_file() {
     local VAL=${1,,}
     local OUTFILE="${SU}/${FILE_NUM}_${VAL}.py"
+    local CLASS_TYPE="base"
+
+    if [[ $VAL == "helloworld" ]]; then
+        local CLASS_TYPE="full"
+    fi
 
     echo "Creating $OUTFILE"
     cat << EOF > $OUTFILE
-from ${VAL}_core.${VAL}_full import ${VAL^}
-${VAL}_full = ${VAL^}${OBJ_VAL}
-ipy.register_magics(${VAL}_full)
+from ${VAL}_core.${VAL}_${CLASS_TYPE} import ${VAL^}
+${VAL}_${CLASS_TYPE} = ${VAL^}${OBJ_VAL}
+ipy.register_magics(${VAL}_${CLASS_TYPE})
 EOF
     ((FILE_NUM+=1))
 }
