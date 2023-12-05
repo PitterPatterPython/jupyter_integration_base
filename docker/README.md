@@ -1,8 +1,12 @@
 # Building and running Jupyter Integrations Docker
 --------
-The current setup works with a Python Software Foundation (psf) build. The most basic steps to get it working are from this directory:
+The current setup works with a Python Software Foundation (psf) build though should work any other version.The most basic steps to get it working are from this directory:
 
-- Install Docker (make sure it's installed)
+- Install Docker
+   - If using podman or other tool, make sure docker is symlinked.
+- Build Docker image
+   - ./build.sh
+   - ./build.sh psf 
 - Edit jupyter_integrations.cfg 
    - Pick a local path to store notebooks - NOTEBOOKDIR
    - Pick a local file locationto store data sources - ENV_FILE
