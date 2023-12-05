@@ -63,7 +63,7 @@ class Helloworld(Addon):
             env_dir = None
 
         if 'integrations_cfg' not in self.ipy.user_ns and env_dir is not None:
-            self.ipy.user_ns['integrations_cfg'] = jiu.load_json_config(file_loc=f"{env_dir}\\integrations_cfg.py")
+            self.ipy.user_ns['integrations_cfg'] = jiu.load_json_config(file_loc=os.path.join(env_dir, "integrations_cfg.py"))
         else:
             self.ipy.user_ns['integrations_cfg'] = None
 
