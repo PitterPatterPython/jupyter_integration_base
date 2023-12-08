@@ -74,8 +74,11 @@ def display_error(err):
 def display_warning(warn):
     display(Markdown(emoji.emojize(f"<font size='3' color='orange'>:raised_hand: {warn}</font>")))
     
-def display_message(msg):
-    display(Markdown(emoji.emojize(f"<font size='3'>:check_mark_button: {msg}")))
+def display_info(msg):
+    display(Markdown(emoji.emojize(f"<font size='3'>:information: {msg}</font>")))
+
+def display_success(msg):
+    display(Markdown(emoji.emojize(f"<font size='3'>:check_mark_button: {msg}</font>")))
 
 def getHome(debug=False):
     home = ""
