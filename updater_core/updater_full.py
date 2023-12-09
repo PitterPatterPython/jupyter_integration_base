@@ -24,10 +24,12 @@ class Updater(Addon):
             self.repos = self.ipy.user_ns["integrations_cfg"]["repos"]
             
             loaded_integrations = list(self.ipy.user_ns["jupyter_loaded_integrations"].keys())
-            loaded_integrations = [f"jupyter_{integration}" for integration in loaded_integrations] #<-- consider changing this wherever it's originally created
+            loaded_integrations = [f"jupyter_{integration}" for integration in loaded_integrations]
             loaded_integrations.sort()
             
             
+            # These are integrations that aren't loaded in the user's environment,
+            # but are in the user's "integrations_cfg" list of repos.
             available_integrations = list(self.repos.keys())
             available_integrations = [i for i in available_integrations if i not in self.repos_to_ignore]
             available_integrations = list(set(available_integrations).difference(loaded_integrations)) # Get rid of items that are already loaded
@@ -118,6 +120,22 @@ class Updater(Addon):
             return output
     
     def on_click(self, b):
+        """An widgets event that's attached to each button, and called when clicked. Every
+            button has an on_click attached to it.
+            
+            General order of operations below:
+            1. Uninstall the integration depending on the button the user clicked,
+                accessed by the "b.value" property.
+            2. If the uninstallation was successful, attempt to install the integration
+            3. Create a "load" script and display it to the user, which they can use
+                to reload a currently installed integration, or add as a startup script
+            4. Cleanup the installation regardless of what happens below. This includes
+                - remove the .zip file
+                - remove the unzipped (folder) file
+
+        Args:
+            b (Button): The button object that generated this on_click event
+        """
         self.output.clear_output()
         
         try:
@@ -144,7 +162,7 @@ class Updater(Addon):
                             jiu.displayMD(f"\n```\n{load_script}```")
                             
                         elif b.origin == "loaded":
-                            jiu.display_warning("Copy and run the code block below to re-load")
+                            jiu.display_warning(f"{b.value} has been re-installed, but you need to copy and run the code block below to re-load")
                             jiu.displayMD(f"\n```\n{load_script}```")
                             
                         else:
