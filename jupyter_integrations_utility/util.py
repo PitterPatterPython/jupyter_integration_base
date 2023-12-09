@@ -69,16 +69,16 @@ def displayMD(md):
     display(Markdown(md))
     
 def display_error(err):
-    display(Markdown(emoji.emojize(f"<font size='2' color='red'>:cross_mark: {err}</font>")))
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#ffecee;'>:cross_mark: {err}</span>")))
     
 def display_warning(warn):
-    display(Markdown(emoji.emojize(f"<font size='2' color='orange'>:raised_hand: {warn}</font>")))
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#fff9e7;'>:raised_hand: {warn}</span>")))
     
 def display_info(msg):
-    display(Markdown(emoji.emojize(f"<font size='2'>:information: {msg}</font>")))
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#e1fbfd;'>:information: {msg}</span>")))
 
 def display_success(msg):
-    display(Markdown(emoji.emojize(f"<font size='2'>:check_mark_button: {msg}</font>")))
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#e7fbf6;'>:check_mark_button: {msg}</span>")))
 
 def getHome(debug=False):
     home = ""
