@@ -5,21 +5,6 @@ import subprocess
 import sys
 import zipfile
 
-def uninstall_integration(integration_name):
-    """Execute a pip uninstll -y subprocess against a package.
-
-    Args:
-        integration_name (string): The name of the python package to uninstall
-
-    Returns:
-        int: the subprocess' returncode
-    """
-    
-    uninstall_process = subprocess.run(["pip", "uninstall", "-y", integration_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    uninstall_code = uninstall_process.returncode
-    return uninstall_code
-
-
 def install_integration(integration_name, repo_url, proxies):
     """Execute a subprocess to downlad a Python package from git (the zip file)
         and install it
@@ -30,7 +15,7 @@ def install_integration(integration_name, repo_url, proxies):
         proxies (_type_): The user's "myproxies" environment variable
 
     Returns:
-        int: The subprocess' returncode
+        output: The subprocess' output/results
     """
     requests.packages.urllib3.disable_warnings()
     
@@ -45,10 +30,9 @@ def install_integration(integration_name, repo_url, proxies):
         afile.extractall(integration_name)
     
     repo_source_dir = os.path.join(os.getcwd(), integration_name, os.listdir(integration_name)[0])
-    install_process = subprocess.run([sys.executable, "setup.py", "install", "--force"], cwd=repo_source_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    install_code = install_process.returncode
+    output = subprocess.run(["pip", "install", "--upgrade", "--force-reinstall", "."], cwd=repo_source_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
-    return install_code
+    return output
 
 def cleanup_install(integration_name):
     """Clean up the local files from our integration installation process
