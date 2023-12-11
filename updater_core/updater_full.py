@@ -1,10 +1,11 @@
+import subprocess
 from ipywidgets import HBox, VBox, Label, Layout, Output
 from IPython.display import display
 from IPython.core.magic import magics_class, line_cell_magic
 import jupyter_integrations_utility as jiu
 from addon_core import Addon
 from updater_core.updater_utils.styles import ButtonMaker
-from updater_core.updater_utils.helpers import uninstall_integration, install_integration, cleanup_install, create_load_script
+from updater_core.updater_utils.helpers import install_integration, cleanup_install, create_load_script
 
 @magics_class
 class Updater(Addon):
@@ -140,49 +141,42 @@ class Updater(Addon):
         
         try:
             with self.output:
-                # First attempt to uninstall
-                jiu.display_info(f"Force-uninstalling `{b.value}...")
-                uninstall_code = uninstall_integration(b.value)                
-                
-                # Attempt to install the integration if the uninstall was successful
-                if uninstall_code == 0:
-                    jiu.display_info(f"Attempting to install `{b.value}`...")
-                    repo_url = self.repos[b.value]["repo"]
-                    proxies = self.ipy.user_ns["integrations_cfg"]["proxies"]
-                    install_code = install_integration(b.value, repo_url, proxies)
-                    
-                    if install_code == 0:
-                        self.output.clear_output()
-                        jiu.display_success(f"Successfully installed `{b.value}`!")
-                        
-                        load_script = create_load_script(b.value.replace("jupyter_", ""))
 
-                        if b.origin == "available":
-                            jiu.display_warning(f"{b.value} is installed to your environment now, but you need to re-load your kernel and then run the code block below.")
-                            jiu.displayMD(f"\n```\n{load_script}```")
-                            
-                        elif b.origin == "loaded":
-                            jiu.display_warning(f"{b.value} has been re-installed, but you need to copy and run the code block below to re-load")
-                            jiu.displayMD(f"\n```\n{load_script}```")
-                            
-                        else:
-                            jiu.display_error("You clicked on a button that has no `origin` property set and that's bad.")
-                            
-                    else:
-                        self.output.clear_output()
-                        jiu.display_error(f"Error running install of {b.value}. Error code: `{install_code}`")
-                    
-                    # Cleanup the install regardless of the outcome
-                    if self.debug:
-                        jiu.display_info(f"Cleaning up after install of `{b.value}`...")
-                    
-                    cleanup_install(b.value)
-                    
-                    if self.debug:
-                        jiu.display_info(f"Finished cleanup...")                    
+                # Attempt to install the integration
+                jiu.display_info(f"Attempting to install `{b.value}`...")
+                repo_url = self.repos[b.value]["repo"]
+                proxies = self.ipy.user_ns["integrations_cfg"]["proxies"]
+                install_process = install_integration(b.value, repo_url, proxies)
                 
+                if install_process.returncode == 0:
+                    # self.output.clear_output()
+                    jiu.display_success(f"Successfully installed `{b.value}`!")
+                    
+                    load_script = create_load_script(b.value.replace("jupyter_", ""))
+
+                    if b.origin == "available":
+                        jiu.display_warning(f"{b.value} is installed to your environment now, but you need to re-load your kernel and then run the code block below.")
+                        jiu.displayMD(f"\n```\n{load_script}```")
+                        
+                    elif b.origin == "loaded":
+                        jiu.display_warning(f"{b.value} has been re-installed, but you need to copy and run the code block below to re-load")
+                        jiu.displayMD(f"\n```\n{load_script}```")
+                        
+                    else:
+                        jiu.display_error("You clicked on a button that has no `origin` property set and that's bad.")
+                        
                 else:
-                    jiu.display_error(f"Uninstall of {b.value} failed. This should never happen: contact an admin.")
+                    # self.output.clear_output()
+                    jiu.display_error(f"Error running install of `{b.value}`. Error code: `{install_process.returncode}`. Error message: `{install_process.stderr.decode('utf-8', errors='replace')}`")
+                
+                # Cleanup the install regardless of the outcome
+                if self.debug:
+                    jiu.display_info(f"Cleaning up after install of `{b.value}`...")
+                
+                cleanup_install(b.value)
+                
+                if self.debug:
+                    jiu.display_info(f"Finished cleanup...")
             
         except Exception as ex:
             cleanup_install(b.value)
