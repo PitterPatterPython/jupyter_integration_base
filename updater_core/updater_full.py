@@ -41,74 +41,86 @@ class Updater(Addon):
             ######################################################
             loaded_rows = []
             title_row = HBox([Label(value="Installed Integrations", style=dict(font_weight="bold", font_size="18px"))])
-            subtitle_row = HBox([
-                Label(value="These integrations are already installed and loaded in your environment, and can be updated", 
-                      style=dict(font_size="14px"), 
-                      layout=Layout(display="flex", width="100%"))
-                ])
-            header_row = HBox([Label(value="Integration", style=dict(font_weight="bold"), layout=Layout(display="flex", width="20%", justify_content="flex-start")),
-                               Label("Repo URL", style=dict(font_weight="bold"), layout=Layout(display="flex", width="60%", justify_content="flex-start")),
-                               Label("", layout=Layout(display="flex", width="10%"))]
-                              )
-            loaded_rows.append(title_row)
-            loaded_rows.append(subtitle_row)
-            loaded_rows.append(header_row)
             
-            for integration in loaded_integrations:
-
-                install_button = ButtonMaker(value = integration,
-                                             description = "Update",
-                                             button_style = "info",
-                                             origin = "loaded",
-                                             layout = Layout(
-                                                 display = "flex",
-                                                 width="10%",
-                                                 justify_content = "center"
-                                                 ))
-                install_button.on_click(self.on_click)
+            if not loaded_integrations:
+                subtitle_row = HBox([Label(value="There are no integrations currently loaded in your environment.", style=dict(font_weight="bold", font_size="14px"))])
+                loaded_rows.append(title_row)
+                loaded_rows.append(subtitle_row)
+            else:
+                subtitle_row = HBox([
+                    Label(value="These integrations are already installed and loaded in your environment, and can be updated", 
+                        style=dict(font_size="14px"), 
+                        layout=Layout(display="flex", width="100%"))
+                    ])
+                header_row = HBox([Label(value="Integration", style=dict(font_weight="bold"), layout=Layout(display="flex", width="20%", justify_content="flex-start")),
+                                Label("Repo URL", style=dict(font_weight="bold"), layout=Layout(display="flex", width="60%", justify_content="flex-start")),
+                                Label("", layout=Layout(display="flex", width="10%"))]
+                                )
+                loaded_rows.append(title_row)
+                loaded_rows.append(subtitle_row)
+                loaded_rows.append(header_row)
                 
-                loaded_rows.append(HBox([Label(integration.replace("jupyter_", "").capitalize(), layout=Layout(display="flex", width="20%", justify_content="flex-start")), 
-                                         Label(self.repos[integration]["repo"], layout=Layout(display="flex", width="60%", justify_content="flex-start")), 
-                                         install_button]
-                                      )
-                                 )
+                for integration in loaded_integrations:
+
+                    install_button = ButtonMaker(value = integration,
+                                                description = "Update",
+                                                button_style = "info",
+                                                origin = "loaded",
+                                                layout = Layout(
+                                                    display = "flex",
+                                                    width="10%",
+                                                    justify_content = "center"
+                                                    ))
+                    install_button.on_click(self.on_click)
+                    
+                    loaded_rows.append(HBox([Label(integration.replace("jupyter_", "").capitalize(), layout=Layout(display="flex", width="20%", justify_content="flex-start")), 
+                                            Label(self.repos[integration]["repo"], layout=Layout(display="flex", width="60%", justify_content="flex-start")), 
+                                            install_button]
+                                        )
+                                    )
                 
             ###############################################
             # Create the table for Available integrations #
             ###############################################
             available_rows = []
             title_row = HBox([Label(value="Available Integrations", style=dict(font_weight="bold", font_size="18px"))])
-            subtitle_row = HBox([
-                Label(value="These integrations can be loaded into your current environment (they won't be installed).", 
-                      style=dict(font_size="14px"), 
-                      layout=Layout(display="flex", width="100%", flex_flow="row wrap"))
-                ])
-            header_row = HBox([Label(value="Integration", style=dict(font_weight="bold"), layout=Layout(display="flex", width="20%", justify_content="flex-start")),
-                               Label("Repo URL", style=dict(font_weight="bold"), layout=Layout(display="flex", width="60%", justify_content="flex-start")),
-                               Label("", layout=Layout(display="flex", width="10%"))]
-                              )
-            available_rows.append(title_row)
-            available_rows.append(subtitle_row)
-            available_rows.append(header_row)
             
-            for integration in available_integrations:
-                install_button = ButtonMaker(value = integration,
-                                             description = "Load",
-                                             button_style = "info",
-                                             origin = "available",
-                                             layout = Layout(
-                                                 display = "flex",
-                                                 width = "10%",
-                                                 justify_content = "center"
-                                                 ))
+            if not available_integrations:
+                subtitle_row = HBox([Label(value="There are no other integrations available for loading.", style=dict(font_weight="bold", font_size="14px"))])
+                loaded_rows.append(title_row)
+                loaded_rows.append(subtitle_row)
+            else:
+                subtitle_row = HBox([
+                    Label(value="These integrations can be loaded into your current environment (they won't be installed).", 
+                        style=dict(font_size="14px"), 
+                        layout=Layout(display="flex", width="100%", flex_flow="row wrap"))
+                    ])
+                header_row = HBox([Label(value="Integration", style=dict(font_weight="bold"), layout=Layout(display="flex", width="20%", justify_content="flex-start")),
+                                Label("Repo URL", style=dict(font_weight="bold"), layout=Layout(display="flex", width="60%", justify_content="flex-start")),
+                                Label("", layout=Layout(display="flex", width="10%"))]
+                                )
+                available_rows.append(title_row)
+                available_rows.append(subtitle_row)
+                available_rows.append(header_row)
                 
-                install_button.on_click(self.on_click)
-                
-                available_rows.append(HBox([Label(integration.replace("jupyter_", "").capitalize(), layout=Layout(display="flex", width="20%", justify_content="flex-start")), 
-                                       Label(self.repos[integration]["repo"], layout=Layout(display="flex", width="60%", justify_content="flex-start")), 
-                                       install_button]
-                                      )
-                                 )
+                for integration in available_integrations:
+                    install_button = ButtonMaker(value = integration,
+                                                description = "Load",
+                                                button_style = "info",
+                                                origin = "available",
+                                                layout = Layout(
+                                                    display = "flex",
+                                                    width = "10%",
+                                                    justify_content = "center"
+                                                    ))
+                    
+                    install_button.on_click(self.on_click)
+                    
+                    available_rows.append(HBox([Label(integration.replace("jupyter_", "").capitalize(), layout=Layout(display="flex", width="20%", justify_content="flex-start")), 
+                                        Label(self.repos[integration]["repo"], layout=Layout(display="flex", width="60%", justify_content="flex-start")), 
+                                        install_button]
+                                        )
+                                    )
             
             
             full_table = VBox([VBox(loaded_rows, layout=Layout(display="flex", width="100%", flex_flow="column", align_items="stretch")),
