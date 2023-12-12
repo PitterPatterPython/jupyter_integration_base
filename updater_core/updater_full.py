@@ -155,11 +155,13 @@ class Updater(Addon):
                     load_script = create_load_script(b.value.replace("jupyter_", ""))
 
                     if b.origin == "available":
-                        jiu.display_warning(f"{b.value} is installed to your environment now, but you need to re-load your kernel and then run the code block below.")
+                        jiu.display_warning(f"{b.value} is installed to your environment now, \
+                            but you need to copy the code block below to a new cell and run it.")
                         jiu.displayMD(f"\n```\n{load_script}```")
                         
                     elif b.origin == "loaded":
-                        jiu.display_warning(f"{b.value} has been re-installed, but you need to copy and run the code block below to re-load")
+                        jiu.display_warning(f"{b.value} has been re-installed, but you need to \
+                            restart your kernel for it to take effect.")
                         jiu.displayMD(f"\n```\n{load_script}```")
                         
                     else:
@@ -167,7 +169,9 @@ class Updater(Addon):
                         
                 else:
                     # self.output.clear_output()
-                    jiu.display_error(f"Error running install of `{b.value}`. Error code: `{install_process.returncode}`. Error message: `{install_process.stderr.decode('utf-8', errors='replace')}`")
+                    jiu.display_error(f"Error running install of `{b.value}`. Error code: \
+                        `{install_process.returncode}`. Error message: \
+                            `{install_process.stderr.decode('utf-8', errors='replace')}`")
                 
                 # Cleanup the install regardless of the outcome
                 if self.debug:
