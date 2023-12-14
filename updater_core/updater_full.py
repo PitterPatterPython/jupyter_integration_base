@@ -161,7 +161,7 @@ class Updater(Addon):
                 install_process = install_integration(b.value, repo_url, proxies)
                 
                 if install_process.returncode == 0:
-                    # self.output.clear_output()
+                    self.output.clear_output()
                     jiu.display_success(f"Successfully installed `{b.value}`!")
                     
                     load_script = create_load_script(b.value.replace("jupyter_", ""))
@@ -180,7 +180,7 @@ class Updater(Addon):
                         jiu.display_error("You clicked on a button that has no `origin` property set and that's bad.")
                         
                 else:
-                    # self.output.clear_output()
+                    self.output.clear_output()
                     jiu.display_error(f"Error running install of `{b.value}`. Error code: \
                         `{install_process.returncode}`. Error message: \
                             `{install_process.stderr.decode('utf-8', errors='replace')}`")
