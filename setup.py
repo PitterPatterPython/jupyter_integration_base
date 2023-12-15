@@ -50,6 +50,7 @@ setup_args = dict(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
+    zip_safe=False
 )
 
 if 'bdist_wheel' in sys.argv:
