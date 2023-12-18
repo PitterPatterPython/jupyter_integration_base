@@ -15,7 +15,7 @@ class Updater(Addon):
         self.debug = debug
         self.output = Output()
         self.repos = {}
-        self.repos_to_ignore = ["jupyter_integration_base", "qgrid", "jupyter_dummy"]
+        self.repos_to_ignore = ["qgrid"]
     
     def customHelp(self, curout):
         if "integrations_cfg" not in self.ipy.user_ns:
