@@ -29,13 +29,24 @@ class Helloworld(Addon):
     custom_evars = []
 
     # Addons required to be loaded
-    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw', 'feat', 'pyvis', 'pivot']
-    req_full_addons = ['display', 'namedpw']
+    req_addons = ["display",
+        "feat",
+        "helloworld",
+        "namedpw",
+        "persist",
+        "pivot",
+        "profile",
+        "pyvis",
+        "sharedfunc",
+        "updater",
+        "vis"
+    ]
+    req_full_addons = ["display", "namedpw"]
     custom_allowed_set_opts = []
 
 
     myopts = {}
-#    myopts['profile_max_rows_full'] = [10000, "Row threshold for doing full analysis. Over there and we default to minimal analysis with a warning"]
+#    myopts["profile_max_rows_full"] = [10000, "Row threshold for doing full analysis. Over there and we default to minimal analysis with a warning"]
 
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
@@ -46,9 +57,9 @@ class Helloworld(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
-        if 'jupyter_loaded_addons' not in self.ipy.user_ns:
-            self.ipy.user_ns['jupyter_loaded_addons'] = {}
-        self.ipy.user_ns['jupyter_loaded_addons']['helloworld'] = 'helloworld_full'
+        if "jupyter_loaded_addons" not in self.ipy.user_ns:
+            self.ipy.user_ns["jupyter_loaded_addons"] = {}
+        self.ipy.user_ns["jupyter_loaded_addons"]["helloworld"] = "helloworld_full"
         self.check_req_addons()
         # Loading doc_and_batch
 #        self.ipy.ex("from helloworld_core.doc_and_batch import *\n")
@@ -57,26 +68,26 @@ class Helloworld(Addon):
         self.ipy.ex("from jupyter_integrations_utility.batchquery import *\n")
 
         try:
-            env_dir = os.environ['VIRTUAL_ENV']
+            env_dir = os.environ["VIRTUAL_ENV"]
         except:
             print("No VIRTUAL_ENV directory found - Config not loaded")
             env_dir = None
 
-        if 'integrations_cfg' not in self.ipy.user_ns and env_dir is not None:
-            self.ipy.user_ns['integrations_cfg'] = jiu.load_json_config(file_loc=f"{env_dir}\\integrations_cfg.py")
+        if "integrations_cfg" not in self.ipy.user_ns and env_dir is not None:
+            self.ipy.user_ns["integrations_cfg"] = jiu.load_json_config(file_loc=os.path.join(env_dir, "integrations_cfg.py"))
         else:
-            self.ipy.user_ns['integrations_cfg'] = None
+            self.ipy.user_ns["integrations_cfg"] = None
 
 
-#        shell.user_ns['helloworld_var'] = self.creation_name
+#        shell.user_ns["helloworld_var"] = self.creation_name
 
     # We will maybe have to load helloworld  first
     def check_req_addons(self):
         for addon in self.req_addons:
             chk = addon
-            if 'jupyter_loaded_addons' not in self.ipy.user_ns:
-                self.ipy.user_ns['jupyter_loaded_addons'] = {}
-            if chk not in self.ipy.user_ns['jupyter_loaded_addons'].keys():
+            if "jupyter_loaded_addons" not in self.ipy.user_ns:
+                self.ipy.user_ns["jupyter_loaded_addons"] = {}
+            if chk not in self.ipy.user_ns["jupyter_loaded_addons"].keys():
                 if self.debug:
                     print("%s not found in user_ns - Running" % chk)
                 objname = addon.capitalize()
@@ -91,7 +102,7 @@ class Helloworld(Addon):
                 if self.debug:
                     print(runcode)
                 res = self.ipy.ex(runcode)
-                self.ipy.user_ns['jupyter_loaded_addons'][chk] = varobjname
+                self.ipy.user_ns["jupyter_loaded_addons"][chk] = varobjname
             else:
                 if self.debug:
                     print("%s found in user_ns - Not loading" % chk)
@@ -111,11 +122,11 @@ class Helloworld(Addon):
         myout += "| Integration | Desc |   | Addon | Desc |\n"
         myout += "| ------ | ------ | --- | ----- | ---------|\n"
 
-        myints = list(self.ipy.user_ns['jupyter_loaded_integrations'].keys())
-        myadds = list(self.ipy.user_ns['jupyter_loaded_addons'].keys())
+        myints = list(self.ipy.user_ns["jupyter_loaded_integrations"].keys())
+        myadds = list(self.ipy.user_ns["jupyter_loaded_addons"].keys())
         for i in range(max(len(myints), len(myadds))):
             try:
-                cn = self.ipy.user_ns['jupyter_loaded_integrations'][myints[i]]
+                cn = self.ipy.user_ns["jupyter_loaded_integrations"][myints[i]]
                 mn = self.ipy.user_ns[cn].magic_name
                 myintdesc = self.ipy.user_ns[cn].retCustomDesc()
                 myintdesc = "<br>".join(textwrap.wrap(myintdesc, 40))
@@ -128,7 +139,7 @@ class Helloworld(Addon):
                 myintdesc = " "
 
             try:
-                cn = self.ipy.user_ns['jupyter_loaded_addons'][myadds[i]]
+                cn = self.ipy.user_ns["jupyter_loaded_addons"][myadds[i]]
                 mn = self.ipy.user_ns[cn].magic_name
                 myadddesc = self.ipy.user_ns[cn].retCustomDesc()
                 myadddesc = "<br>".join(textwrap.wrap(myadddesc, 40))
@@ -202,7 +213,7 @@ class Helloworld(Addon):
                     self.fillGo(line.lower().strip())
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
-        else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
+        else: # This is run is the cell is not none, thus it"s a cell to process  - For us, that means a query
             print("No Cell Magic for %s" % self.name_str)
 
 

@@ -8,6 +8,7 @@ import time
 import pandas as pd
 import requests
 from collections import OrderedDict
+import emoji
 
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.display import HTML
@@ -16,7 +17,6 @@ from IPython.display import display_html, display, Markdown, Javascript, FileLin
 import ipywidgets as widgets
 
 import jupyter_integrations_utility as jiu
-
 
 def load_json_config(file_loc="integrations_cfg.py"):
 
@@ -40,10 +40,10 @@ def load_json_config(file_loc="integrations_cfg.py"):
         print(f"Unable to parse JSON in {file_loc}")
         print(f"Exception: {except_out}")
 
-        if except_out.find(' line '):
-            linestart = except_out.find( ' line ')
-            colstart = except_out.find(' column ')
-            line_num = except_out[linestart:colstart].replace(' line ', '')
+        if except_out.find(" line "):
+            linestart = except_out.find( " line ")
+            colstart = except_out.find(" column ")
+            line_num = except_out[linestart:colstart].replace(" line ", "")
             int_line_num = int(line_num)
             ar_cleaned_cfg = cleaned_cfg.split("\n")
             if int_line_num > 1:
@@ -65,10 +65,20 @@ def load_json_config(file_loc="integrations_cfg.py"):
 
     return json_cfg
 
-
-
 def displayMD(md):
     display(Markdown(md))
+    
+def display_error(err):
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#ffecee;'>:cross_mark: {err}</span>")))
+    
+def display_warning(warn):
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#fff9e7;'>:raised_hand: {warn}</span>")))
+    
+def display_info(msg):
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#e1fbfd;'>:information: {msg}</span>")))
+
+def display_success(msg):
+    display(Markdown(emoji.emojize(f"<span style='display:block; padding:6px; font-size:15px; background-color:#e7fbf6;'>:check_mark_button: {msg}</span>")))
 
 def getHome(debug=False):
     home = ""
@@ -81,13 +91,12 @@ def getHome(debug=False):
             print("HOME Found")
         home = os.environ["HOME"]
     else:
-        print("Home not found - Defaulting to ''")
+        print("Home not found - Defaulting to """)
     if home[-1] == "/" or home[-1] == "\\":
         home = home[0:-1]
     if debug:
         print("Home: %s" % home)
     return home
-
 
 def escapeMD(text):
     firstparse = text.replace("\r\n", "").replace("\n", "")
