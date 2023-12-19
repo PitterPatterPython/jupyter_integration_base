@@ -45,6 +45,7 @@ defusedxml
 deprecation
 domaintools_api
 elasticsearch==7.15.1
+emoji
 entrypoints
 et-xmlfile
 fake-useragent
@@ -73,6 +74,7 @@ jedi
 jira
 joblib
 json5
+jsonpath-ng
 jsonschema
 jupyter-client
 jupyter-core
