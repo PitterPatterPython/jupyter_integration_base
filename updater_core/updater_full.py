@@ -174,7 +174,6 @@ class Updater(Addon):
                     elif b.origin == "loaded":
                         jiu.display_warning(f"{b.value} has been re-installed, but you need to \
                             restart your kernel for it to take effect.")
-                        jiu.displayMD(f"\n```\n{load_script}```")
                         
                     else:
                         jiu.display_error("You clicked on a button that has no `origin` property set and that's bad.")
