@@ -30,7 +30,7 @@ def install_integration(integration_name, repo_url, proxies):
         afile.extractall(integration_name)
     
     repo_source_dir = os.path.join(os.getcwd(), integration_name, os.listdir(integration_name)[0])
-    output = subprocess.run(["pip", "install", "--upgrade", "--force-reinstall", "."], cwd=repo_source_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output = subprocess.run(["pip", "install", "--upgrade", "--force-reinstall", "--no-deps", "."], cwd=repo_source_dir)
     
     return output
 
