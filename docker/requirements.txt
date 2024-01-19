@@ -81,7 +81,7 @@ jupyter-server
 jupyterlab-pygments
 jupyterlab-server
 jupyterlab-widgets==1.1.1
-jupyterlab==3.5.1
+jupyterlab==3.6.7
 keras
 kiwisolver
 libclang
