@@ -269,7 +269,15 @@ def batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, bat
     return out_df
 
 
-def batch_by_date(base_query, integration, instance, list_items, date_batch_type, date_start, date_end, range_batchdays=30, range_splunk=False, range_datefield="asofdate", range_add_ts=False, hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[], tmp_dict={}, batchsize=500, print_only=False, debug=False):
+
+#batch_list_in(batchlist, base_query, integration, instance, tmp_dict={}, batchsize=500, list_quotes='single', list_sep=', ', dedupe=True, remove_none=True, debug=False)
+
+def batch_by_date(base_query, integration, instance, list_items,
+                  date_batch_type, date_start, date_end, batchsize=500,
+                  range_batchdays=30, range_splunk=False, range_datefield="asofdate", range_add_ts=False,
+                  hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[],
+                  list_quotes='single', list_sep=', ', dedupe=True, remove_none=True,
+                  tmp_dict={}, print_only=False, debug=False):
     """ {"name": "batch_by_date",
          "desc": "Take a query and date range and break it up in date chunks for handling long combined queries. Also uses the batch list function to lots of items.",
          "return": "Dataframe of combined results",
@@ -281,6 +289,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                   {"name": "date_batch_type", "default": "None", "required": "True", "type": "string", "desc": "Should be 'hist' (for history tables) or 'range' (for partitioned tables)"},
                   {"name": "date_start", "default": "None", "required": "False", "type": "string or None", "desc": "Start date of the query, if not passed we use 90 days prior today"},
                   {"name": "date_end", "default": "now", "required": "False", "type": "string", "desc": "End date of the query (or now for today)"},
+                  {"name": "batchsize", "default": "500", "required": "False", "type": "integer", "desc": "Number of items in list to batch (this is done per date)"},
                   {"name": "range_batchdays", "default": "30", "required": "False", "type": "integer", "desc": "Number of days to batch if using range"},
                   {"name": "range_splunk", "default": "False", "required": "False", "type": "boolean", "desc": "Use Splunk earliest and latest, and splunk format instead of date field"},
                   {"name": "range_datefield", "default": "asofdate", "required": "False", "type": "string", "desc": "Name of datefield to replace in where clause"},
@@ -289,8 +298,11 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
                   {"name": "hist_format", "default": "%Y%m", "required": "False", "type": "string", "desc": "Date format for hist tables (%Y%m and %y%m supported)"},
                   {"name": "hist_current_str", "default": "_ct", "required": "False", "type": "string", "desc": "String for the current table if using hist"},
                   {"name": "hist_date_clauses", "default": "[]", "required": "False", "type": "list", "desc": "A list of 4 item lists that can be used to replace parts of the query based on the hist date - Careful"},
+                  {"name": "list_quotes", "default": "single", "required": "False", "type": "string", "desc": "Whether to use single or double quotes, or blank  on list items. Single is default best for SQLish, double may work better for Splunk types"},
+                  {"name": "list_sep", "default": ", ", "required": "False", "type": "string", "desc": "How the list gets seperated. ', ' is the default and works for SQL IN clauses. Consider ' OR ' for SPLUNK index queries"},
+                  {"name": "dedupe", "default": "True", "required": "False", "type": "boolean", "desc": "Deduplicate the list, prior to submitting"},
+                  {"name": "remove_none", "default": "True", "required": "False", "type": "boolean", "desc": "Remove null values from the list. "},
                   {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table, pass the table name to use temp, and pull_final_results if you want all results back"},
-                  {"name": "batchsize", "default": "500", "required": "False", "type": "integer", "desc": "Number of items in list to batch (this is done per date)"},
                   {"name": "print_only", "default": "False", "required": "False", "type": "boolean", "desc": "Only print one iteration of the query"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Print debug messages"}
                   ],
@@ -408,7 +420,7 @@ def batch_by_date(base_query, integration, instance, list_items, date_batch_type
             print_query(this_query, integration, instance)
         else:
             cur_df = pd.DataFrame()
-            cur_df = batch_list_in(list_items, this_query, integration, instance, tmp_dict=vol_dict, batchsize=batchsize, debug=debug)
+            cur_df = batch_list_in(list_items, this_query, integration, instance, tmp_dict=vol_dict, batchsize=batchsize, list_quotes=list_quotes, list_sep=list_sep, dedupe=dedupe, remove_none=remove_none, debug=debug)
             if bTemp == False:
                 if len(cur_df) > 0:
                     out_df = pd.concat([out_df, cur_df], ignore_index=True)
