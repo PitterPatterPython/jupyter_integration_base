@@ -146,6 +146,7 @@ def batch_list_in(batchlist,
         vol_dict.update(tmp_dict)
 
     bTemp = False
+    ret_results = vol_dict['pull_final_results']
 
     if vol_dict['table_name'] is not None:
         bTemp = True
@@ -266,22 +267,35 @@ def batch_list_in(batchlist,
 
         these_df = None
 
+    if bTemp:
+        test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
+        ipy.run_cell_magic(integration, instance + " -d", test_query)
+        cnt_df = ipy.user_ns[results_var]
+        res_cnt = cnt_df['tcnt'].tolist()[0]
+        if ret_results:
+            # In this case, we need pull the full table results.
+            print(f"Note: Total results for this table is {res_cnt} - Pulling results large results will take some time")
+            pull_query = f"select * from {vol_dict['table_name']}"
+            ipy.run_cell_magic(integration, instance + " -d", pull_query)
+            out_df = ipy.user_ns[results_var]
+        else:
+            print(f"Temp Table Loaded with {res_cnt} rows in table: {vol_dict['table_name']}")
+
     progress_bar.close()
 
-    # Note for John - what is this for? Can we remove it?
-    # if bTemp:
-    #     test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
-    #     ipy.run_cell_magic(integration, instance + " -d", test_query)
-    #     cnt_df = ipy.user_ns[results_var]
-    #     res_cnt = cnt_df['tcnt'].tolist()[0]
-    #     if ret_results:
-    #         # In this case, we need pull the full table results.
-    #         print(f"Note: Total results for this table is {res_cnt} - Pulling results large results will take some time")
-    #         pull_query = f"select * from {vol_dict['table_name']}"
-    #         ipy.run_cell_magic(integration, instance + " -d", pull_query)
-    #         out_df = ipy.user_ns[results_var]
-    #     else:
-    #         print(f"Temp Table Loaded with {res_cnt} rows in table: {vol_dict['table_name']}")
+    if bTemp:
+        test_query = f"select count(1) as tcnt from {vol_dict['table_name']}"
+        ipy.run_cell_magic(integration, instance + " -d", test_query)
+        cnt_df = ipy.user_ns[results_var]
+        res_cnt = cnt_df['tcnt'].tolist()[0]
+        if ret_results:
+            # In this case, we need pull the full table results.
+            print(f"Note: Total results for this table is {res_cnt} - Pulling results large results will take some time")
+            pull_query = f"select * from {vol_dict['table_name']}"
+            ipy.run_cell_magic(integration, instance + " -d", pull_query)
+            out_df = ipy.user_ns[results_var]
+        else:
+            print(f"Temp Table Loaded with {res_cnt} rows in table: {vol_dict['table_name']}")
 
     return out_df
 
