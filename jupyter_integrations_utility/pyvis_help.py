@@ -45,7 +45,7 @@ pyvis_icons = {
 
 
 
-def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.html", nbdisplay=False, filter_menu=False, toggle_physics=True, buttons=[''], width=1800, height=1000, physics_options=None, debug=False):
+def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.html", nbdisplay=False, filter_menu=False, toggle_physics=True, buttons=[''], width=1800, height=1000, bgcolor="#ffffff", font_color=False, physics_options=None, debug=False):
     """{"name": "graph_pyvis_network", 
          "desc": "Take a list of nodes and a list of edges and graph them with pyvis.",
          "return": "In addition to the html file with the pyvis output, also return a pyvis object", 
@@ -61,6 +61,8 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
                   {"name": "buttons", "default": "['']", "required": "False", "type": "list", "desc": "List of widgets to add to the html output. We've seen physics as the most common"},
                   {"name": "width", "default": "1800", "required": "False", "type": "integer", "desc": "Number of pixels to use as the width for the graph"},
                   {"name": "height", "default": "1000", "required": "False", "type": "integer", "desc": "Number of pixels to use as the height for the graph"},
+                  {"name": "bgcolor", "default": "#ffffff", "required": "False", "type": "string", "desc": "Background color"},
+                  {"name": "font_color", "default": "False", "required": "False", "type": "boolean or string", "desc": "Color of the node label text"},
                   {"name": "physics_options", "default": "None", "required": "False", "type": "dict  or None", "Physics options passed directly to Network object. Should be a dict and is not validated"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Enable debug messages"}
                   ],
@@ -80,7 +82,7 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
 #    buttons = ['nodes', 'edges', 'physics', 'layout', 'interaction', 'manipulation', 
     out_dir = os.getcwd()
 
-    mynet = pyvis.network.Network(width=str_width, height=str_height, directed=directed, filter_menu=filter_menu, notebook=False)
+    mynet = pyvis.network.Network(width=str_width, height=str_height, directed=directed, filter_menu=filter_menu, notebook=False, bgcolor=bgcolor, font_color=font_color)
     for n in nodes:
         try:
             mynet.add_node(n['id'], **n)
