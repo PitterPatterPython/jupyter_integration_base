@@ -521,6 +521,7 @@ def df_expand_col(newdf, srccol, make_json=False, remove_srccol=False):
             srccol = 'parsed'
         except:
             pass
+    newdf = newdf.copy()
     try: # Try to load as a string representation of a dict (i.e. JSON)
         newdf['col_levels'] = newdf.apply(lambda row: list(json.loads(row[srccol]).keys()) if row[srccol] is not None and row[srccol] == row[srccol] and not isinstance(row[srccol], str) else list(json.loads("{}").keys()), axis=1)
     except TypeError: # If it's a type error, it may just be a a real dict try that...
