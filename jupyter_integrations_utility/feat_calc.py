@@ -166,7 +166,8 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, d
     cur_cols = apply_df.columns.tolist()  
     for k, v in feat_dict.items():
         if k not in cur_cols or rerun_apply:
-            print(f"Applying {k} - {v['desc']}")
+            if debug:
+                print(f"Applying {k} - {v['desc']}")
             if not dry_run:
                 try:
                     apply_df[k] = apply_df.apply(lambda row: v['func'](row), axis=1)
@@ -218,7 +219,8 @@ def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False,
     cur_cols = apply_df.columns.tolist()
     for i in custom_clauses:
         if i not in cur_cols or rerun_apply:
-            print(f"Processing clause: {i}")
+            if debug:
+                print(f"Processing clause: {i}")
             clause_op, feats = parse_custom_clause(i)
             if clause_op.find("Err:") < 0:
                 proc_clause = True
