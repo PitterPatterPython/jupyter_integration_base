@@ -108,6 +108,7 @@ def batch_list_in(batchlist,
                   list_sep=', ',
                   dedupe=True,
                   remove_none=True,
+                  batch_delay=0,
                   debug=False):
     """ {"name": "batch_list_in",
          "desc": "Take in a query, list, integration, and instance and split the list up into batched, returning all results as one dataframe",
@@ -123,6 +124,7 @@ def batch_list_in(batchlist,
                   {"name": "list_sep", "default": ", ", "required": "False", "type": "string", "desc": "How the list gets seperated. ', ' is the default and works for SQL IN clauses. Consider ' OR ' for SPLUNK index queries"},
                   {"name": "dedupe", "default": "True", "required": "False", "type": "boolean", "desc": "Deduplicate the list, prior to submitting"},
                   {"name": "remove_none", "default": "True", "required": "False", "type": "boolean", "desc": "Remove null values from the list. "},
+                  {"name": "batch_delay", "default": "0", "required": "False", "type": "int", "desc": "Number of seconds delay between batches. Defaults to 0 (no Delay) Must be positive"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Turns on debug messages"}
                   ],
          "integration": "Any",
@@ -233,7 +235,8 @@ def batch_list_in(batchlist,
             print("")
             print("Cur Query")
             print(this_query)
-
+        if batch_delay > 0:
+            time.sleep(batch_delay)
         if this_len > 0:
             if bTemp:
                 if not vol_dict['created']:
@@ -308,7 +311,7 @@ def batch_by_date(base_query, integration, instance, list_items,
                   range_batchdays=30, range_splunk=False, range_datefield="asofdate", range_add_ts=False,
                   hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[],
                   list_quotes='single', list_sep=', ', dedupe=True, remove_none=True,
-                  tmp_dict={}, print_only=False, debug=False):
+                  tmp_dict={}, batch_delay=0, print_only=False, debug=False):
     """ {"name": "batch_by_date",
          "desc": "Take a query and date range and break it up in date chunks for handling long combined queries. Also uses the batch list function to lots of items.",
          "return": "Dataframe of combined results",
@@ -334,6 +337,7 @@ def batch_by_date(base_query, integration, instance, list_items,
                   {"name": "dedupe", "default": "True", "required": "False", "type": "boolean", "desc": "Deduplicate the list, prior to submitting"},
                   {"name": "remove_none", "default": "True", "required": "False", "type": "boolean", "desc": "Remove null values from the list. "},
                   {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table, pass the table name to use temp, and pull_final_results if you want all results back"},
+                  {"name": "batch_delay", "default": "0", "required": "False", "type": "int", "desc": "Number of seconds delay between batches. Defaults to 0 (no Delay) Must be positive"},
                   {"name": "print_only", "default": "False", "required": "False", "type": "boolean", "desc": "Only print one iteration of the query"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Print debug messages"}
                   ],
@@ -451,7 +455,7 @@ def batch_by_date(base_query, integration, instance, list_items,
             print_query(this_query, integration, instance)
         else:
             cur_df = pd.DataFrame()
-            cur_df = batch_list_in(list_items, this_query, integration, instance, tmp_dict=vol_dict, batchsize=batchsize, list_quotes=list_quotes, list_sep=list_sep, dedupe=dedupe, remove_none=remove_none, debug=debug)
+            cur_df = batch_list_in(list_items, this_query, integration, instance, tmp_dict=vol_dict, batchsize=batchsize, list_quotes=list_quotes, list_sep=list_sep, dedupe=dedupe, remove_none=remove_none, batch_delay=batch_delay, debug=debug)
             if bTemp == False:
                 if len(cur_df) > 0:
                     out_df = pd.concat([out_df, cur_df], ignore_index=True)
