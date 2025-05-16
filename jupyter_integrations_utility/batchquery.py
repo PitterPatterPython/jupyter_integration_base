@@ -116,11 +116,11 @@ def partition_str(date_start, date_end="now", partition_format="%Y-%m-%d", parti
          "limitations": ["Only uses inclusive partitions"]
          }
     """
-    date_start_ts = datetime.datetime.strptime(date_start, "%Y-%m-%s")
+    date_start_ts = datetime.datetime.strptime(date_start, "%Y-%m-%d")
     if date_end == "now":
         date_end_ts = datetime.datetime.now()
     else:
-        date_end_ts = datetime.datetime.strptime(date_end, "%Y-%m-%s")
+        date_end_ts = datetime.datetime.strptime(date_end, "%Y-%m-%d")
 
     part_start = date_start_ts.strftime(partition_format)
     part_end = date_end_ts.strftime(partition_format)
