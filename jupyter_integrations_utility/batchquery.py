@@ -98,6 +98,38 @@ def write_xlsx(outputfile, dfsheets):
     print(f"XLSX Output to {outputfile} complete")
 
 
+def partition_str(date_start, date_end="now", partition_format="%Y-%m-%d", partition_field="part_field"):
+    """ {"name": "partition_str",
+         "desc": "Take a date_start, date_end, format and fieldname to create a partition field given two dates",
+         "return": "A string that that does a >= and <= (inclusive) of the dates provided",
+         "examples": [
+            ["mypartstr = partition_string('2025-01-01', '2025-02-04', partition_format='%Y%m%d', partition_field='mypart')", "creates the string 'and (mypart >= '20250101' and mypart <= '20250204')'"]
+         ],
+         "args": [{"name": "date_start", "default": "NA", "required": "True", "type": "string", "desc": "Start of date range" in YYYY-MM-DD format},
+                  {"name": "date_end", "default": "now", "required": "False", "type": "string", "desc": "End of date range in YYYY-MM-DD format or the word 'now' for today"},
+                  {"name": "partition_format", "default": "%Y-%m-%d", "required": "False", "type": "string", "desc": "Format of the date in python datetime"},
+                  {"name": "partition_field", "default": "part_field", "required": "False", "type": "string", "desc": "Name of the partitioned column"}
+                  ],
+         "integration": "Any",
+         "instance": "Any",
+         "access_instructions": "na",
+         "limitations": ["Only uses inclusive partitions"]
+         }
+    """
+    date_start_ts = datetime.datetime.strptime(date_start, "%Y-%m-%s")
+    if date_end == "now":
+        date_end_ts = datetime.datetime.now()
+    else:
+        date_end_ts = datetime.datetime.strptime(date_end, "%Y-%m-%s")
+
+    part_start = date_start_ts.strftime(partition_format)
+    part_end = date_end_ts.strftime(partition_format)
+
+    ret_part = f" ({partition_field} >= '{part_start}' AND {partition_field} <= '{part_end}') "
+    return ret_part
+
+
+
 def batch_list_in(batchlist,
                   base_query,
                   integration,
@@ -311,7 +343,7 @@ def batch_by_date(base_query, integration, instance, list_items,
                   range_batchdays=30, range_splunk=False, range_datefield="asofdate", range_add_ts=False,
                   hist_str="_hs_", hist_format="%Y%m", hist_current_str= "_ct", hist_date_clauses=[],
                   list_quotes='single', list_sep=', ', dedupe=True, remove_none=True,
-                  tmp_dict={}, batch_delay=0, print_only=False, debug=False):
+                  tmp_dict={}, batch_delay=0, partition_field=None, partition_format=None, print_only=False, debug=False):
     """ {"name": "batch_by_date",
          "desc": "Take a query and date range and break it up in date chunks for handling long combined queries. Also uses the batch list function to lots of items.",
          "return": "Dataframe of combined results",
@@ -338,6 +370,8 @@ def batch_by_date(base_query, integration, instance, list_items,
                   {"name": "remove_none", "default": "True", "required": "False", "type": "boolean", "desc": "Remove null values from the list. "},
                   {"name": "tmp_dict", "default": "{}", "required": "False", "type": "dict", "desc": "Instructions for temp table, pass the table name to use temp, and pull_final_results if you want all results back"},
                   {"name": "batch_delay", "default": "0", "required": "False", "type": "int", "desc": "Number of seconds delay between batches. Defaults to 0 (no Delay) Must be positive"},
+                  {"name": "partition_field", "default": "None", "required": "False", "type": "string or None", "desc": "If provided, this function will assume you with to add a partition clause (part_format must also be not None. This is the partition fieldname"},
+                  {"name": "partition_format", "default": "None", "required": "False", "type": "string or None", "desc": "If provided, this function will assume you want to add a partition clause (partition_field must also be not Null. This is in Python datetime format"},
                   {"name": "print_only", "default": "False", "required": "False", "type": "boolean", "desc": "Only print one iteration of the query"},
                   {"name": "debug", "default": "False", "required": "False", "type": "boolean", "desc": "Print debug messages"}
                   ],
@@ -447,7 +481,11 @@ def batch_by_date(base_query, integration, instance, list_items,
 
             print(f"Loop {loops} running for Dates {t_d_start} to {t_d_end}")
             if not range_splunk:
-                date_where = f"{range_datefield} >= '{t_d_start}' and {range_datefield} < '{t_d_end}'"
+                if paritition_field is not None and partition_format is not None:
+                    part_str = partition_str(dl[0], dl[1], partition_field=partition_field, partition_format=partition_format)
+                    date_where = f"({part_str} AND ({range_datefield} >= '{t_d_start}' AND {range_datefield} < '{t_d_end}')"
+                else:
+                    date_where = f"{range_datefield} >= '{t_d_start}' and {range_datefield} < '{t_d_end}'"
             else:
                 date_where = f'earliest="{t_d_start}" AND latest="{t_d_end}"'
             this_query = base_query.replace("~~date~~", date_where)
