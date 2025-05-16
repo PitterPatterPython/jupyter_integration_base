@@ -483,7 +483,7 @@ def batch_by_date(base_query, integration, instance, list_items,
             if not range_splunk:
                 if partition_field is not None and partition_format is not None:
                     part_str = partition_str(dl[0], dl[1], partition_field=partition_field, partition_format=partition_format)
-                    date_where = f"({part_str} AND ({range_datefield} >= '{t_d_start}' AND {range_datefield} < '{t_d_end}')"
+                    date_where = f"{part_str} AND ({range_datefield} >= '{t_d_start}' AND {range_datefield} < '{t_d_end}')"
                 else:
                     date_where = f"{range_datefield} >= '{t_d_start}' and {range_datefield} < '{t_d_end}'"
             else:
