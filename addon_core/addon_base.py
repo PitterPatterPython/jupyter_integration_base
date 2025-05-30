@@ -71,6 +71,9 @@ class Addon(Magics):
         if line == "" or line.lower().find("help") == 0:
             bMischiefManaged = True
             jiu.displayMD(self.retHelp())
+        elif line.lower() == '-s':
+            # This is just a silent run to load the addon
+            bMischiefManaged = True
         elif line.lower() == "status":
             bMischiefManaged = True
             jiu.displayMD(self.retStatus())
