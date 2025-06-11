@@ -3,7 +3,7 @@ import json
 import datetime
 import pandas as pd
 import inspect
-
+import numpy as np
 
 def reapply_all(dfname="mydf", dfitem="zeropadded_accountnumber", featname="all_features", clausename="all_clauses", include_md=False):
     """ {"name": "reapply_all", 
