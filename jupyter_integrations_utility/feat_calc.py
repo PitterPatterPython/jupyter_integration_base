@@ -138,7 +138,7 @@ def feature_compare(df_list, df_label, feat_dict, clause_list, event_item):
     return merged_df
 
 
-def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, dry_run=False, debug=False, show_copy_errors=False):
+def apply_features(apply_df, feat_dict, rerun_apply=False, rerun_only=None, stop_on_fail=False, dry_run=False, debug=False, show_copy_errors=False):
     """ {"name": "apply_features", 
          "desc": "Take a dataframe of data, and apply features from a feature dictionary. Return the dataframe with the feature columns applied",
          "return": "Dataframe with applied features as columns", 
@@ -146,6 +146,7 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, d
          "args": [{"name": "apply_df", "default": "NA", "required": "True", "type": "pd.DataFrame", "desc": "Dataframe of data to apply features to"},
                   {"name": "feat_dict", "default": "NA", "required": "True", "type": "dict", "desc": "Dictionary of features to apply"},
                   {"name": "rerun_apply", "default": "False", "required": "False", "type": "boolean", "desc": "If the column already exists, we don't apply the feature unless this is true"},
+                  {"name": "rerun_only", "default": "None", "required": "False", "type": "list or None", "desc": "If rerun_apply is False, and this is a list of features, we only rerun these features"},
                   {"name": "stop_on_fail", "default": "False", "required": "False", "type": "boolean", "desc": "If a feature application has an exception, if this is True it will stop all application of subsequent features. Default is to print the error."},
                   {"name": "dry_run", "default": "False", "required": "False", "type": "boolean", "desc": "Just list the features we would apply, don't actually apply them."},
                   {"name": "show_copy_errors", "default": "False", "required": "False", "type": "boolean", "desc": "Show SettingWitCopyWarnings if you want. Otherwise we suppress"}, 
@@ -162,10 +163,12 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, d
     if not show_copy_errors:
         pd.options.mode.chained_assignment = None
 
+    if rerun_only is not None and not isinstance(rerun_only, list):
+        print(f"rerun_only passed and it should be a list but is not... this will cause errors")
     # I could maybe multi thread this? Or Multi Process?
     cur_cols = apply_df.columns.tolist()  
     for k, v in feat_dict.items():
-        if k not in cur_cols or rerun_apply:
+        if k not in cur_cols or rerun_apply or (rerun_only is not None and isinstance(rerun_only, list) and k in rerun_only):
             if debug:
                 print(f"Applying {k} - {v['desc']}")
             if not dry_run:
@@ -191,7 +194,7 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, stop_on_fail=False, d
 
     return apply_df
 
-def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False, stop_on_fail=False, dry_run=False, debug=False, show_copy_errors=False):
+def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False, rerun_only=None, stop_on_fail=False, dry_run=False, debug=False, show_copy_errors=False):
     """ {"name": "apply_custom_clauses", 
          "desc": "Take a dataframe of data, and apply features from a feature dictionary, and a list of custom clauses and calculates features based on that. Return the dataframe with the feature columns applied",
          "return": "Dataframe with applied features as columns", 
@@ -200,6 +203,7 @@ def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False,
                   {"name": "feat_dict", "default": "NA", "required": "True", "type": "dict", "desc": "Dictionary of features to apply"},
                   {"name": "custom_clauses", "default": "NA", "required": "True", "type": "list", "desc": "List of custom clauses to apply"},
                   {"name": "rerun_apply", "default": "False", "required": "False", "type": "boolean", "desc": "If the column already exists, we don't apply the feature unless this is true"},
+                  {"name": "rerun_only", "default": "None", "required": "False", "type": "list or None", "desc": "If rerun_apply is False, and this is a list of features, we only rerun these features"},
                   {"name": "stop_on_fail", "default": "False", "required": "False", "type": "boolean", "desc": "If a feature application has an exception, if this is True it will stop all application of subsequent features. Default is to print the error."},
                   {"name": "dry_run", "default": "False", "required": "False", "type": "boolean", "desc": "Just list the features we would apply, don't actually apply them."},
                   {"name": "show_copy_errors", "default": "False", "required": "False", "type": "boolean", "desc": "Show SettingWitCopyWarnings if you want. Otherwise we suppress"}, 
@@ -216,9 +220,12 @@ def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False,
     if not show_copy_errors:
         pd.options.mode.chained_assignment = None
 
+    if rerun_only is not None and not isinstance(rerun_only, list):
+        print(f"rerun_only passed and it should be a list but is not... this will cause errors")
+
     cur_cols = apply_df.columns.tolist()
     for i in custom_clauses:
-        if i not in cur_cols or rerun_apply:
+        if i not in cur_cols or rerun_apply or (rerun_only is not None and isinstance(rerun_only, list) and i in rerun_only):
             if debug:
                 print(f"Processing clause: {i}")
             clause_op, feats = parse_custom_clause(i)
