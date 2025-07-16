@@ -20,9 +20,16 @@ from ipywidgets import GridspecLayout, widgets
 
 
 try:
+    import itables
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please install itables.")
+    
+try:
     import qgrid
-except:
+except ModuleNotFoundError:
     pass
+else:
+    print("qgrid and qgridnext are considered deprecated. Please stop using it.")
 
 try:
     import ipydatagrid
@@ -59,7 +66,7 @@ class Display(Addon):
     myopts['display_pd_display_idx'] = [False, "Display the Pandas Index with html output"]
     myopts['display_pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
     myopts['display_pd_display.max_columns'] = [None, 'Max Columns']
-    myopts['display_pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid, ipydg)']
+    myopts['display_pd_display_grid'] = ["itables", 'How Pandas datasets should be displayed (html, qgrid, ipydg, itables)']
 
 # qgrid specific
     myopts['display_qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
@@ -106,7 +113,7 @@ class Display(Addon):
     # We get the self ipy, we set session to None, and we load base_integration level environ variables.
 
 
-    def __init__(self, shell, debug=False,  display_pd_display_grid="html", *args, **kwargs):
+    def __init__(self, shell, debug=False,  display_pd_display_grid="itables", *args, **kwargs):
         super(Display, self).__init__(shell, debug=debug)
         self.debug = debug
 
@@ -195,7 +202,17 @@ class Display(Addon):
 
 
 
+    def itablesDisplay(self, result_df, mycnt):
+        itables.init_notebook_mode()
+        itables.show(
+            result_df,
+            buttons=["colvis"],
+            column_filters="header",
+            maxBytes="50MB",
+            search={"regex": True, "caseInsensitive": True}
+        )
 
+    
     def qgridDisplay(self, result_df, mycnt):
 
         # Determine the height of the qgrid (number of Visible Rows)
@@ -305,6 +322,8 @@ class Display(Addon):
                 self.htmlDisplay(result_df, mycnt)
             elif display_type == "ipydg":
                 self.ipydgDisplay(result_df, mycnt)
+            elif display_type == "itables":
+                self.itablesDisplay(result_df, mycnt)
             else:
                 print("%s display type not supported" % display_type)
 
