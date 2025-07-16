@@ -22,7 +22,7 @@ from ipywidgets import GridspecLayout, widgets
 try:
     import itables
 except ModuleNotFoundError:
-    raise ModuleNotFoundError("Please install itables.")
+    print("itables is not installed")
     
 try:
     import qgrid
@@ -66,7 +66,7 @@ class Display(Addon):
     myopts['display_pd_display_idx'] = [False, "Display the Pandas Index with html output"]
     myopts['display_pd_max_colwidth'] = [50, 'Max column width to display when using pandas html output']
     myopts['display_pd_display.max_columns'] = [None, 'Max Columns']
-    myopts['display_pd_display_grid'] = ["itables", 'How Pandas datasets should be displayed (html, qgrid, ipydg, itables)']
+    myopts['display_pd_display_grid'] = ["html", 'How Pandas datasets should be displayed (html, qgrid, ipydg, itables)']
 
 # qgrid specific
     myopts['display_qg_header_autofit'] = [True, 'Do we include the column header (column name) in the autofit calculations?']
@@ -113,7 +113,7 @@ class Display(Addon):
     # We get the self ipy, we set session to None, and we load base_integration level environ variables.
 
 
-    def __init__(self, shell, debug=False,  display_pd_display_grid="itables", *args, **kwargs):
+    def __init__(self, shell, debug=False,  display_pd_display_grid="html", *args, **kwargs):
         super(Display, self).__init__(shell, debug=debug)
         self.debug = debug
 
