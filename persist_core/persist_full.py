@@ -335,6 +335,7 @@ class Persist(Addon):
             print("🔄 Attempting to save after coercing mixed-type columns...")
             for w in coerce_warnings:
                 print("⚠️", w)
+                print("")
 
             try:
                 tmp_arrow = pa.Table.from_pandas(mydf_fixed)
