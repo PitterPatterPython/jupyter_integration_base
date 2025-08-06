@@ -23,6 +23,7 @@ import jupyter_integrations_utility as jiu
 import pathlib
 
 from persist_core._version import __desc__
+import warnings
 
 try:
     import pyarrow as pa
@@ -201,9 +202,10 @@ class Persist(Addon):
             sfile = shared_path / fname
             retid = myid
             try:
-                tmp_arrow = pa.Table.from_pandas(mydf)
-                pq.write_table(tmp_arrow, sfile)
-                tmp_arrow = None
+                mysize = self.saveParquetFile(mydf,sfile)
+ #               tmp_arrow = pa.Table.from_pandas(mydf)
+ #               pq.write_table(tmp_arrow, sfile)
+ #               tmp_arrow = None
                 print(f"One-Time Share File created in {shared_path}")
                 print(f"Note this will not be accessible after it has been accessed once or after {self.opts['persist_shared_expire_days'][0]} days - which ever comes first")
                 print("Shared dataframes is NOT meant for storage of data, only transfer")
@@ -317,6 +319,55 @@ class Persist(Addon):
             print("Shared path error, shouldn't get here")
 
 
+    def saveParquetFile(self, mydf, save_file, mydfname=None):
+        mysize = 0
+        try:
+            tmp_arrow = pa.Table.from_pandas(mydf)
+            pq.write_table(tmp_arrow, save_file)
+            mysize = os.path.getsize(save_file)
+            tmp_arrow = None
+        except (pa.ArrowInvalid, TypeError, ValueError) as e:
+            print("⚠️ Parquet conversion failed due to incompatible or mixed column types.")
+            print(f"Details: {str(e)}")
+            mydf_fixed, coerce_warnings = coerce_mixed_columns(mydf, sample_size=1000)
+
+            print("")
+            print("🔄 Attempting to save after coercing mixed-type columns...")
+            for w in coerce_warnings:
+                print("⚠️", w)
+
+            try:
+                tmp_arrow = pa.Table.from_pandas(mydf_fixed)
+                pq.write_table(tmp_arrow, save_file)
+                mysize = os.path.getsize(save_file)
+                tmp_arrow = None
+            except Exception as final_error:
+                raise RuntimeError(
+                    f"❌ Parquet save failed even after coercion: {final_error}"
+                )
+
+        return mysize
+
+    def col_has_mixed_types(self, myseries, sample_size=100):
+            try:
+                sample = myseries.dropna().iloc[:sample_size]
+                return len(sample.map(type).unique()) > 1
+            except Exception:
+                return True  # Fail-safe: assume mixed if error
+
+    def coerce_mixed_columns(self, mydf, sample_size=100):
+            df_fixed = mydf.copy()
+            coercion_warnings = []
+            for col in mydf.columns:
+                if col_has_mixed_types(mydf[col], sample_size):
+                    coercion_warnings.append(f"Column '{col}' had mixed types and was coerced to string.")
+                    df_fixed[col] = mydf[col].astype(str)
+            return df_fixed, coercion_warnings
+
+
+
+
+
     def saveData(self, myid, mydf):
         # Updated for Arrow
         storage = self.retStorageMethod()
@@ -330,10 +381,11 @@ class Persist(Addon):
             f.close()
             mysize = os.path.getsize(sfile)
         elif storage == 'parq':
-            tmp_arrow = pa.Table.from_pandas(mydf)
-            pq.write_table(tmp_arrow, sfile)
-            mysize = os.path.getsize(sfile)
-            tmp_arrow = None
+            mysize = self.saveParquetFile(mydf,sfile)
+#            tmp_arrow = pa.Table.from_pandas(mydf)
+#            pq.write_table(tmp_arrow, sfile)
+#            mysize = os.path.getsize(sfile)
+#            tmp_arrow = None
         else:
             print("Unknown storage: %s" % storage)
             mysize = 0
