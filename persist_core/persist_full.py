@@ -329,7 +329,7 @@ class Persist(Addon):
         except (pa.ArrowInvalid, TypeError, ValueError) as e:
             print("⚠️ Parquet conversion failed due to incompatible or mixed column types.")
             print(f"Details: {str(e)}")
-            mydf_fixed, coerce_warnings = coerce_mixed_columns(mydf, sample_size=1000)
+            mydf_fixed, coerce_warnings = self.coerce_mixed_columns(mydf, sample_size=1000)
 
             print("")
             print("🔄 Attempting to save after coercing mixed-type columns...")
@@ -359,7 +359,7 @@ class Persist(Addon):
             df_fixed = mydf.copy()
             coercion_warnings = []
             for col in mydf.columns:
-                if col_has_mixed_types(mydf[col], sample_size):
+                if self.col_has_mixed_types(mydf[col], sample_size):
                     coercion_warnings.append(f"Column '{col}' had mixed types and was coerced to string.")
                     df_fixed[col] = mydf[col].astype(str)
             return df_fixed, coercion_warnings
