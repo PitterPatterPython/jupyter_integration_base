@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+from jupyter_server import serverapp
+import psutil
+
+
 # Base imports for all integrations, only remove these at your own risk!
 import json
 from pathlib import Path
@@ -122,6 +126,8 @@ class Persist(Addon):
             out += "| %s | %s | %s| %s | %s | %s |\n" % (myid, mytime, strsize, strint, mynotes, myquery)
         out += "\n\n"
         return out
+
+
 
 
     def getPersistDictMD5(self):
@@ -637,6 +643,7 @@ class Persist(Addon):
         out += "| %s | List currently persisted data |\n" % (m + " list")
         out += "| %s | Delete a specifc persist 'id' use -conf to force no confirmation |\n" % (m + " delete 'id' [-conf]")
         out += "| %s | Purge all persisted data older than persist_purge_days. Add -conf to do so without confirmation |\n" % (m + " purge [-conf]")
+        out += "| %s | List all Dataframes (and shapes) that exist in the current kernel |\n" % (m + " listdfs")
         out += "\n\n"
 
         out += "### %s Dataframe Saving\n" % (mq)
@@ -676,6 +683,56 @@ class Persist(Addon):
         out += "\n"
         return out
 
+    def listDataframes(self, inc_prev=True):
+        our_dfs = {}
+        for k, v in self.ipy.user_ns.items():
+            if isinstance(v, pd.DataFrame):
+                if inc_prev:
+                    our_dfs[k] = v.shape
+                else:
+                    if k.find("prev_" != 0):
+                        our_dfs[k] = v.shape
+        return our_dfs
+
+
+
+    def get_notebook_path(self):
+        conn_file = self.ipy.config['IPKernelApp']['connection_file']
+        kernel_id = os.path.basename(conn_file).split('-', 1)[1].split('.')[0]
+
+        if self.debug:
+            print(f"Conn File: {conn_file}")
+        for server in serverapp.list_running_servers():
+            try:
+                response = requests.get(url=f"{server['url']}api/sessions", params={'token': server.get('token', '')})
+                sessions = response.json()
+                for sess in sessions:
+                    if self.debug:
+                        print(type(sess))
+                    if isinstance(sess, str):
+                        continue
+                    if sess['kernel']['id'] == kernel_id:
+                        return sess['notebook']['path']
+            except Exception as e:
+                print(f"Error querying {server['url']} with {server.get('token', '')}: {e}")
+        return None
+
+
+
+
+    def printDFs(self):
+        our_dfs = self.listDataframes()
+        our_nbname = self.get_notebook_path()
+        out = ""
+        out += f"# Dataframes in {our_nbname}\n"
+        out += "----------------\n"
+        out += "| Dataframe Name | Dataframe Shape |\n"
+        out += "| -------------- | --------------- |\n"
+        for k, v in our_dfs.items():
+            out += f"| {k} | {v} |\n"
+        out += "\n\n"
+        return out
+
 
     # This is the magic name.
     @line_cell_magic
@@ -703,6 +760,8 @@ class Persist(Addon):
                     self.loadDF(line)
                 elif line.lower().find("shared") == 0:
                     self.procShared(line)
+                elif line.lower().find("listdfs") == 0:
+                    jiu.displayMD(self.printDFs())
                 else:
                     print("I am sorry, I don't know what you want to do with your line magic, try just %" + self.name_str + " for help options")
         else: # This is run is the cell is not none, thus it's a cell to process  - For us, that means a query
