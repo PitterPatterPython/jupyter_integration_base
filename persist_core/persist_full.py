@@ -7,6 +7,7 @@ import psutil
 # Base imports for all integrations, only remove these at your own risk!
 import json
 from pathlib import Path
+import shutil
 import uuid
 import sys
 import os
@@ -85,7 +86,7 @@ class Persist(Addon):
     def __init__(self, shell, debug=False, *args, **kwargs):
         super(Persist, self).__init__(shell, debug=debug)
         self.debug = debug
-
+        self.nbname = None
         #Add local variables to opts dict
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
@@ -143,6 +144,8 @@ class Persist(Addon):
             os.makedirs(self.persist_dir)
         if not os.path.isdir(self.persisted_data_dir):
             os.makedirs(self.persisted_data_dir)
+        if not os.path.isdir(self.session_data_dir):
+            os.makedirs(self.session_data_dir)
 
 
     def dispSize(self, size):
@@ -375,29 +378,6 @@ class Persist(Addon):
 
 
 
-    def saveData(self, myid, mydf):
-        # Updated for Arrow
-        storage = self.retStorageMethod()
-
-        fname = myid + "." + storage
-        sfile = self.persisted_data_dir / fname
-
-        if storage == 'pkl':
-            f = open(sfile, 'wb')
-            pickle.dump(mydf, f, protocol=pickle.HIGHEST_PROTOCOL)
-            f.close()
-            mysize = os.path.getsize(sfile)
-        elif storage == 'parq':
-            mysize = self.saveParquetFile(mydf,sfile)
-#            tmp_arrow = pa.Table.from_pandas(mydf)
-#            pq.write_table(tmp_arrow, sfile)
-#            mysize = os.path.getsize(sfile)
-#            tmp_arrow = None
-        else:
-            print("Unknown storage: %s" % storage)
-            mysize = 0
-
-        return mysize
 
     def lookupID(self, id):
         retval = id
@@ -454,8 +434,12 @@ class Persist(Addon):
         if self.debug:
             print(tpdir)
         self.persist_dir = tpdir
-        self.persisted_data_dir = self.persist_dir / "persisted_data"
+
         self.persist_dict_pkl = self.persist_dir / "persist_dict.pkl"
+        self.persisted_data_dir = self.persist_dir / "persisted_data"
+
+        self.session_dict_pkl = self.persist_dir / "session_dict.pkl"
+        self.session_data_dir = self.persist_dir / "session_data"
 
         self.checkDirs()
 
@@ -466,8 +450,230 @@ class Persist(Addon):
             r.close()
         else:
             self.persist_dict = {}
+
+        if os.path.isfile(self.session_dict_pkl):
+            self.session_dict_md5 = self.getPersistDictMD5()
+            r = open(self.session_dict_pkl, 'rb')
+            self.session_dict = pickle.load(r)
+            r.close()
+        else:
+            self.session_dict = {}
+
         if self.debug:
             print(self.persist_dict)
+            print(self.session_dict)
+
+    def getnbname(self):
+        if self.nbname is None:
+            self.nbname = self.get_notebook_path()
+        return self.nbname
+
+    def listDataframes(self, inc_prev=True):
+        our_dfs = {}
+        for k, v in self.ipy.user_ns.items():
+            if isinstance(v, pd.DataFrame):
+                if inc_prev:
+                    our_dfs[k] = v.shape
+                else:
+                    if k.find("prev_" != 0):
+                        our_dfs[k] = v.shape
+        return our_dfs
+
+    
+
+    def saveSession(self, line):
+        byolo = False
+        boverwrite = True
+        bincprev = False
+
+        this_nb = self.getnbname()
+
+        if line.find("-yolo") >= 0:
+            byolo = True
+            line = line.replace("-yolo", "")
+        if line.find("-nooverwrite") >= 0:
+            boverwrite = False
+            line = line.replace("-nooverwrite", "")
+        if line.find("-incprev") >= 0:
+            bincprev = True
+            line = line.replace("-incprev", "")
+
+        cur_dataframes = self.listDataframes(inc_prev=bincprev)
+
+        out = ""
+        out += "## Dataframe Session Save\n"
+        out += "-----------\n"
+        out += f" - Overwrite Current: {boverwrite} (-nooverwrite to save a new session for notebook)\n"
+        out += f" - Include dataframes starting with prev_: {bincprev} (-incprev to include dataframes starting with prev_)\n"
+        out += f" - Yolo Mode (just save, no confirmation): {byolo} (-yolo if you only live once)\n"
+        out += "\n\n"
+        out += "### Dataframes in Sessions\n"
+        out += "-------------------\n"
+        out += "| Dataframe Name | Dataframe Shape |\n"
+        out += "| -------------- | --------------- |\n"
+        for k, v in cur_dataframes.items():
+            out += f"| {k} | {v} |\n"
+        out += "\n\n"
+
+        jiu.displayMD(out)
+        if not byolo:
+            do_you_yolo = input("Do you wish to save the session with the information above? Type Yes: ")
+            if do_you_yolo.lower() == "yes":
+                byolo = True
+            else:
+                print("Session Save canceled!")
+                return None
+
+        nb_sessions = self.session_dict.get(this_nb, [])
+        cur_sess = None
+        if len(nb_session) > 0:
+            nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
+            if boverwrite:
+                cur_sess = nb_sessions[0]['sess_id']
+
+        if boverwrite and cur_sess is not None:
+            pass
+        else:
+            cur_sess = self.getUUID()
+        save_time = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+        save_rec = {"sess_id": cur_sess, "saved_time": save_time}
+
+        new_session_dir = self.session_data_dir / cur_sess
+
+        b_saved = False
+        if os.path.isdir(new_session_dir):
+            if not boverwrite:
+                print(f"Directory for session {cur_sess} found at {session_dir} and boverwrite is {boverwrite}. Exiting")
+                return None
+            cur_session_dir = self.session_data_dir / f"old_{cur_sess}"
+            os.rename(new_session_dir, cur_session_dir)
+            b_saved = True
+
+        try:
+            os.makedirs(new_session_dir)
+
+            sess_size = 0
+            saved_dfs = {}
+            for k, v in cur_dataframes.items():
+                this_id = self.getUUID()
+                this_df = self.ipy.user_ns[k]
+                if isinstance(this_df, pd.DataFrame):
+                    print(f"Saving: {k}")
+                    this_size = self.saveData(myid, this_df, dir_override=new_session_dir)
+                    sess_size += this_size
+                    saved_dfs[k] = this_id
+                else:
+                    print(f"Skipping {k} as it's  not a Dataframe somehow")
+            save_rec['saved_dfs'] = saved_dfs
+            save_rec['total_space'] = sess_size
+            new_nb_sessions = []
+            if len(nb_sessions) > 0:
+                for s in nb_sessions:
+                    if s['sess_id'] != cur_sess:
+                        new_nb_sessions.append(s)
+                    else:
+                        new_nb_sessions.append(save_rec)
+            else:
+                new_nb_sessions.append(save_rec)
+
+            self.session_dict[this_nb] = new_nb_sessions
+            self.saveSessions()
+            self.loadPersistedDict()
+        except Exception as e:
+            print(f"Error Saving Session for {this_nb} - {e}")
+            if b_saved:
+                print(f"Due to Error, putting old session save info back")
+                shutil.rmtree(new_session_dir)
+                os.rename(cur_session_dir, new_session_dir)
+            return None
+        print("")
+        print(f"Sessions for {this_nb} saved as ID: {cur_sess}")
+
+
+    def saveSessions(self):
+        # Ok for Arrow
+        f = open(self.session_dict_pkl, 'wb')
+        # TODO Handle Merges
+        pickle.dump(self.session_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
+        f.close()
+
+
+        
+    def saveData(self, myid, mydf, dir_override=None):
+        # Updated for Arrow
+        storage = self.retStorageMethod()
+        fname = myid + "." + storage
+
+        if dir_override is not None:
+            sfile = self.persisted_data_dir / fname
+        else:
+            sfile = dir_override / fname
+
+
+        if storage == 'pkl':
+            f = open(sfile, 'wb')
+            pickle.dump(mydf, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.close()
+            mysize = os.path.getsize(sfile)
+        elif storage == 'parq':
+            mysize = self.saveParquetFile(mydf,sfile)
+#            tmp_arrow = pa.Table.from_pandas(mydf)
+#            pq.write_table(tmp_arrow, sfile)
+#            mysize = os.path.getsize(sfile)
+#            tmp_arrow = None
+        else:
+            print("Unknown storage: %s" % storage)
+            mysize = 0
+
+        return mysize
+
+
+
+    def listSessions(self, line):
+
+        nb_test = line.replace("session list", "").strip() == ""
+        if nb_test == "":
+            this_nb = self.getnbname()
+        else:
+            this_nb = nb_test
+
+        if self.nbname is None:
+            print(f"Can't determine nobook name - No Sessions to list")
+            return None
+
+        nbs_dict = {}
+        if this_nb != 'all':
+            sessions = self.session_dict.get(this_nb, None)
+            if sessions is None:
+                print(f"No sessions for notebook {this_nb} found")
+                return None
+            else:
+                nbs_dict = {this_nb: sessions}
+        else:
+            nbs_dict = self.session_dict.copy()
+
+
+        out = ""
+        if this_nb == 'all':
+            out += f"## All Notebooks and Sessions\n\n"
+
+        for k, v in nbs_dict.items():
+            cur_nb_name = k
+            these_sessions = sorted(v, key=lambda x: x['saved_time'], reverse=True)
+
+            this_total_size = sum(item['total_space'] for item in these_sessions)
+
+
+            out += f"### Sessions for {k}\n"
+            out += f"**Total Size: {this_total_size}**\n"
+            out += "------------------------\n"
+            out += "| Session Id | Saved TS | No. of DFs | Total Space (MB) |\n"
+            out += "| ---------- | -------  | ---------- | ---------------- |\n"
+            for s in these_sessions:
+                out += f"| {s['sess_id']} | {s['saved_time']} | {len(s['saved_dfs'])} | {s['total_space']} |\n"
+            out += "\n\n"
+
+        return out
 
     def deletePersisted(self, line):
         # Updated for arrow
@@ -683,17 +889,6 @@ class Persist(Addon):
         out += "\n"
         return out
 
-    def listDataframes(self, inc_prev=True):
-        our_dfs = {}
-        for k, v in self.ipy.user_ns.items():
-            if isinstance(v, pd.DataFrame):
-                if inc_prev:
-                    our_dfs[k] = v.shape
-                else:
-                    if k.find("prev_" != 0):
-                        our_dfs[k] = v.shape
-        return our_dfs
-
 
 
     def get_notebook_path(self):
@@ -752,6 +947,8 @@ class Persist(Addon):
                         jiu.displayMD(self.retPersisted())
                 elif line.lower().find("delete") == 0:
                     self.deletePersisted(line)
+                elif line.lower().find("session list") == 0:
+                    self.listSessions(line)
                 elif line.lower().find("purge") == 0:
                     self.purgePersist(line)
                 elif line.lower().find("save") == 0:
