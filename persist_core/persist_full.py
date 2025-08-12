@@ -567,15 +567,18 @@ class Persist(Addon):
                     print(f"Skipping {k} as it's  not a Dataframe somehow")
             save_rec['saved_dfs'] = saved_dfs
             save_rec['total_space'] = sess_size
+            if self.debug:
+                print("Current Sessions")
+                print(nb_sessions)
+                print(f"New sessions {save_rec}")
             new_nb_sessions = []
+            new_nb_sessions.append(save_rec)
             if len(nb_sessions) > 0:
                 for s in nb_sessions:
                     if s['sess_id'] == cur_sess:
-                        new_nb_sessions.append(save_rec)
+                        pass
                     else:
                         new_nb_sessions.append(s)
-            else:
-                new_nb_sessions.append(save_rec)
 
             self.session_dict[this_nb] = new_nb_sessions
             self.saveSessionsDict()
