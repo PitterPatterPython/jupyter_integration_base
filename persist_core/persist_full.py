@@ -631,14 +631,14 @@ class Persist(Addon):
 
     def listSessions(self, line):
 
-        nb_test = line.replace("session list", "").strip() == ""
+        nb_test = line.replace("session list", "").strip()
         if nb_test == "":
             this_nb = self.getnbname()
         else:
             this_nb = nb_test
 
-        if self.nbname is None:
-            print(f"Can't determine nobook name - No Sessions to list")
+        if this_nb is None:
+            print(f"Can't determine notebook name - No Sessions to list")
             return None
 
         nbs_dict = {}
