@@ -560,7 +560,7 @@ class Persist(Addon):
                 this_df = self.ipy.user_ns[k]
                 if isinstance(this_df, pd.DataFrame):
                     print(f"Saving: {k}")
-                    this_size = self.saveData(myid, this_df, dir_override=new_session_dir)
+                    this_size = self.saveData(this_id, this_df, dir_override=new_session_dir)
                     sess_size += this_size
                     saved_dfs[k] = this_id
                 else:
