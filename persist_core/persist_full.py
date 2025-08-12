@@ -587,6 +587,10 @@ class Persist(Addon):
                 shutil.rmtree(new_session_dir)
                 os.rename(cur_session_dir, new_session_dir)
             return None
+        if b_saved:
+            if self.debug:
+                print("Deleting Saved Data")
+            shutil.rmtree(cur_session_dir)
         print("")
         print(f"Sessions for {this_nb} saved as ID: {cur_sess}")
 
@@ -670,12 +674,12 @@ class Persist(Addon):
 
 
             out += f"### Sessions for {k}\n"
-            out += f"**Total Size: {this_total_size}**\n"
+            out += f"**Total Size: {this_total_size/1000:,}MB**\n"
             out += "------------------------\n"
             out += "| Session Id | Saved TS | No. of DFs | Total Space (MB) |\n"
             out += "| ---------- | -------  | ---------- | ---------------- |\n"
             for s in these_sessions:
-                out += f"| {s['sess_id']} | {s['saved_time']} | {len(s['saved_dfs'])} | {s['total_space']} |\n"
+                out += f"| {s['sess_id']} | {s['saved_time']} | {len(s['saved_dfs'])} | {s['total_space']/1000:,} |\n"
             out += "\n\n"
 
         return out
