@@ -526,7 +526,7 @@ class Persist(Addon):
 
         nb_sessions = self.session_dict.get(this_nb, [])
         cur_sess = None
-        if len(nb_session) > 0:
+        if len(nb_sessions) > 0:
             nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
             if boverwrite:
                 cur_sess = nb_sessions[0]['sess_id']
