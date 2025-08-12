@@ -17,6 +17,7 @@ import requests
 from copy import deepcopy
 import importlib
 import hashlib
+import datetime
 import pickle
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from IPython.core.display import HTML
