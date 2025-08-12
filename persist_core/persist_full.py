@@ -577,7 +577,7 @@ class Persist(Addon):
                 new_nb_sessions.append(save_rec)
 
             self.session_dict[this_nb] = new_nb_sessions
-            self.saveSessions()
+            self.saveSessionsDict()
             self.loadPersistedDict()
         except Exception as e:
             print(f"Error Saving Session for {this_nb} - {e}")
@@ -590,7 +590,7 @@ class Persist(Addon):
         print(f"Sessions for {this_nb} saved as ID: {cur_sess}")
 
 
-    def saveSessions(self):
+    def saveSessionsDict(self):
         # Ok for Arrow
         f = open(self.session_dict_pkl, 'wb')
         # TODO Handle Merges
@@ -642,6 +642,8 @@ class Persist(Addon):
             return None
 
         nbs_dict = {}
+        if self.debug:
+            print(f"List Sessions NB Name: {nb_name}")
         if this_nb != 'all':
             sessions = self.session_dict.get(this_nb, None)
             if sessions is None:
@@ -949,6 +951,8 @@ class Persist(Addon):
                     self.deletePersisted(line)
                 elif line.lower().find("session list") == 0:
                     self.listSessions(line)
+                elif line.lower().find("session save") == 0:
+                    self.saveSession(line)
                 elif line.lower().find("purge") == 0:
                     self.purgePersist(line)
                 elif line.lower().find("save") == 0:
