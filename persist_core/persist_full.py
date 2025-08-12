@@ -475,7 +475,7 @@ class Persist(Addon):
                 if inc_prev:
                     our_dfs[k] = v.shape
                 else:
-                    if k.find("prev_" != 0):
+                    if k.find("prev_") != 0:
                         our_dfs[k] = v.shape
         return our_dfs
 
@@ -657,6 +657,8 @@ class Persist(Addon):
 
         out = ""
         if this_nb == 'all':
+            if self.debug:
+                print("In print block for All sessions")
             out += f"## All Notebooks and Sessions\n\n"
 
         for k, v in nbs_dict.items():
@@ -950,7 +952,7 @@ class Persist(Addon):
                 elif line.lower().find("delete") == 0:
                     self.deletePersisted(line)
                 elif line.lower().find("session list") == 0:
-                    self.listSessions(line)
+                    jiu.displayMD(self.listSessions(line))
                 elif line.lower().find("session save") == 0:
                     self.saveSession(line)
                 elif line.lower().find("purge") == 0:
