@@ -570,16 +570,16 @@ class Persist(Addon):
             new_nb_sessions = []
             if len(nb_sessions) > 0:
                 for s in nb_sessions:
-                    if s['sess_id'] != cur_sess:
-                        new_nb_sessions.append(s)
-                    else:
+                    if s['sess_id'] == cur_sess:
                         new_nb_sessions.append(save_rec)
+                    else:
+                        new_nb_sessions.append(s)
             else:
                 new_nb_sessions.append(save_rec)
 
             self.session_dict[this_nb] = new_nb_sessions
             self.saveSessionsDict()
-            self.loadPersistedDict()
+
         except Exception as e:
             print(f"Error Saving Session for {this_nb} - {e}")
             if b_saved:
