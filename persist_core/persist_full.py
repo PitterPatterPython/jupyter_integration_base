@@ -643,7 +643,7 @@ class Persist(Addon):
 
         nbs_dict = {}
         if self.debug:
-            print(f"List Sessions NB Name: {nb_name}")
+            print(f"List Sessions NB Name: {this_nb}")
         if this_nb != 'all':
             sessions = self.session_dict.get(this_nb, None)
             if sessions is None:
