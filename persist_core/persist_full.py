@@ -331,6 +331,8 @@ class Persist(Addon):
 
     def saveParquetFile(self, mydf, save_file, mydfname=None):
         mysize = 0
+        if self.debug:
+            print(f"Saving dataframe with shape {mydf.shape} as {save_file}")
         try:
             tmp_arrow = pa.Table.from_pandas(mydf)
             pq.write_table(tmp_arrow, save_file)
@@ -742,6 +744,8 @@ class Persist(Addon):
             f.close()
             mysize = os.path.getsize(sfile)
         elif storage == 'parq':
+            if self.debug:
+                print("File: {sfile}")
             mysize = self.saveParquetFile(mydf, sfile)
 #            tmp_arrow = pa.Table.from_pandas(mydf)
 #            pq.write_table(tmp_arrow, sfile)
