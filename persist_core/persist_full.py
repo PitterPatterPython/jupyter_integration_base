@@ -481,11 +481,11 @@ class Persist(Addon):
         out = ""
         out += "## Dataframe Load\n"
         out += "------------------\n"
-        out += "- Session Requested: {line.strip()}\n"
-        out += "- Yolo mode (Just load and clobber any existing dataframes with same name): {byolo}\n"
-        out += "- Date last saved: {load_sess['saved_time']}\n"
-        out += "- Total Size: {load_sess['total_space']}\n"
-        out += "- No. of Dataframes: {len(load_sess['saved_dfs'])}\n"
+        out += f"- Session Requested: {line.strip()}\n"
+        out += f"- Yolo mode (Just load and clobber any existing dataframes with same name): {byolo}\n"
+        out += f"- Date last saved: {load_sess['saved_time']}\n"
+        out += f"- Total Size: {load_sess['total_space']}\n"
+        out += f"- No. of Dataframes: {len(load_sess['saved_dfs'])}\n"
         out += "\n\n"
         out += "### Dataframes in Session\n"
         out += "--------------\n"
@@ -580,7 +580,8 @@ class Persist(Addon):
                         print("ID found by storage file not found in pkl - Error")
                         return None
         else: # This is a Session Load
-            load_fname = self.session_data_dir / sessionid / myid + "." + storage
+            fname = myid + "." + storage
+            load_fname = self.session_data_dir / sessionid / fname
             if not os.path.isfile(load_fname): # Can't find the file
                 if self.debug:
                     print(f"Cannot find id {myid} in {session_id} - Skipping")
