@@ -764,8 +764,7 @@ class Persist(Addon):
             this_nb = nb_test
 
         if this_nb is None:
-            print(f"Can't determine notebook name - No Sessions to list")
-            return None
+            return f"**Can't determine notebook name - No Sessions to list**"
 
         nbs_dict = {}
         if self.debug:
@@ -773,8 +772,7 @@ class Persist(Addon):
         if this_nb != 'all':
             sessions = self.session_dict.get(this_nb, None)
             if sessions is None:
-                print(f"No sessions for notebook {this_nb} found")
-                return None
+                return f"**No sessions for notebook {this_nb} found**")
             else:
                 nbs_dict = {this_nb: sessions}
         else:
