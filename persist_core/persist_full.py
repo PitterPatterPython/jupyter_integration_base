@@ -893,14 +893,15 @@ class Persist(Addon):
 
         for s in del_sess:
             this_id = s['sess_id']
-            sess_dir = self.session_data_dir /this_id
+            sess_dir = self.session_data_dir / this_id
             shutil.rmtree(sess_dir)
         if len(keep_sess) > 0:
             self.session_dict[this_nb] = keep_sess
         else:
             del self.session_dict[this_nb]
         self.saveSessionsDict()
-
+        print("")
+        print(f"Sessions {final_del_sess_ids} deleted from {this_nb}")
 
     def deletePersisted(self, line):
         # Updated for arrow
