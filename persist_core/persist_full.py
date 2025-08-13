@@ -850,6 +850,7 @@ class Persist(Addon):
                 del_sess_id = nb_sessions[0]['sess_id']
                 final_del_sess_ids = [del_sess_id]
                 del_sess = [nb_sessions[0]]
+                keep_sess = [x for x in nb_sessions if x['sess_id'] not in final_del_sess_ids]
                 prov_sess = f"current for notebook ({del_sess_id})"
             else:
                 all_sess_ids = [x['sess_id'] for x in nb_sessions]
