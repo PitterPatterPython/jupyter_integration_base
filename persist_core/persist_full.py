@@ -848,6 +848,7 @@ class Persist(Addon):
             nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
             if len(del_sessions) < 1:
                 del_sess_id = nb_sessions[0]['sess_id']
+                final_delete_sess_ids = [del_sess_id]
                 del_sess = [nb_sessions[0]]
                 prov_sess = f"current for notebook ({del_sess_id})"
             else:
