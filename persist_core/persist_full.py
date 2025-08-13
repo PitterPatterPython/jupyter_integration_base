@@ -725,17 +725,16 @@ class Persist(Addon):
         f.close()
 
 
-        
-    def saveData(self, myid, mydf, dir_override=None):
+    def saveData(self, myid, mydf, sessionid=None):
         # Updated for Arrow
         storage = self.retStorageMethod()
         fname = myid + "." + storage
 
-        if dir_override is not None:
+
+        if sessionid is not None:
             sfile = self.persisted_data_dir / fname
         else:
-            sfile = dir_override / fname
-
+            sfile = self.session_data_dir / sessionid / fname
 
         if storage == 'pkl':
             f = open(sfile, 'wb')
@@ -743,7 +742,7 @@ class Persist(Addon):
             f.close()
             mysize = os.path.getsize(sfile)
         elif storage == 'parq':
-            mysize = self.saveParquetFile(mydf,sfile)
+            mysize = self.saveParquetFile(mydf, sfile)
 #            tmp_arrow = pa.Table.from_pandas(mydf)
 #            pq.write_table(tmp_arrow, sfile)
 #            mysize = os.path.getsize(sfile)
