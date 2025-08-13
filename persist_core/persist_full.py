@@ -848,7 +848,7 @@ class Persist(Addon):
             nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
             if len(del_sessions) < 1:
                 del_sess_id = nb_sessions[0]['sess_id']
-                final_delete_sess_ids = [del_sess_id]
+                final_del_sess_ids = [del_sess_id]
                 del_sess = [nb_sessions[0]]
                 prov_sess = f"current for notebook ({del_sess_id})"
             else:
@@ -878,7 +878,7 @@ class Persist(Addon):
         out += "| Session ID | Saved | Total Size | No. of Dataframes |\n"
         out += "| ---------- | ----- | ---------- | ----------------- |\n"
         for x in del_sess:
-            out += "| {x['sess_id']} | {x['saved_time']} | {x['total_space']} | {len(x['saved_dfs'])} |\n"
+            out += f"| {x['sess_id']} | {x['saved_time']} | {x['total_space']} | {len(x['saved_dfs'])} |\n"
         out += "\n\n"
 
         jiu.displayMD(out)
