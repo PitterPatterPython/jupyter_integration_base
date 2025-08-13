@@ -772,7 +772,7 @@ class Persist(Addon):
         if this_nb != 'all':
             sessions = self.session_dict.get(this_nb, None)
             if sessions is None:
-                return f"**No sessions for notebook {this_nb} found**")
+                return f"**No sessions for notebook {this_nb} found**"
             else:
                 nbs_dict = {this_nb: sessions}
         else:
