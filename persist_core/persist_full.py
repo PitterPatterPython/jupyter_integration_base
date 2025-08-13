@@ -733,7 +733,7 @@ class Persist(Addon):
         fname = myid + "." + storage
 
 
-        if sessionid is not None:
+        if sessionid is None:
             sfile = self.persisted_data_dir / fname
         else:
             sfile = self.session_data_dir / sessionid / fname
@@ -745,7 +745,7 @@ class Persist(Addon):
             mysize = os.path.getsize(sfile)
         elif storage == 'parq':
             if self.debug:
-                print("File: {sfile}")
+                print(f"File: {sfile}")
             mysize = self.saveParquetFile(mydf, sfile)
 #            tmp_arrow = pa.Table.from_pandas(mydf)
 #            pq.write_table(tmp_arrow, sfile)
