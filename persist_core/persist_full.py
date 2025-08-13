@@ -2,7 +2,7 @@
 
 from jupyter_server import serverapp
 import psutil
-
+import re
 
 # Base imports for all integrations, only remove these at your own risk!
 import json
@@ -806,6 +806,99 @@ class Persist(Addon):
             out += "\n\n"
 
         return out
+    def deleteSession(self, line):
+        byolo = False
+
+        orig_line = line
+
+        line = line.replace("session delete", "")
+
+        if line.find("-yolo") >= 0:
+            byolo = True
+            line = line.replace("-yolo", "")
+
+        pattern = r'(^|\s)([0-9a-f]{32})(\s|$)'
+
+        matches = re.findall(pattern, line)
+        del_sessions = [m[1] for m in matches]
+        del_sessions = [x.strip() for x in del_sessions]
+        for s in del_sessions:
+            line = line.replace(s, "")
+        line = line.strip()
+        if line == "":
+            this_nb = self.getnbname()
+        elif line.find(".ipynb") > 0:
+            this_nb = line
+        else:
+            print("Unknown line, is not a session ID, or an ipynb - Not deleting")
+            print(f"Original line: {orig_line}")
+            print(f"Processed line: {line}")
+            return None
+
+
+ #       if len(del_sessions) < 1:
+ #           print("No sessions found")
+
+        if this_nb is None:
+            print("Cannot determine notebook name - Not Loading")
+            return None
+
+        nb_sessions = self.session_dict.get(this_nb, [])
+        if len(nb_sessions) > 0:
+            nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
+            if len(del_sessions) < 1:
+                del_sess_id = nb_sessions[0]['sess_id']
+                del_sess = [nb_sessions[0]]
+                prov_sess = f"current for notebook ({del_sess_id})"
+            else:
+                all_sess_ids = [x['sess_id'] for x in nb_sessions]
+                prov_sess = f"Prov Session: {del_sessions}"
+                final_del_sess_ids = [x for x in del_sessions if x in all_sess_ids]
+                del_sess = [x for x in nb_sessions if x['sess_id'] in final_del_sess_ids]
+                keep_sess = [x for x in nb_sessions if x['sess_id'] not in final_del_sess_ids]
+                if len(final_del_sess_ids) == 0:
+                    print(f"No sessions to delete")
+                    return None
+        else:
+            print(f"No Sessions exist for notebook {this_nb}")
+            return None
+
+        out = ""
+
+        out += "## Dataframe Session Delete\n"
+        out += "-----------\n"
+        out += f" - Notebook for Session Deletion: {this_nb}\n"
+        out += f" - Sessions for deletion: {prov_sess}\n"
+        out += f" - Final session list: {final_del_sess_ids}\n"
+        out += f" - Yolo Mode (just save, no confirmation): {byolo} (-yolo if you only live once)\n"
+        out += "\n\n"
+        out += "### Sessions for Deletion\n"
+        out += "-------------------\n"
+        out += "| Session ID | Saved | Total Size | No. of Dataframes |\n"
+        out += "| ---------- | ----- | ---------- | ----------------- |\n"
+        for x in del_sess:
+            out += "| {x['sess_id']} | {x['saved_time']} | {x['total_space']} | {len(x['saved_dfs'])} |\n"
+        out += "\n\n"
+
+        jiu.displayMD(out)
+        if not byolo:
+            do_you_yolo = input("Do you wish to delete the sessions with the information above? Type Yes: ")
+            if do_you_yolo.lower() == "yes":
+                byolo = True
+            else:
+                print("Session Delete canceled!")
+                return None
+
+        for s in del_sess:
+            this_id = s['sess_id']
+            sess_dir = self.session_data_dir /this_id
+            shutil.rmtree(sess_dir)
+        if len(keep_sess) > 0:
+            self.session_dict[this_nb] = keep_sess
+        else:
+            del self.session_dict[this_nb]
+        self.saveSessionsDict()
+
 
     def deletePersisted(self, line):
         # Updated for arrow
@@ -988,6 +1081,15 @@ class Persist(Addon):
         out += "| %s | Load Saved id into df |\n" % (m + " shared load id df")
         out += "\n\n"
 
+        out += "### %s Session Datasets\n" % (m)
+        out += "---------------\n"
+        out += table_header
+        out += "| %s | Save a session (current Notebook)  |\n" % (m + " session save")
+        out += "| %s | Load a session (current Notebook)  |\n" % (m + " session load")
+        out += "| %s | Delete a session (current or Other Notebook)  |\n" % (m + " session delete")
+        out += "| %s | List Sessions (current Notebook add 'all' to see all sessions)  |\n" % (m + " session list")
+        out += "\n\n"
+
 
         return out
 
@@ -1068,6 +1170,8 @@ class Persist(Addon):
                     self.saveSession(line)
                 elif line.lower().find("session load") == 0:
                     self.loadSession(line)
+                elif line.lower().find("session delete") == 0:
+                    self.deleteSession(line)
                 elif line.lower().find("purge") == 0:
                     self.purgePersist(line)
                 elif line.lower().find("save") == 0:
