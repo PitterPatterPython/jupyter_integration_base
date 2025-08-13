@@ -1062,6 +1062,8 @@ class Persist(Addon):
                     jiu.displayMD(self.listSessions(line))
                 elif line.lower().find("session save") == 0:
                     self.saveSession(line)
+                elif line.lower().find("session load") == 0:
+                    self.loadSession(line)
                 elif line.lower().find("purge") == 0:
                     self.purgePersist(line)
                 elif line.lower().find("save") == 0:
