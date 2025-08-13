@@ -380,46 +380,7 @@ class Persist(Addon):
 
 
 
-    def lookupID(self, id):
-        retval = id
-        for x in self.persist_dict.keys():
-            if x.find(id) == 0:
-                retval = x
-                break
-        return retval
 
-
-    def loadPersistedDF(self, myid):
-        # Updated for arrow
-        mydf = None
-        myid = self.lookupID(myid)
-
-        if myid not in self.persist_dict.keys():
-            print("The id %s not found in currently persisted data" % myid)
-            mydf = None
-        else:
-            storage = self.retStorageMethod()
-            fname = myid + "." + storage
-            if not os.path.isfile(self.persisted_data_dir / fname):
-                if storage == 'parq':
-                    fname = myid + ".pkl"
-                    if os.path.isfile(self.persisted_data_dir / fname):
-                        storage = "pkl"
-                    else:
-                        print("ID found but storage file not found in parq or pkl - Error")
-                        return None
-                else:
-                    print("ID found by storage file not found in pkl - Error")
-                    return None
-            if storage == "pkl":
-                r = open(self.persisted_data_dir / fname, 'rb')
-                mydf = pickle.load(r)
-                r.close()
-            elif storage == "parq":
-                tmp_arrow = pq.read_table(self.persisted_data_dir / fname)
-                mydf = tmp_arrow.to_pandas()
-                tmp_arrow = None
-        return mydf
 
     def loadPersistedDict(self):
 
@@ -480,7 +441,162 @@ class Persist(Addon):
                         our_dfs[k] = v.shape
         return our_dfs
 
-    
+    def loadSession(self, line):
+        byolo = False
+
+        this_nb = self.getnbname()
+
+        if line.find("-yolo") >= 0:
+            byolo = True
+            line = line.replace("-yolo", "")
+
+        if this_nb is None:
+            print("Cannot determine notebook name - Not Loading")
+            return None
+
+        nb_sessions = self.session_dict.get(this_nb, [])
+        if len(nb_sessions) > 0:
+            nb_sessions = sorted(nb_sessions, key=lambda x: x['saved_time'], reverse=True)
+            if line.strip() == "":
+                load_sess_id = nb_sessions[0]['sess_id']
+                load_sess = nb_sessions[0]
+                line = f"current for notebook ({load_sess_id})"
+            else:
+                load_sess_id = None
+                for s in nb_sessions:
+                    if s['sess_id'] == line.strip():
+                        load_sess_id = s['sess_id']
+                        load_sess = s
+
+                if load_sess_id is None:
+                    print(f"The session you tried to load {line.strip()} does not exist in sessions for {nb_name}")
+                    return None
+        else:
+            print("No Sessions exist for this noteboook")
+            return None
+
+
+        out = ""
+        out += "## Dataframe Load\n"
+        out += "------------------\n"
+        out += "- Session Requested: {line.strip()}\n"
+        out += "- Yolo mode (Just load and clobber any existing dataframes with same name): {byolo}\n"
+        out += "- Date last saved: {load_sess['saved_time']}\n"
+        out += "- Total Size: {load_sess['total_space']}\n"
+        out += "- No. of Dataframes: {len(load_sess['saved_dfs'])}\n"
+        out += "\n\n"
+        out += "### Dataframes in Session\n"
+        out += "--------------\n"
+        out += "| Dataframe Name | Dataframe Name in Kernel |\n"
+        out += "| -------------- | ------------------------ |\n"
+
+        collision_potential = False
+        for k, v in load_sess['saved_dfs'].items():
+            k_in_ipy = k in self.ipy.user_ns
+            if k_in_ipy:
+                collision_potential = True
+            out += f"| {k} | {k_in_ipy} |\n"
+        out += "\n\n"
+
+        if collision_potential:
+            out += "**WARNING: There are names in the saved session already defined in kernel**\n"
+            out += "**Answering Yes will overwrite current kernel variables with saved session variables**\n"
+            out += "\n\n"
+
+        jiu.displayMD(out)
+        if not byolo:
+            do_you_yolo = input("Do you wish to load the session listed above? Type Yes: ")
+            if do_you_yolo.lower() == "yes":
+                byolo = True
+            else:
+                print("Session Load canceled!")
+                return None
+        print("Loading Dataframes: ")
+        for k, v in load_sess['saved_dfs'].items():
+            this_df = self.loadPersistedDF(v, sessionid=load_sess_id)
+            if this_df is None:
+                this_df_shape = "Error Loading"
+            else:
+                this_df_shape = this_df.shape
+                self.ipy.user_ns[k] = this_df
+            print(f"\t{k} -> {this_df_shape}")
+
+
+
+
+    def loadDF(self, line):
+        tline = line.replace("load", "").strip()
+        tar = tline.split(" ")
+        myid = tar[0].replace("id:", "").strip()
+        mydfstr = tar[1].strip()
+
+        if self.debug:
+            print("ID: %s" % myid)
+            print("Var: %s" % mydfstr)
+
+        if mydfstr in self.ipy.user_ns.keys() and self.ipy.user_ns[mydfstr] is not None:
+            print("Cannot load dataframe as %s because that variable exists and is not None in the namespace, please pick another" % mydfstr)
+        else:
+            tdf = self.loadPersistedDF(myid)
+            if tdf is not None:
+                self.ipy.user_ns[mydfstr] = tdf
+
+    #def lookupID(self, id):
+    #    retval = id
+    #    for x in self.persist_dict.keys():
+    #        if x.find(id) == 0:
+    #            retval = x
+    #            break
+    #    return retval
+
+
+
+    def loadPersistedDF(self, myid, sessionid=None):
+        # Updated for arrow
+        mydf = None
+        storage = self.retStorageMethod()
+
+#        myid = self.lookupID(myid)
+        if sessionid is None:
+            # First check for the ID in the persist dict
+            if myid not in self.persist_dict.keys():
+                print("The id %s not found in currently persisted data" % myid)
+                return None
+            else:
+                fname = myid + "." + storage
+                load_fname = self.persisted_data_dir / fname
+                if not os.path.isfile(load_fname): # Couldn't find store file
+                    if storage == 'parq': # If its parq at least check for a pkl
+                        fname = myid + ".pkl"
+                        if os.path.isfile(self.persisted_data_dir / fname): # Well I guess that ID got stored wrong, so lets do pkl
+                            storage = "pkl"
+                            load_fname = self.persisted_data_dir /fname
+                        else:
+                            print("ID found but storage file not found in parq or pkl - Error")
+                            return None
+                    else: # if already pkl, we don't check for parq
+                        print("ID found by storage file not found in pkl - Error")
+                        return None
+        else: # This is a Session Load
+            load_fname = self.session_data_dir / sessionid / myid + "." + storage
+            if not os.path.isfile(load_fname): # Can't find the file
+                if self.debug:
+                    print(f"Cannot find id {myid} in {session_id} - Skipping")
+                    return None
+
+        if storage == "pkl":
+            r = open(load_fname, 'rb')
+            mydf = pickle.load(r)
+            r.close()
+        elif storage == "parq":
+            tmp_arrow = pq.read_table(load_fname)
+            mydf = tmp_arrow.to_pandas()
+            tmp_arrow = None
+
+        return mydf
+
+
+
 
     def saveSession(self, line):
         byolo = False
@@ -699,7 +815,7 @@ class Persist(Addon):
             if conf == "-conf":
                 bConf = True
 
-        myid = self.lookupID(myid)
+        #myid = self.lookupID(myid)
         if myid not in self.persist_dict.keys():
             print("ID %s does not found in persisted data. Please review %persist list for currrently known persisted data")
         else:
@@ -790,7 +906,7 @@ class Persist(Addon):
         savetime = int(time.time())
 
         if id != "":
-            id = self.lookupID(self.lookupid(id))
+            #id = self.lookupID(self.lookupid(id))
             if id in self.persist_dict.keys():
                 if not bConf:
                     dval = input("ID %s already exists, please type confirm to confirm overwriting results: " % id)
@@ -820,23 +936,6 @@ class Persist(Addon):
             print("You tried to save a non dataframe, we only allow saving of dataframes")
         return None
 
-
-    def loadDF(self, line):
-        tline = line.replace("load", "").strip()
-        tar = tline.split(" ")
-        myid = tar[0].replace("id:", "").strip()
-        mydfstr = tar[1].strip()
-
-        if self.debug:
-            print("ID: %s" % myid)
-            print("Var: %s" % mydfstr)
-
-        if mydfstr in self.ipy.user_ns.keys() and self.ipy.user_ns[mydfstr] is not None:
-            print("Cannot load dataframe as %s because that variable exists and is not None in the namespace, please pick another" % mydfstr)
-        else:
-            tdf = self.loadPersistedDF(myid)
-            if tdf is not None:
-                self.ipy.user_ns[mydfstr] = tdf
 
 
 
