@@ -446,6 +446,8 @@ class Persist(Addon):
 
         this_nb = self.getnbname()
 
+        line = line.replace("session load", "")
+
         if line.find("-yolo") >= 0:
             byolo = True
             line = line.replace("-yolo", "")
@@ -469,7 +471,7 @@ class Persist(Addon):
                         load_sess = s
 
                 if load_sess_id is None:
-                    print(f"The session you tried to load {line.strip()} does not exist in sessions for {nb_name}")
+                    print(f"The session you tried to load {line.strip()} does not exist in sessions for {this_nb}")
                     return None
         else:
             print("No Sessions exist for this noteboook")
