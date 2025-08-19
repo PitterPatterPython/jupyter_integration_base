@@ -75,8 +75,10 @@ def load_fx_list_to_loaded_fx(fx_list, this_ipy=None, debug=False):
     for fx in fx_list:
         try:
             this_fx = lookup(fx)
-        except:
+        except Exception as e:
             this_fx = None
+            if debug:
+                print(f"Trying to load {fx} got error: {e}")
         if isfunction(this_fx) and this_fx.__doc__:
             this_doc = this_fx__doc__.strip()
             prob_sharedfx = False
