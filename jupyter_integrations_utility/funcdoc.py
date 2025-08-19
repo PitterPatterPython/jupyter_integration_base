@@ -7,7 +7,6 @@ import os
 import operator
 from inspect import isfunction
 import pandas as pd
-
 # This is the first helper loaded. It has to instantiate loaded_helpers, but if it exists, we want to leave it as is
 try:
     if not isinstance(loaded_helpers, list):
@@ -85,7 +84,7 @@ def load_fx_list_to_loaded_fx(fx_list, this_ipy=None):
                 except Exception as e:
                     print(f"For {fx}, it's probably a sharedfx and we have an error loading function docs: {e}")
                     this_func_doc = {"name": fx, "group": "load_errors", "desc": f"Error Loading Docs: {e}", "raw_docs": this_doc}
-                jiu.func_doc.load_doc_to_loaded_fx(this_func_doc, this_ipy=this_ipy)
+                load_doc_to_loaded_fx(this_func_doc, this_ipy=this_ipy)
 
 
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, magic_src=None, debug=False):
