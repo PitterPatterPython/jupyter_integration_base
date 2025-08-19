@@ -43,17 +43,15 @@ def function_doc_help(func_name=None, debug=False):
 
 
 
-def load_doc_to_loaded_fx(parsed_func):
-
-    this_name = parsed_func['name']
+def load_doc_to_loaded_fx(parsed_func, this_ipy=None):
     non_jlab = False
-    try: # This is to handle non-jupyter setups. The Try block assumes Jupyter Lab
-        ipy = get_ipython()
-        if "loaded_fx" not in ipy.user_ns:
-            ipy.user_ns["loaded_fx"] = {}
-    except:
+    this_name = parsed_func['name']
+    if this_ipy is not None:
+        my_ipy = this_ipy
+        if "loaded_fx" not in my_ipy.user_ns:
+            my_ipy.user_ns["loaded_fx"] = {}
+    else:
         non_jlab = True
-
     if non_jlab:
         # This doesn't appear to be jupyter lab, we will try to grab a global named loaded_fx and put it there, otherwise *shrug*
         global loaded_fx
@@ -62,15 +60,13 @@ def load_doc_to_loaded_fx(parsed_func):
         if isinstance(loaded_fx, dict):
             loaded_fx[this_name] = parsed_func
     else:
-        ipy.user_ns["loaded_fx"][this_name] = parsed_func
+        my_ipy.user_ns["loaded_fx"][this_name] = parsed_func
 
 
-def load_fx_list_to_loaded_fx(fx_list):
-    non_jlab = False
-    try:
-        ipy = get_ipython()
-        lookup = ipy.user_ns
-    except:
+def load_fx_list_to_loaded_fx(fx_list, this_ipy=None):
+    if this_ipy is not None:
+        lookup = this_ipy.user_ns
+    else:
         lookup = globals()
 
     for fx in fx_list:
@@ -89,7 +85,7 @@ def load_fx_list_to_loaded_fx(fx_list):
                 except Exception as e:
                     print(f"For {fx}, it's probably a sharedfx and we have an error loading function docs: {e}")
                     this_func_doc = {"name": fx, "group": "load_errors", "desc": f"Error Loading Docs: {e}", "raw_docs": this_doc}
-                jiu.func_doc.load_doc_to_loaded_fx(this_func_doc)
+                jiu.func_doc.load_doc_to_loaded_fx(this_func_doc, this_ipy=this_ipy)
 
 
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, magic_src=None, debug=False):
