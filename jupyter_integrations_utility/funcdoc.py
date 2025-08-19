@@ -74,7 +74,7 @@ def load_fx_list_to_loaded_fx(fx_list, this_ipy=None, debug=False):
 
     for fx in fx_list:
         try:
-            this_fx = lookup(fx)
+            this_fx = lookup[fx]
         except Exception as e:
             this_fx = None
             if debug:
