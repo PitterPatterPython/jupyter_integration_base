@@ -42,17 +42,21 @@ def function_doc_help(func_name=None, debug=False):
 
 
 
-def load_doc_to_loaded_fx(parsed_func, this_ipy=None, debug=False):
+def load_doc_to_loaded_fx(parsed_func, debug=False):
     non_jlab = False
     this_name = parsed_func['name']
-    if this_ipy is not None:
-        my_ipy = this_ipy
-        if "loaded_fx" not in my_ipy.user_ns:
-            if debug:
-                print("loaded_fx not found in my_ipy user_ns")
-            my_ipy.user_ns["loaded_fx"] = {}
-    else:
+
+    try:
+        ipy = get_ipython()
+    except:
+        # Probably not jupyter lab
         non_jlab = True
+
+    if not non_jlab:
+        if "loaded_fx" not in ipy.user_ns:
+            if debug:
+                print("loaded_fx not found in ipy user_ns")
+            ipy.user_ns["loaded_fx"] = {}
     if non_jlab:
         if debug:
             print("Appears to be non jupyter lab")
@@ -62,25 +66,34 @@ def load_doc_to_loaded_fx(parsed_func, this_ipy=None, debug=False):
             loaded_fx = {}
         if isinstance(loaded_fx, dict):
             loaded_fx[this_name] = parsed_func
+        else:
+            print(f"Could not work with loaded_fx in global space because its not a dict (its {type(loaded_fx)})")
     else:
-        my_ipy.user_ns["loaded_fx"][this_name] = parsed_func
+        ipy.user_ns["loaded_fx"][this_name] = parsed_func
 
 
-def load_fx_list_to_loaded_fx(fx_list, this_ipy=None, debug=False):
-    if this_ipy is not None:
-        lookup = this_ipy.user_ns
-    else:
+def load_fx_list_to_loaded_fx(fx_list,  debug=False):
+
+    non_jlab = False
+    try:
+        ipy = get_ipython()
+        lookup = ipy.user_ns
+    except:
+        # Probably not jupyter lab
         lookup = globals()
+        non_jlab = True
 
     for fx in fx_list:
         try:
             this_fx = lookup[fx]
+            this_doc = this_fx.__doc__.strip()
+
         except Exception as e:
             this_fx = None
+            this_doc = None
             if debug:
                 print(f"Trying to load {fx} got error: {e}")
-        if isfunction(this_fx) and this_fx.__doc__:
-            this_doc = this_fx__doc__.strip()
+        if isfunction(this_fx) and this_doc:
             prob_sharedfx = False
             if debug:
                 print(f"For {fx} prob_sharedfx: {prob_sharedfx}")
@@ -89,12 +102,10 @@ def load_fx_list_to_loaded_fx(fx_list, this_ipy=None, debug=False):
             if prob_sharedfx:
                 try:
                     this_func_doc = json.loads(this_doc)
-                    if debug:
-                        print("this_func_doc loaded")
                 except Exception as e:
                     print(f"For {fx}, it's probably a sharedfx and we have an error loading function docs: {e}")
                     this_func_doc = {"name": fx, "group": "load_errors", "desc": f"Error Loading Docs: {e}", "raw_docs": this_doc}
-                load_doc_to_loaded_fx(this_func_doc, this_ipy=this_ipy, debug=debug)
+                load_doc_to_loaded_fx(this_func_doc, debug=debug)
 
 
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, magic_src=None, debug=False):
