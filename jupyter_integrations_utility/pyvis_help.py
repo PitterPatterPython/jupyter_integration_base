@@ -16,7 +16,14 @@ import io
 from PIL import Image as pil_Image
 
 
-
+pyvis_file_fx = [
+                    "graph_pyvis_network",
+                    "node_or_edge_format",
+                    "add_transparency_from_png",
+                    "change_png_color",
+                    "display_icon_colors",
+                    "getcolor"
+                ]
 pyvis_icons = {
             "iphone": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAUBJREFUaEPtmV9OAkEMxn+Ip+AM+oByDg5gQPEAHsFEj8ArDyQQuQ5/jNcRSOM8bWTDtNnsTvLN0yY77fRrv3YmbY/CV69w+xGAtiOoCJQegRGwBO4gO59OwA8wA7ZeR0Qp9A3cew9Pcntg6NURBXB0eL5q6y9w2xYAo8F/awEMgHn6+QaML+w1J/S7BiDHHgHI8VZ1r1HoE/hwKjG597YpJACKgJO/JqYcUBIH6CMKpftD90CERapCqkIR/ugi+3vFqgpFWKQqJApF+KMqpCqU389UV6LigU5cZME6QGc7c2bYV0I3AW5K642uUu/f7Lbv5y4CqGuvr4GXZLR9Ty8AaLW9XjfgMHCbND94qqHQDnjwJlJ0wPGYRkw2pcnVZQ/BA/AK2JTGtXIPdR3SpJAANOnda3QrAtd4qck9xUfgDGo9bjFmvlucAAAAAElFTkSuQmCC",
             "phone": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAvJJREFUaEPtmUvITVEYhp+/3IpyGZj4MUAMDISBUorkmgyQcssEAwwYuJX+UsTAxEBRBiR3I+UyMGCAEgZGTAgl12JARPTW3rVb7X/tb+2z1tn/qbPrzN71fe+zrt9ap4cO/3o63D9dgKZHsDsCA3kElgGngXEek++AbcDNpkB8U+gt0GswJt0Egy6JxAfwCxhizDoc+GHURpX5AL4AY4zZJgJvjNqoMh/Aa0DGLN8s4KlFGFvjA3gGzDAm1IK/ZdRGlfkArgGrjNn6gENGbVSZD+AwcMCY7S6w0KiNKvMBbATOGbNpBxoN/Dbqo8l8AFOAlwGZpgEvAvRRpFW1kLbG8YZMP7PD7LNBG1VSBXAW2FSR8Q+wDrga1ZkxWBXAGuCKJ5bMbwAuG/NFl1UBDAPeA6NKMv8FNgPno7sKCFgFoFCngK1OzAFhXp4sALOBxw7AfuBoQEclk1oAlPwOsKjg4iEwF/iXzJkxsBVgHnDPibkauG7Mk0xmBZCB28DighMt7unA12TuDIFDAHQyPweGFuJeANYb8iSThADIhCrOg46b7cDJZA4rAocCqPcfADMLcVXAaYG7a6QtTKEAMjUJeAKMLDj8Dsxv4lZWB0C+tQOpxCi2/wgsAXSTs35jszL8Vd1SvC6ADO4GjjtOvwErjdNJdZbuGypXdJ94BNzPDs0PwCdA1a33taMVAHk/BuxxILQmdlUsbJnXDjbIMFTex7NWAdReJYULIV8XgR0l50SI+Zyv38ezVgHyBOpxTSc3ng67nYUTW2tHYJaedwen1GssACXTC8YZZ3fKTWhu3wCOAIMN06ZMkhxASfUQdgmYU9Okr1lbAGRAh53K7b3ZDhOLpW0AueHJwAlgaSSCtgPkvnVv2AcsN16g+uNtDCA3pPppC7A2O31DB6ZxgNyw1ohGYwWwwPjnSPJzILQ3i3oVh9q19LI3NSsW9Qqi3whAZYX+xip9/Y55DrQCUbttF6B210Vq2B2BSB1ZO0zHj8B/A55lMccROl4AAAAASUVORK5CYII=",
@@ -69,9 +76,11 @@ def graph_pyvis_network(nodes, edges, directed=False, out_file="pyvis_output.htm
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": ["Formatting happens outside of this function. "]
+         "limitations": ["Formatting happens outside of this function. "],
+         "group": "pyvis.General Graph",
+         "keywords": ["graph", "network", "pyvis"]
          }
-    """ 
+    """
 
 #mynet = Network(height="1000px", bgcolor="#222222", font_color="white", filter_menu=True, notebook=True)
 
@@ -133,7 +142,9 @@ def node_or_edge_format(srcnodeoredge, format_map=None, default_node_format={"co
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "pyvis.General Graph",
+         "keywords": ["graph", "network", "pyvis", "format"]
          }
     """
     nodeoredge = srcnodeoredge.copy()
@@ -187,7 +198,9 @@ def add_transparency_from_png(b64encoded_in):
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": ["Can happen with or without the data prefix for image tags"]
+         "limitations": ["Can happen with or without the data prefix for image tags"],
+         "group": "pyvis.Icons",
+         "keywords": ["pyvis", "icons"]
          }
     """
 
@@ -227,7 +240,9 @@ def change_png_color(b64_black_png, color):
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": ["Color must be in allowed colors list"]
+         "limitations": ["Color must be in allowed colors list"],
+         "group": "pyvis.Icons",
+         "keywords": ["pyvis", "icons", "color"]
          }
     """ 
 
@@ -288,7 +303,9 @@ def display_icon_colors(icons, colors=['black', 'red', 'green', 'blue']):
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": ["All is more like 'most']
+         "limitations": ["All is more like 'most'],
+         "group": "pyvis.Icons",
+         "keywords": ["pyvis", "icons", "color", "display"]
          }
     """ 
     if colors[0] == 'all':
@@ -330,7 +347,9 @@ def getcolor(incolor, myformat):
          "integration": "na",
          "instance": "na",
          "access_instructions": "",
-         "limitations": ["Color must be in allowed colors list"]
+         "limitations": ["Color must be in allowed colors list"],
+         "group": "pyvis.Icons",
+         "keywords": ["pyvis", "icons", "color"]
          }
     """
 

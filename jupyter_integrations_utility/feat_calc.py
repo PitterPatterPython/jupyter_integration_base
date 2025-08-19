@@ -5,6 +5,21 @@ import pandas as pd
 import inspect
 import numpy as np
 
+feat_file_fx = [
+                "reapply_all",
+                "ret_var_name",
+                "increase_date_window",
+                "feature_compare",
+                "apply_features",
+                "apply_custom_clauses",
+                "parse_custom_clause",
+                "ret_custom_clause_group",
+                "ret_custom_clause_desc",
+                "calculate_features",
+                "output_features",
+               ]
+
+
 def reapply_all(dfname="mydf", dfitem="zeropadded_accountnumber", featname="all_features", clausename="all_clauses", include_md=False):
     """ {"name": "reapply_all", 
          "desc": "Prints out the default reapply data for features and clauses",
@@ -20,7 +35,9 @@ def reapply_all(dfname="mydf", dfitem="zeropadded_accountnumber", featname="all_
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": []
+         "limitations": [],
+         "group": "features.Example",
+         "keywords": ["features", "example"]
         }
     """
 
@@ -48,7 +65,10 @@ def ret_var_name(var):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": []
+         "limitations": [],
+         "group": "features.Misc",
+         "keywords": ["features", "misc", "utility"]
+ 
         }
     """
 
@@ -69,7 +89,10 @@ def increase_date_window(dstart, dend, numdays):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": ["Format must by in %Y-%m-%d i.e. 2023-02-01 format"]
+         "limitations": ["Format must by in %Y-%m-%d i.e. 2023-02-01 format"],
+         "group": "features.Misc",
+         "keywords": ["features", "misc", "utility"]
+ 
          }
     """
     window_dstart = (datetime.datetime.strptime(dstart, "%Y-%m-%d") - datetime.timedelta(days=numdays)).strftime("%Y-%m-%d")
@@ -92,7 +115,10 @@ def feature_compare(df_list, df_label, feat_dict, clause_list, event_item):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": ["The df_label is portion of the dataframe name that will be removed. What is remaining becomes the prefix for the output columns"]
+         "limitations": ["The df_label is portion of the dataframe name that will be removed. What is remaining becomes the prefix for the output columns"],
+         "group": "features.Comparison",
+         "keywords": ["features", "compare", "assessment"]
+ 
         }
     """
 
@@ -156,7 +182,10 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, rerun_only=None, stop
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Application",
+         "keywords": ["features", "apply", "application"]
+ 
          }
     """
 
@@ -213,7 +242,10 @@ def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False,
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Application",
+         "keywords": ["features", "clauses", "application", "apply"]
+ 
          }
     """
 
@@ -284,7 +316,10 @@ def parse_custom_clause(cclause):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Utility",
+         "keywords": ["features", "utlity"]
+ 
          }
     """
     ret_items = []
@@ -313,7 +348,10 @@ def ret_custom_clause_group(cc, this_feat_dict):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": ["Only returns a group if all clauses are in the group, otherwise returns static Compound Groups"]
+         "limitations": ["Only returns a group if all clauses are in the group, otherwise returns static Compound Groups"],
+         "group": "features.Utility",
+         "keywords": ["features", "utility"]
+ 
          }
     """
 
@@ -344,7 +382,10 @@ def ret_custom_clause_desc(cc, this_feat_dict):
          "instance": "",
          "access_instructions": "",
          "dependent_functions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Utility",
+         "keywords": ["features", "utility"]
+ 
          }
     """
 
@@ -384,7 +425,10 @@ def calculate_features(event_df, feat_dict, event_item='cust_account', custom_cl
          "integration": "",
          "instance": "",
          "access_instructions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Application",
+         "keywords": ["features", "calculate"]
+ 
          }
     """
 
@@ -437,7 +481,9 @@ def output_features(feat_dict, custom_clauses=[], event_df=None, calc_features=T
          "integration": "",
          "instance": "",
          "access_instructions": "",
-         "limitations": [""]
+         "limitations": [""],
+         "group": "features.Output",
+         "keywords": ["features", "output"]
          }
     """
 

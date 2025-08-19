@@ -21,27 +21,7 @@ if load_name not in loaded_helpers:
 
 
 # NOTE: These functions are not to be called by users
-
-
-def function_doc_help(func_name=None, debug=False):
-    if debug:
-        print("Running with debug")
-
-    title = "Function Documentation Helpers"
-    help_func = "function_doc_help"
-    exp_func = "parse_docs"
-
-    doc_functions = {
-        "Display": [
-            "parse_docs"
-        ]
-    }
-
-
-    main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
-
-
-
+# Functions for new FX Shared Function Approach
 def load_doc_to_loaded_fx(parsed_func, debug=False):
     non_jlab = False
     this_name = parsed_func['name']
@@ -108,6 +88,168 @@ def load_fx_list_to_loaded_fx(fx_list,  debug=False):
                 load_doc_to_loaded_fx(this_func_doc, debug=debug)
 
 
+def main_help_fx(title, fx_root=None, file_fx_list=[], func_name=None, magic_src=None, debug=False):
+
+
+    ipy = get_ipython()
+    out_md = ""
+
+    if fx_root is None:
+        fx_root = ""
+
+    if func_name is not None:
+        if func_name == "basic":
+            # Display the file's basic "I've been loaded" TODO Handle pyvis and feat magic
+            if magic_src is None:
+                out_md += f"**{title} Include File Loaded**\n"
+                out_md += f"Type `%sharedfx fx_root` to see extended help and available functions/queries\n\n"
+            else:
+                out_md += f"**{title} magic %{magic_src} Loaded**\n"
+                out_md += f"Type `%{magic_src} functions` to see extended help and available functions/queries\n\n"
+
+        else:
+            # Display a specific function's docs
+            if func_name in ipy.user_ns and isfunction(ipy.user_ns[func_name]) and func_name in ipy.user_ns['loaded_fx']:
+                out_md = ret_parsed_docs_fx(func_name, debug=debug)
+            else:
+                out_md = f"Error in main_help_fx call: {func_name}"
+
+    else:
+        # Display a list of functions in a file based on group root. 
+
+        #TODO Remove magic_src and handle %feat and %pyvis sources
+        if magic_src is None:
+            out_md += f"# {title} Include File\n"
+        else:
+            out_md += f"# {title} magic %{magic_src}\n"
+        out_md += "--------------------\n"
+        out_md += "To view this help type:\n\n"
+        if magic_src is None:
+            out_md += f"%sharedfx {fx_root}`\n\n"
+        else:
+            out_md += f"`%{magic_src} functions`\n\n"
+
+
+        out_md += "\n"
+        out_md += "To view the help for a specific function type:\n\n"
+        if magic_src is None:
+            out_md += f"`%{sharedfx} <function_name>`\n\n"
+            out_md += "Example:\n\n"
+            out_md += f"`%{sharedfx} my_function`\n\n"
+        else:
+            out_md += f"`%{magic_src} functions <function_name>\n\n"
+            out_md += "Example:\n\n"
+            out_md += f"`%{magic_src} functions my_function`\n\n"
+
+        out_md += "\n"
+        out_md += "## Helper Categories\n"
+        out_md += "---------------------\n"
+
+        ipy = get_ipython()
+
+
+
+
+        for cat in file_fx_list:
+            out_md += f"### {cat}\n"
+            out_md += "-------------------------\n"
+            out_md += "| function | description | Default list_field | function loaded | query function |\n"
+            out_md += "| -------- | ----------- | ------------------- | --------------- | -------------- |\n"
+            for f in func_dict[cat]:
+                myQ = is_query_func(f, myglobals, debug=debug)
+                myFound = function_in_kernel(f, myglobals)
+                mylistfield = get_list_field(f, myglobals)
+                if myQ is None:
+                    myQ = ""
+                out_md += f"| {f} | {get_func_doc_item(f, 'desc', myglobals, debug=debug)} | {mylistfield} | {myFound} | {myQ} |\n"
+            out_md += "\n"
+        out_md += f"Type `%{magic_src} functions` to see extended help and available functions/queries\n\n"
+        display(Markdown(out_md))
+
+
+def is_query_func_fx(func_name):
+    bQueryFunc = False
+    doc_dict = ipy.user_ns["loaded_fx"].get(func_name, None)
+    if doc_dict is not None:
+        for a in doc_dict.get('args', []):
+            if a.get('name', "") == 'print_only':
+                bQueryFunc = True
+                break
+    return bQueryFunc
+
+def ret_parsed_docs_fx(func_name, debug=False):
+    out_md = ""
+
+    ipy = get_ipython()
+
+    bQueryFunc = False
+
+    if debug:
+        disp_err = True
+    else:
+        disp_err = False
+
+    # Get Doc Dict
+    doc_dict = ipy.user_ns["loaded_fx"].get(func_name, {})
+    # Check for it being a query function
+
+    if doc_dict is not None:
+        bQueryFunc = is_query_func_fx(func_name)
+
+
+        out_md += f"# {doc_dict['name']}\n"
+        out_md += "---------------\n"
+        if doc_dict['integration'] != 'na' and doc_dict['instance'] != 'na':
+            out_md += f"**Integration:** {doc_dict['integration']} - **Instance(s):** {doc_dict['instance']}\n\n" 
+            out_md += "--------------------\n"
+        out_md += f"**Description:** {doc_dict['desc']}\n\n"
+        out_md += f"**Returns:** {doc_dict['return']}\n\n"
+        if doc_dict['access_instructions'] != "na":
+            out_md += "------------------\n"
+            out_md += f"**Access Instructions:** {doc_dict['access_instructions']}\n\n"
+        if bQueryFunc is not None and bQueryFunc == True:
+            out_md += f"In addition to print_only, you can print the underlying query by typing: `{doc_dict['name']}([])` or `{doc_dict['name']}()`\n\n"
+        out_md += "------------------------\n"
+        if len(doc_dict['examples']) > 0:
+            out_md += "**Examples**\n\n"
+            out_md += "---------------------\n"
+            out_md += "| Example | Notes |\n"
+            out_md += "| ------- | ----- |\n"
+            for e in doc_dict['examples']:
+                ex = ""
+                nt = ""
+                if isinstance(e, list):
+                    ex = e[0]
+                    nt = e[1]
+                else:
+                    if e.find("#") >= 0:
+                        ex = e.split("#")[0]
+                        nt = e.split("#")[1]
+                    else:
+                        ex = e
+                        nt = "N/A"
+                out_md += f"| `{ex}` | {nt} |\n"
+            out_md += "\n"
+        out_md += "## Arguments\n"
+        out_md += "---------------------\n"
+        out_md += "| Arg | Req? | Default | Type | Description|\n"
+        out_md += "| --- | ---- | ------- | ---- | -----------|\n"
+        for a in doc_dict['args']:
+            out_md += f"| {a['name']} | {a['required']} | {a['default']} | {a['type']} | {a['desc']} |\n"
+        out_md  += "\n"
+
+        if len(doc_dict['limitations']) > 0:
+            out_md += "### Limitations and Notes\n"
+            out_md += "------------\n"
+            for l in doc_dict['limitations']:
+                out_md += f"- {l}\n"
+
+    return out_md
+
+
+
+
+########
 def main_help(title, help_func, func_dict, myglobals, exp_func="my_awesome_function", func_name=None, magic_src=None, debug=False):
 
 
@@ -329,3 +471,21 @@ def print_query(q, integ, inst, retval=False):
         return p_val
     else:
         print(f"\n%%{integ} {inst}\n{q}")
+
+
+def function_doc_help(func_name=None, debug=False):
+    if debug:
+        print("Running with debug")
+
+    title = "Function Documentation Helpers"
+    help_func = "function_doc_help"
+    exp_func = "parse_docs"
+
+    doc_functions = {
+        "Display": [
+            "parse_docs"
+        ]
+    }
+
+
+    main_help(title, help_func, doc_functions, globals(), exp_func=exp_func, func_name=func_name, debug=debug)
