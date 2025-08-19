@@ -133,9 +133,9 @@ def main_help_fx(title, fx_root=None, file_fx_list=[], func_name=None, magic_src
         out_md += "\n"
         out_md += "To view the help for a specific function type:\n\n"
         if magic_src is None:
-            out_md += f"`%{sharedfx} <function_name>`\n\n"
+            out_md += f"`%sharedfx <function_name>`\n\n"
             out_md += "Example:\n\n"
-            out_md += f"`%{sharedfx} my_function`\n\n"
+            out_md += f"`%sharedfx my_function`\n\n"
         else:
             out_md += f"`%{magic_src} functions <function_name>\n\n"
             out_md += "Example:\n\n"
