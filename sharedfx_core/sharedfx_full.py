@@ -91,7 +91,7 @@ class Sharedfx(Addon):
         else:
             self.cache_hash = None
 
-        if os.path.isFile(self.sharedfx_hash_file):
+        if os.path.isfile(self.sharedfx_hash_file):
             try:
                 self.sharedfx_hash = shared_hash_file.read_text(encoding="utf-8")
             except Exception as e:
