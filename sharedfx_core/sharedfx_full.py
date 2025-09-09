@@ -221,7 +221,8 @@ class Sharedfx(Addon):
             shared_path = None
 
         self.sharedfx_dir = shared_path
-        self.sharedfx_hash_file = self.sharedfx_dir / "func_hash.txt"
+        if shared_path is not None:
+            self.sharedfx_hash_file = self.sharedfx_dir / "func_hash.txt"
 
     def scan_include_file(self, shared_file_path):
         # This load an include file and parses all it's functions
