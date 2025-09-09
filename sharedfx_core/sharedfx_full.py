@@ -128,18 +128,23 @@ class Sharedfx(Addon):
         if full_reload:
             # Reload all Docs # Either the cache didn't exist, it didn't match, or there was an error loading it
             print(f"Full FX Doc Reload required due to lack of local cache or outdated local cache. This is slow, but should be rare!")
-            doc_index, doc_dups = self.load_all_shared_includes()
-            if len(doc_dups) > 0:
-                print(f"Shared Functions Loaded However the following functions are defined in several places (only first is loaded):")
-                for k, v in doc_dups.items():
-                    print(f"Loaded: {k} - {doc_index[k]['file_src']}")
-                    for i in v:
-                        print(f"   Dup: {k} - {i['file_src']} (Not Loaded)")
-            self.sharedfx_doc_index = doc_index
+            self.reloadFX()
             # Save Cache
             self.saveCacheFile()
             # Save Cached Hash
             self.saveHashFile(self.sharedfx_hash, self.cache_hash_file)
+
+    def reloadFX(self):
+        doc_index, doc_dups = self.load_all_shared_includes()
+        if len(doc_dups) > 0:
+            print(f"Shared Functions Loaded However the following functions are defined in several places (only first is loaded):")
+            for k, v in doc_dups.items():
+                print(f"Loaded: {k} - {doc_index[k]['file_src']}")
+                for i in v:
+                    print(f"   Dup: {k} - {i['file_src']} (Not Loaded)")
+        self.sharedfx_doc_index = doc_index
+
+
 
     def loadCacheFile(self):
         bCacheLoad = False
@@ -304,6 +309,7 @@ class Sharedfx(Addon):
         out += "Interacting with specfics parts of the shared function system\n\n"
         out += table_header
         out += f"| %{m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
+        out += f"| %{m} reloadfx | Reload the Functions Dir (Nice if Shared FX are updated and you don't want to reload kernel)|\n"
         out += f"| %{m} list | Show all documented functions handled by shared funcs |\n"
         out += f"| %{m} list modname | Show all documented functions in the 'modname' module |\n"
         out += f"| %{m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
@@ -331,6 +337,9 @@ class Sharedfx(Addon):
         line_split = line.strip().split(" ")
         if len(line_split) == 1:
             this_item = line_split[0]
+
+    
+
 
     def clearCache(self, reload_line):
         reload = True
@@ -368,12 +377,15 @@ class Sharedfx(Addon):
         if cell is None:
             line_handled = self.handleLine(line)
             if not line_handled: # We based on this we can do custom things for integrations.
-                if line.find("display") == 0:
-                    jiu.displayMD(self.displayFuncs(line.replace("display", "").strip()))
-                elif line.find("clearcache") == 0:
+                if line.lower().find("clearcache") == 0:
                     self.clearCache(line)
+                elif line.lower().find("reloadfx") == 0:
+                    self.load_fx_docs()
+                elif line.find("display") == 0:
+                    jiu.displayMD(self.displayFuncs(line.replace("display", "").strip()))
+
                 else:
-                    print("Unknown line magic for funcs")
+                    print("Unknown line magic for sharedfx")
         else: # This is a cell (or a cell + line) call
             jiu.displayMD(self.handleSearch(line, cell))
 
