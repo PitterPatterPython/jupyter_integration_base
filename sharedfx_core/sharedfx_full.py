@@ -79,10 +79,6 @@ class Sharedfx(Addon):
 
     def load_fx_docs(self):
         # Load the docs (whether from cache or direct)
-        cache_hash_file = self.sharedfx_dir / "func_hash.txt"
-        cache_file = self.sharedfx_dir / "func_cache.pkl"
-
-        shared_hash_file = self.sharedfx_shared_dir / "func_hash.txt"
 
         full_reload = False
 
