@@ -253,8 +253,9 @@ class Sharedfx(Addon):
                         func_name = meta.get("name", None)
                         func_group = meta.get("group", None)
                         if func_group is None:
-                            meta['group'] = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
+                            meta['group'] = "No Group"
                         meta['file_src'] = str(shared_file_path)
+                        meta['file_group'] = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
                         if func_name not in out_dict:
                             out_dict[func_name] = meta
                         else:
