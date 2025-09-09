@@ -20,6 +20,8 @@ import jupyter_integrations_utility as jiu
 import jupyter_integrations_utility.funcdoc
 from jupyter_integrations_utility.pyvis_help import *
 
+
+
 from addon_core import Addon
 
 @magics_class
@@ -45,6 +47,8 @@ class Pyvis(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
+
+        this_file_fx = pyvis_file_fx
 
         self.ipy.ex("from jupyter_integrations_utility.pyvis_help import *\n")
 
@@ -106,7 +110,6 @@ class Pyvis(Addon):
             "display_icon_colors",
             "add_transparency_from_png",
             "change_png_color",
-            "node_or_edge_format",
             "getcolor"
         ]
         }

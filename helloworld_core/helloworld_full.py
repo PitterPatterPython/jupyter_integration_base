@@ -38,6 +38,7 @@ class Helloworld(Addon):
         "profile",
         "pyvis",
 #        "sharedfunc",
+        "sharedfx",
         "updater",
         "vis"
     ]

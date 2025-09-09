@@ -268,7 +268,7 @@ class Persist(Addon):
             else:
                 pass
         else:
-            print("Shared Locatio not set - Please set via persist_shared_dir or via ENV variable JUPYTER_PERSIST_SHARED_DIR")
+            print("Shared Location not set - Please set via persist_shared_dir or via ENV variable JUPYTER_PERSIST_SHARED_DIR")
             shared_path = None
         return shared_path
 

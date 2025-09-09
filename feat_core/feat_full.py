@@ -44,6 +44,7 @@ class Feat(Addon):
         for k in self.myopts.keys():
             self.opts[k] = self.myopts[k]
         self.load_env(self.custom_evars)
+        this_file_fx = feat_file_fx
 
         self.ipy.ex("from jupyter_integrations_utility.feat_calc import *\n")
 
