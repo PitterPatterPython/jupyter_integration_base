@@ -108,10 +108,10 @@ class Sharedfx(Addon):
             print(f"Shared Functions Not Loaded")
             return None
 
-        if  self.cached_hash is None:
+        if  self.cache_hash is None:
             full_reload = True # No Cache, need to read everything
         else:
-            if self.sharedfx_hash != self.cached_hash:
+            if self.sharedfx_hash != self.cache_hash:
                 full_reload = True # Hashes don't match, need to reload index
             else:
                 bCache = self.loadCacheFile() # Load from Cache!
