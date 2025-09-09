@@ -139,7 +139,7 @@ class Sharedfx(Addon):
         bCacheLoad = False
         try:
             if os.path.isfile(self.cache_file):
-                with open(self.session_dict_pkl, 'rb') as r:
+                with open(self.cache_file, 'rb') as r:
                     self.sharedfx_doc_index = pickle.load(r)
                 bCacheLoad = True
         except Exception as e:
