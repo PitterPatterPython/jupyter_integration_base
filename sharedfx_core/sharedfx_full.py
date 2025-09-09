@@ -239,11 +239,13 @@ class Sharedfx(Addon):
         out_dict = {}
         src = shared_file_path.read_text(encoding='utf-8')
         tree = ast.parse(src, filename=str(shared_file_path))
+
+        file_group = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
         for node in tree.body:
             if isinstance(node, ast.FunctionDef):
                 doc = ast.get_docstring(node, clean=False)
                 if not doc:
-                    out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_src": str(shared_file_path), "desc": "No doc strings"}
+                    out_dict[node.name] = {"name": node.name, "file_group": file_group, "group": "Unparse", "file_src": str(shared_file_path), "desc": "No doc strings"}
                     if self.debug:
                         print(f"No docs: {node.name}")
                         continue
@@ -255,7 +257,7 @@ class Sharedfx(Addon):
                         if func_group is None:
                             meta['group'] = "No Group"
                         meta['file_src'] = str(shared_file_path)
-                        meta['file_group'] = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
+                        meta['file_group'] = file_group
                         if func_name not in out_dict:
                             out_dict[func_name] = meta
                         else:
@@ -263,11 +265,11 @@ class Sharedfx(Addon):
                     else:
                         if self.debug:
                             print("No 'name' found at the beginning of doc strings in {node.name}")
-                            out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_src": str(shared_file_path), "desc": "Non-compatible Docstrings"}
+                            out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": "Non-compatible Docstrings"}
                 except Exception as e:
                     if self.debug:
                         print(f"Error parsing docstring for {node.name}: {str(e)}")
-                    out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_src": str(shared_file_path), "desc": f"Exception Parsing: {str(e)}"}
+                    out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": f"Exception Parsing: {str(e)}"}
         return out_dict
 
 
