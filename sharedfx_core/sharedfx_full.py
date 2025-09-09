@@ -84,7 +84,7 @@ class Sharedfx(Addon):
 
         if self.cache_hash_file is not None and os.path.isfile(self.cache_hash_file):
             try:
-                self.cache_hash = cache_hash_file.read_text(encoding="utf-8")
+                self.cache_hash = self.cache_hash_file.read_text(encoding="utf-8")
             except Exception as e:
                 print(f"Error reading cached shared fx hash file at {self.cache_hash_file} - {e}")
                 self.cache_hash = None
