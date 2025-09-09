@@ -303,8 +303,7 @@ class Sharedfx(Addon):
         out += "---------------\n"
         out += "Interacting with specfics parts of the shared function system\n\n"
         out += table_header
-        out += f"| %{m} mods | List the requested modules, and their relavent information including import status |\n"
-        out += f"| %{m} imports | Show the actual import lines (in the next cell) for the successfully imported modules |\n"
+        out += f"| %{m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
         out += f"| %{m} list | Show all documented functions handled by shared funcs |\n"
         out += f"| %{m} list modname | Show all documented functions in the 'modname' module |\n"
         out += f"| %{m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
@@ -333,6 +332,31 @@ class Sharedfx(Addon):
         if len(line_split) == 1:
             this_item = line_split[0]
 
+    def clearCache(self, reload_line):
+        reload = True
+        if reload_line.find("noreload") >= 0:
+            reload=False
+
+        print(f"Clearing Cache")
+        print(f"Removine Cache File")
+        try:
+            os.remove(self.cache_file)
+            self.cache_file = None
+        except Exception as e:
+            print(f"Cache File removal error: {e}")
+        print(f"Removing Cache Hash File")
+        try:
+            os.remove(self.cache_hash_file)
+            self.cache_hash_file = None
+            self.cache_hash = None
+        except Exception as e:
+            print(f"Cache Hash File Removal error: {e}")
+        if reload:
+            print(f"Reloading Cache")
+            self.setAddonPath()
+            self.load_fx_docs()
+        else:
+            print("No reload - Things could get weird")
 
     # This is the magic name.
     @line_cell_magic
@@ -346,6 +370,8 @@ class Sharedfx(Addon):
             if not line_handled: # We based on this we can do custom things for integrations.
                 if line.find("display") == 0:
                     jiu.displayMD(self.displayFuncs(line.replace("display", "").strip()))
+                elif line.find("clearcache") == 0:
+                    self.clearCache(line)
                 else:
                     print("Unknown line magic for funcs")
         else: # This is a cell (or a cell + line) call
