@@ -82,7 +82,7 @@ class Sharedfx(Addon):
 
         full_reload = False
 
-        if self.cache_hash_File is not None and os.path.isfile(self.cache_hash_file):
+        if self.cache_hash_file is not None and os.path.isfile(self.cache_hash_file):
             try:
                 self.cache_hash = cache_hash_file.read_text(encoding="utf-8")
             except Exception as e:
