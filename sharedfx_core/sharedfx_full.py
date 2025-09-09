@@ -126,9 +126,9 @@ class Sharedfx(Addon):
             if len(doc_dups) > 0:
                 print(f"Shared Functions Loaded However the following functions are defined in several places (only first is loaded):")
                 for k, v in doc_dups.items():
-                    print("Loaded: {k} - {doc_index[k]['file_src']")
+                    print(f"Loaded: {k} - {doc_index[k]['file_src']")
                     for i in v:
-                        print("   Dup: {k} - {i['file_src']} (Not Loaded)")
+                        print(f"   Dup: {k} - {i['file_src']} (Not Loaded)")
             self.sharedfx_doc_index = doc_index
             # Save Cache
             self.saveCacheFile()
@@ -198,6 +198,8 @@ class Sharedfx(Addon):
         if self.debug:
             print(tpdir)
         self.cache_dir = tpdir
+        if not os.path.isdir(self.cache_dir):
+            os.makedirs(self.cache_dir)
         self.cache_hash_file = self.cache_dir / "func_hash.txt"
         self.cache_file = self.cache_dir / "func_cache.pkl"
 
