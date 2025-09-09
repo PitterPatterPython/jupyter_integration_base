@@ -56,7 +56,7 @@ class Sharedfx(Addon):
     cache_file = None
     cache_hash = None
 
-    sharedfx_docs_index = {}
+    sharedfx_doc_index = {}
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
         super(Sharedfx, self).__init__(shell, debug=debug)
@@ -150,7 +150,7 @@ class Sharedfx(Addon):
     def saveCacheFile(self):
         try:
             with open(self.cache_file, 'wb') as f:
-                pickle.dump(self.sharedfx_docs_index, f, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self.sharedfx_doc_index, f, protocol=pickle.HIGHEST_PROTOCOL)
         except Exception as e:
             print(f"Error Saving Index to Cache File - {e}")
 
