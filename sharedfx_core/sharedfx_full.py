@@ -114,10 +114,16 @@ class Sharedfx(Addon):
             if self.sharedfx_hash != self.cache_hash:
                 full_reload = True # Hashes don't match, need to reload index
             else:
+                if self.debug:
+                    print("Loading Cache")
                 bCache = self.loadCacheFile() # Load from Cache!
+
                 if not bCache:      # We asked to load from cache, but it didn't work. Doing full Reload
                     full_reload = True
                     print(f"Cache Load requested and Failed - Loading Index from SharedFX dir (Slow!)")
+                else:
+                    if self.debug:
+                        print(f"Cache loaded with {len(self.sharedfx_doc_index)} items")
 
         if full_reload:
             # Reload all Docs # Either the cache didn't exist, it didn't match, or there was an error loading it
