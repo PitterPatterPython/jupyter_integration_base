@@ -206,7 +206,7 @@ class Sharedfx(Addon):
         shared_path = None
         shared_dir = self.opts['sharedfx_shared_dir'][0]
         if shared_dir != '':
-            shared_path = pathlib.Path(shared_dir)
+            shared_path = Path(shared_dir)
             if not os.path.isdir(shared_path):
                 print("****** WARNING")
                 print(f"Shared Function Directory Path: {shared_path} is not a valid directory  - SHARED OPERATIONS DISABLED")
