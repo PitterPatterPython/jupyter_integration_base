@@ -3,7 +3,7 @@
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
 from sharedfunc_core._version import __desc__
 @magics_class
-class SharedFX(Magics):
+class Sharedfx(Magics):
     # Static Variables
     # The name of the integration
     name_str = "sharedfx"
@@ -14,7 +14,7 @@ class SharedFX(Magics):
 
 
     def __init__(self, shell, debug=False, *args, **kwargs):
-        super(SharedFX, self).__init__(shell, debug=debug)
+        super(Sharedfx, self).__init__(shell, debug=debug)
         self.debug = debug
 
         # Check namespace for integration and addon dicts

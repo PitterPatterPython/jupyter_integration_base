@@ -27,7 +27,7 @@ from sharedfx_core._version import __desc__
 from addon_core import Addon
 
 @magics_class
-class SharedFX(Addon):
+class Sharedfx(Addon):
     # Static Variables
     magic_name = "sharedfx"
     name_str = "sharedfx"
@@ -59,7 +59,7 @@ class SharedFX(Addon):
     sharedfx_docs_index = {}
 
     def __init__(self, shell, debug=False,  *args, **kwargs):
-        super(SharedFX, self).__init__(shell, debug=debug)
+        super(Sharedfx, self).__init__(shell, debug=debug)
         self.debug = debug
 
         for k in self.myopts.keys():
