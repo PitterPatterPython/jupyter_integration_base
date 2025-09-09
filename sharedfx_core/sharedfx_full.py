@@ -126,7 +126,7 @@ class Sharedfx(Addon):
             if len(doc_dups) > 0:
                 print(f"Shared Functions Loaded However the following functions are defined in several places (only first is loaded):")
                 for k, v in doc_dups.items():
-                    print(f"Loaded: {k} - {doc_index[k]['file_src']")
+                    print(f"Loaded: {k} - {doc_index[k]['file_src']}")
                     for i in v:
                         print(f"   Dup: {k} - {i['file_src']} (Not Loaded)")
             self.sharedfx_doc_index = doc_index
