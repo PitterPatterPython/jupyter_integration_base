@@ -99,8 +99,9 @@ class Sharedfx(Addon):
                 self.sharedfx_hash = None
         else:
             # Since this doesn't exist, we are going to create it
-            self.sharedfx_hash = self.hashSharedLocation()
-            self.saveHashFile(self.sharedfx_hash, self.sharedfx_hash_file)
+            if self.sharedfx_hash_file is not None:
+                self.sharedfx_hash = self.hashSharedLocation()
+                self.saveHashFile(self.sharedfx_hash, self.sharedfx_hash_file)
 
         if self.sharedfx_hash is None:
             print(f"Could not load Shared FX Location at {self.sharedfx_dir}")
