@@ -545,13 +545,13 @@ class Persist(Addon):
             if tdf is not None:
                 self.ipy.user_ns[mydfstr] = tdf
 
-    #def lookupID(self, id):
-    #    retval = id
-    #    for x in self.persist_dict.keys():
-    #        if x.find(id) == 0:
-    #            retval = x
-    #            break
-    #    return retval
+    def lookupID(self, id):
+        retval = id
+        for x in self.persist_dict.keys():
+            if x.find(id) == 0:
+                retval = x
+                break
+        return retval
 
 
 
@@ -560,7 +560,7 @@ class Persist(Addon):
         mydf = None
         storage = self.retStorageMethod()
 
-#        myid = self.lookupID(myid)
+        myid = self.lookupID(myid)
         if sessionid is None:
             # First check for the ID in the persist dict
             if myid not in self.persist_dict.keys():
