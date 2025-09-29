@@ -136,9 +136,20 @@ class Sharedfx(Addon):
 
     def reloadFX(self):
         doc_index, doc_dups = self.load_all_shared_includes()
-        if len(doc_dups) > 0:
+        ignore_list = ['get_doc']
+
+        doc_dups_final = {}
+        if not debug:
+            for k, v in doc_dups:
+                if k not in ignore_list:
+                    doc_dups_final[k] = v
+        else:
+            doc_dups_final = doc_dups
+
+
+        if len(doc_dups_final) > 0:
             print(f"Shared Functions Loaded However the following functions are defined in several places (only first is loaded):")
-            for k, v in doc_dups.items():
+            for k, v in doc_dups_final.items():
                 print(f"Loaded: {k} - {doc_index[k]['file_src']}")
                 for i in v:
                     print(f"   Dup: {k} - {i['file_src']} (Not Loaded)")
