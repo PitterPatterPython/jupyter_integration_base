@@ -21,8 +21,15 @@ import pandas as pd
 # Widgets
 from ipywidgets import GridspecLayout, widgets
 import jupyter_integrations_utility as jiu
+
+from jupyter_integrations_utility.funcdoc import print_query, get_func_doc_item, main_help
+
+
+
 import importlib
 from sharedfx_core._version import __desc__
+
+
 
 from addon_core import Addon
 
@@ -347,12 +354,95 @@ class Sharedfx(Addon):
         self.loaded_fx = self.ipy.user_ns.get("loaded_fx", {})
 
 
-    def FXLine(self, line):
-        line_split = line.strip().split(" ")
-        if len(line_split) == 1:
-            this_item = line_split[0]
+    def fq(self, line):
+        this_func = line.replace("fq ", "").replace("display ", "").strip()
+        func_md = self.formatFXDocs(this_func)
+        return func_md
 
-    
+    def isQueryFunc(self, func_name):
+        bQueryFunc = False
+        doc_dict = self.sharedfx_doc_index.get(func_name, None)
+
+        if doc_dict is not None:
+            for a in doc_dict.get('args', []):
+                if a.get('name', "") == 'print_only':
+                    bQueryFunc = True
+                    break
+        return bQueryFunc
+
+
+    def formatFXDocs(self, func_name):
+        out_md = ""
+
+        bQueryFunc = False
+
+    # Get Doc Dict
+        doc_dict = self.sharedfx_doc_index.get(func_name, None)
+
+
+    # Check for it being a query function
+
+        if doc_dict is not None:
+
+            bQueryFunc = self.isQueryFunc(func_name)
+            out_md += f"# {doc_dict['name']}\n"
+            out_md += f"From {doc_dict['file_group']}\n"
+            out_md += "---------------\n"
+
+            if doc_dict['integration'] != 'na' and doc_dict['instance'] != 'na':
+                out_md += f"**Integration:** {doc_dict['integration']} - **Instance(s):** {doc_dict['instance']}\n\n"
+                out_md += "--------------------\n"
+
+            out_md += f"**Description:** {doc_dict['desc']}\n\n"
+            out_md += f"**Returns:** {doc_dict['return']}\n\n"
+
+            if doc_dict['access_instructions'] != "na":
+                out_md += "------------------\n"
+                out_md += f"**Access Instructions:** {doc_dict['access_instructions']}\n\n"
+
+            if bQueryFunc == True:
+                out_md += f"In addition to print_only, you can print the underlying query by typing: `{doc_dict['name']}([])` or `{doc_dict['name']}()`\n\n"
+
+            out_md += "------------------------\n"
+            if len(doc_dict['examples']) > 0:
+                out_md += "**Examples**\n\n"
+                out_md += "---------------------\n"
+                out_md += "| Example | Notes |\n"
+                out_md += "| ------- | ----- |\n"
+                for e in doc_dict['examples']:
+                    ex = ""
+                    nt = ""
+                    if isinstance(e, list):
+                        ex = e[0]
+                        nt = e[1]
+                    else:
+                        if e.find("#") >= 0:
+                            ex = e.split("#")[0]
+                            nt = e.split("#")[1]
+                        else:
+                            ex = e
+                            nt = "N/A"
+                    out_md += f"| `{ex}` | {nt} |\n"
+                out_md += "\n"
+
+
+            out_md += "## Arguments\n"
+            out_md += "---------------------\n"
+            out_md += "| Arg | Req? | Default | Type | Description|\n"
+            out_md += "| --- | ---- | ------- | ---- | -----------|\n"
+            for a in doc_dict['args']:
+                out_md += f"| {a['name']} | {a['required']} | {a['default']} | {a['type']} | {a['desc']} |\n"
+            out_md  += "\n"
+
+            if len(doc_dict['limitations']) > 0:
+                out_md += "### Limitations and Notes\n"
+                out_md += "------------\n"
+                for l in doc_dict['limitations']:
+                    out_md += f"- {l}\n"
+        else:
+            out_md = f"Function {func_name} not found in doc index"
+        return out_md
+
 
 
     def clearCache(self, reload_line):
@@ -395,8 +485,8 @@ class Sharedfx(Addon):
                     self.clearCache(line)
                 elif line.lower().find("reloadfx") == 0:
                     self.load_fx_docs()
-                elif line.find("display") == 0:
-                    jiu.displayMD(self.displayFuncs(line.replace("display", "").strip()))
+                elif line.find("display") == 0 or line.find("fq") == 0:
+                    jiu.displayMD(self.fq(line))
 
                 else:
                     print("Unknown line magic for sharedfx")
