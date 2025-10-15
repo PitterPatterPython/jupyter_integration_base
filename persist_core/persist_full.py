@@ -414,6 +414,7 @@ class Persist(Addon):
             r.close()
         else:
             self.persist_dict = {}
+            self.savePersisted()
 
         if os.path.isfile(self.session_dict_pkl):
             self.session_dict_md5 = self.getPersistDictMD5()
@@ -422,6 +423,11 @@ class Persist(Addon):
             r.close()
         else:
             self.session_dict = {}
+            f = open(self.session_dict_pkl, 'wb')
+            # TODO Handle Merges
+            pickle.dump(self.session_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.close()
+
 
         if self.debug:
             print(self.persist_dict)

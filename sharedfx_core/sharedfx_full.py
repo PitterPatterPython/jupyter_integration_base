@@ -163,6 +163,13 @@ class Sharedfx(Addon):
         self.sharedfx_doc_index = doc_index
 
 
+    def calculaterGroups(self):
+        
+        for k, v in self.sharedfx_doc_index.items():
+            file_group = v.get("file_grp", "")
+
+
+
 
     def loadCacheFile(self):
         bCacheLoad = False
@@ -385,8 +392,9 @@ class Sharedfx(Addon):
         if doc_dict is not None:
 
             bQueryFunc = self.isQueryFunc(func_name)
-            out_md += f"# {doc_dict['name']}\n"
+            out_md += f"# {doc_dict['name']}\n\n"
             out_md += f"From {doc_dict['file_group']}\n"
+            out_md += f"{doc_dict['file_src']}\n\n"
             out_md += "---------------\n"
 
             if doc_dict['integration'] != 'na' and doc_dict['instance'] != 'na':
