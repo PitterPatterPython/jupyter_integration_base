@@ -84,6 +84,44 @@ class Sharedfx(Addon):
         self.load_fx_docs()
 
 
+    def setAddonPath(self):
+        tstorloc = self.opts['sharedfx_addon_dir'][0]
+        if tstorloc[0] == "~":
+            myhome = jiu.getHome(debug=self.debug)
+            thome = tstorloc.replace("~", myhome)
+            if self.debug:
+                print(thome)
+            tpdir = Path(thome)
+        else:
+            tpdir = Path(tstorloc)
+        if self.debug:
+            print(tpdir)
+        self.cache_dir = tpdir
+        if not os.path.isdir(self.cache_dir):
+            os.makedirs(self.cache_dir)
+        self.cache_hash_file = self.cache_dir / "func_hash.txt"
+        self.cache_file = self.cache_dir / "func_cache.pkl"
+
+    def setSharedPath(self):
+        shared_path = None
+        shared_dir = self.opts['sharedfx_shared_dir'][0]
+        if shared_dir != '':
+            shared_path = Path(shared_dir)
+            if not os.path.isdir(shared_path):
+                print("****** WARNING")
+                print(f"Shared Function Directory Path: {shared_path} is not a valid directory  - SHARED OPERATIONS DISABLED")
+                shared_path = None
+            else:
+                shared_dir = Path(shared_dir)
+        else:
+            print("Shared Location not set - Please set via persist_shared_dir or via ENV variable JUPYTER_PERSIST_SHARED_DIR")
+            shared_path = None
+
+        self.sharedfx_dir = shared_path
+        if shared_path is not None:
+            self.sharedfx_hash_file = self.sharedfx_dir / "func_hash.txt"
+
+
     def load_fx_docs(self):
         # Load the docs (whether from cache or direct)
 
@@ -147,7 +185,7 @@ class Sharedfx(Addon):
 
         doc_dups_final = {}
         if not self.debug:
-            for k, v in doc_dups:
+            for k, v in doc_dups.items():
                 if k not in ignore_list:
                     doc_dups_final[k] = v
         else:
@@ -221,43 +259,7 @@ class Sharedfx(Addon):
         final_hash = ho.hexdigest()
         return final_hash
 
-    def setAddonPath(self):
-        tstorloc = self.opts['sharedfx_addon_dir'][0]
-        if tstorloc[0] == "~":
-            myhome = jiu.getHome(debug=self.debug)
-            thome = tstorloc.replace("~", myhome)
-            if self.debug:
-                print(thome)
-            tpdir = Path(thome)
-        else:
-            tpdir = Path(tstorloc)
-        if self.debug:
-            print(tpdir)
-        self.cache_dir = tpdir
-        if not os.path.isdir(self.cache_dir):
-            os.makedirs(self.cache_dir)
-        self.cache_hash_file = self.cache_dir / "func_hash.txt"
-        self.cache_file = self.cache_dir / "func_cache.pkl"
 
-
-    def setSharedPath(self):
-        shared_path = None
-        shared_dir = self.opts['sharedfx_shared_dir'][0]
-        if shared_dir != '':
-            shared_path = Path(shared_dir)
-            if not os.path.isdir(shared_path):
-                print("****** WARNING")
-                print(f"Shared Function Directory Path: {shared_path} is not a valid directory  - SHARED OPERATIONS DISABLED")
-                shared_path = None
-            else:
-                shared_dir = Path(shared_dir)
-        else:
-            print("Shared Location not set - Please set via persist_shared_dir or via ENV variable JUPYTER_PERSIST_SHARED_DIR")
-            shared_path = None
-
-        self.sharedfx_dir = shared_path
-        if shared_path is not None:
-            self.sharedfx_hash_file = self.sharedfx_dir / "func_hash.txt"
 
     def scan_include_file(self, shared_file_path):
         # This load an include file and parses all it's functions
