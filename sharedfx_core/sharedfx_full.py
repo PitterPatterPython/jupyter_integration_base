@@ -146,7 +146,7 @@ class Sharedfx(Addon):
         ignore_list = ['get_doc']
 
         doc_dups_final = {}
-        if not debug:
+        if not self.debug:
             for k, v in doc_dups:
                 if k not in ignore_list:
                     doc_dups_final[k] = v
