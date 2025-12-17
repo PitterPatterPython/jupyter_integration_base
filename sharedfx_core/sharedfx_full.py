@@ -649,7 +649,7 @@ class Sharedfx(Addon):
         output = {"results": results}
 
         if enable_suggestions and not results:
-            output["did_you_mean"] = suggest_terms(query, vocabulary)
+            output["did_you_mean"] = self.suggest_terms(query, vocabulary)
 
         return output
 
@@ -692,13 +692,21 @@ class Sharedfx(Addon):
         table_header =  "| Score | Function | Description | Group | Matched On | Source File |\n"
         table_header += "| ----- | -------- | ----------  | ----- | ---------- | ----------- |\n"
 
+
+        results = hits.get('results', None)
         out = f"** Search Results for {search_term} **\n"
         out += "---------------\n\n"
-        out += table_header
-        for hit in hits['results']:
-            out += f"| {hit['score']} | fq({hit['name']}) | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
 
-
+        if results is not None:
+            out += table_header
+            for hit in results:
+                out += f"| {hit['score']} | fq({hit['name']}) | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
+        else:
+            dym = hits.get('did_you_mean', None)
+            if dym is not None:
+                out += f"No results, but did you mean: {dym}\n\n"
+            else:
+                out += "No Results\n\n"
         jiu.displayMD(out)
 
 
