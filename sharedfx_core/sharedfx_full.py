@@ -179,6 +179,60 @@ class Sharedfx(Addon):
             # Save Cached Hash
             self.saveHashFile(self.sharedfx_hash, self.cache_hash_file)
 
+## End Init Functions
+
+
+
+    def calculaterGroups(self):
+
+        for k, v in self.sharedfx_doc_index.items():
+            file_group = v.get("file_grp", "")
+
+
+#### Integrations required items
+    def retCustomDesc(self):
+        return __desc__
+
+
+    def customHelp(self, curout):
+        n = self.magic_name
+        m = "%" + n
+        mq = "%" + m
+
+        table_header = "| Magic | Description |\n"
+        table_header += "| -------- | ----- |\n"
+
+        out = curout
+
+        out += f"## {n} usage\n"
+        out += "---------------\n"
+        out += "\n"
+        out += f"### {m} line magic\n"
+        out += "---------------\n"
+        out += "Interacting with specfics parts of the shared function system\n\n"
+        out += table_header
+        out += f"| {m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
+        out += f"| {m} reloadfx | Reload the Functions Dir (Nice if Shared FX are updated and you don't want to reload kernel)|\n"
+        out += f"| {m} display `fxname` | Show documentation on a specific function `fxname` |\n"
+        out += f"| {m} fq `fxname` | Same as display, but shorter (Thank you Bryant) Show documentation on a specific function `fxname` |\n"
+
+
+
+#        out += f"| {m} list modname | Show all documented functions in the 'modname' module |\n"
+#        out += f"| {m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
+        out += "\n\n"
+       # out += "### %s cell magic\n" % (mq)
+       # out += "-------------------\n"
+       # out += "Running searches and obtaining results back from the shared function system\n\n"
+       # out += table_header
+       # out += "| %s | 'scope' is the search scope (name, kw, desc, author) (can provide multiple, leave blank for all) and the 'query' are the keywords searched |\n" % (mq + " scope<br>query")
+       # out += "| %s | Search for any functions related to geoip |\n" % (mq + "<br>geoip")
+       # out += "| %s | Search for any function where the description has  active directory |\n" % (mq + " desc<br>active directory")
+       # out += "\n"
+
+        return out
+#### 
+
     def reloadFX(self):
         doc_index, doc_dups = self.load_all_shared_includes()
         ignore_list = ['get_doc']
@@ -201,12 +255,66 @@ class Sharedfx(Addon):
         self.sharedfx_doc_index = doc_index
 
 
-    def calculaterGroups(self):
-        
-        for k, v in self.sharedfx_doc_index.items():
-            file_group = v.get("file_grp", "")
+# Loading Shared Includes 
 
 
+    def load_all_shared_includes(self):
+        doc_index = {}
+        doc_dups = {}
+        my_path = self.sharedfx_dir
+        for py in my_path.glob("*.py"):
+            this_index = self.scan_include_file(py)
+            for k, v in this_index.items():
+                if k not in doc_index:
+                    doc_index[k] = v
+                else:
+                    if k in doc_dups:
+                        doc_dups[k].append(v)
+                    else:
+                        doc_dups[k] = [v]
+        return doc_index, doc_dups
+
+
+    def scan_include_file(self, shared_file_path):
+        # This load an include file and parses all it's functions
+        out_dict = {}
+        src = shared_file_path.read_text(encoding='utf-8')
+        tree = ast.parse(src, filename=str(shared_file_path))
+
+        file_group = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef):
+                doc = ast.get_docstring(node, clean=False)
+                if not doc:
+                    out_dict[node.name] = {"name": node.name, "file_group": file_group, "group": "Unparse", "file_src": str(shared_file_path), "desc": "No doc strings"}
+                    if self.debug:
+                        print(f"No docs: {node.name}")
+                        continue
+                try:
+                    if doc.strip().find('{"name":') == 0:
+                        meta = json.loads(doc)
+                        func_name = meta.get("name", None)
+                        func_group = meta.get("group", None)
+                        if func_group is None:
+                            meta['group'] = "No Group"
+                        meta['file_src'] = str(shared_file_path)
+                        meta['file_group'] = file_group
+                        if func_name not in out_dict:
+                            out_dict[func_name] = meta
+                        else:
+                            print(f"Duplicate name {func_name} in node {node.name} in file {shared_file_path}")
+                    else:
+                        if self.debug:
+                            print("No 'name' found at the beginning of doc strings in {node.name}")
+                            out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": "Non-compatible Docstrings"}
+                except Exception as e:
+                    if self.debug:
+                        print(f"Error parsing docstring for {node.name}: {str(e)}")
+                    out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": f"Exception Parsing: {str(e)}"}
+        return out_dict
+
+
+## Cache/Hash File Helpers
 
 
     def loadCacheFile(self):
@@ -261,112 +369,11 @@ class Sharedfx(Addon):
 
 
 
-    def scan_include_file(self, shared_file_path):
-        # This load an include file and parses all it's functions
-        out_dict = {}
-        src = shared_file_path.read_text(encoding='utf-8')
-        tree = ast.parse(src, filename=str(shared_file_path))
-
-        file_group = str(shared_file_path).split("\\")[-1].replace("_helper.py", "").replace(".py", "")
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef):
-                doc = ast.get_docstring(node, clean=False)
-                if not doc:
-                    out_dict[node.name] = {"name": node.name, "file_group": file_group, "group": "Unparse", "file_src": str(shared_file_path), "desc": "No doc strings"}
-                    if self.debug:
-                        print(f"No docs: {node.name}")
-                        continue
-                try:
-                    if doc.strip().find('{"name":') == 0:
-                        meta = json.loads(doc)
-                        func_name = meta.get("name", None)
-                        func_group = meta.get("group", None)
-                        if func_group is None:
-                            meta['group'] = "No Group"
-                        meta['file_src'] = str(shared_file_path)
-                        meta['file_group'] = file_group
-                        if func_name not in out_dict:
-                            out_dict[func_name] = meta
-                        else:
-                            print(f"Duplicate name {func_name} in node {node.name} in file {shared_file_path}")
-                    else:
-                        if self.debug:
-                            print("No 'name' found at the beginning of doc strings in {node.name}")
-                            out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": "Non-compatible Docstrings"}
-                except Exception as e:
-                    if self.debug:
-                        print(f"Error parsing docstring for {node.name}: {str(e)}")
-                    out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": f"Exception Parsing: {str(e)}"}
-        return out_dict
 
 
 
-    def load_all_shared_includes(self):
-        doc_index = {}
-        doc_dups = {}
-        my_path = self.sharedfx_dir
-        for py in my_path.glob("*.py"):
-            this_index = self.scan_include_file(py)
-            for k, v in this_index.items():
-                if k not in doc_index:
-                    doc_index[k] = v
-                else:
-                    if k in doc_dups:
-                        doc_dups[k].append(v)
-                    else:
-                        doc_dups[k] = [v]
-        return doc_index, doc_dups
+##### Formatting Functions
 
-
-
-
-
-    def customHelp(self, curout):
-        n = self.magic_name
-        m = "%" + n
-        mq = "%" + m
-
-        table_header = "| Magic | Description |\n"
-        table_header += "| -------- | ----- |\n"
-
-        out = curout
-
-        out += f"## {n} usage\n"
-        out += "---------------\n"
-        out += "\n"
-        out += f"### {m} line magic\n"
-        out += "---------------\n"
-        out += "Interacting with specfics parts of the shared function system\n\n"
-        out += table_header
-        out += f"| {m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
-        out += f"| {m} reloadfx | Reload the Functions Dir (Nice if Shared FX are updated and you don't want to reload kernel)|\n"
-        out += f"| {m} list | Show all documented functions handled by shared funcs |\n"
-        out += f"| {m} list modname | Show all documented functions in the 'modname' module |\n"
-        out += f"| {m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
-        out += "\n\n"
-       # out += "### %s cell magic\n" % (mq)
-       # out += "-------------------\n"
-       # out += "Running searches and obtaining results back from the shared function system\n\n"
-       # out += table_header
-       # out += "| %s | 'scope' is the search scope (name, kw, desc, author) (can provide multiple, leave blank for all) and the 'query' are the keywords searched |\n" % (mq + " scope<br>query")
-       # out += "| %s | Search for any functions related to geoip |\n" % (mq + "<br>geoip")
-       # out += "| %s | Search for any function where the description has  active directory |\n" % (mq + " desc<br>active directory")
-       # out += "\n"
-
-        return out
-
-    def retCustomDesc(self):
-        return __desc__
-
-
-    def refreshFXDicts(self):
-        self.loaded_fx = self.ipy.user_ns.get("loaded_fx", {})
-
-
-    def fq(self, line):
-        this_func = line.replace("fq ", "").replace("display ", "").strip()
-        func_md = self.formatFXDocs(this_func)
-        return func_md
 
     def isQueryFunc(self, func_name):
         bQueryFunc = False
@@ -453,7 +460,7 @@ class Sharedfx(Addon):
             out_md = f"Function {func_name} not found in doc index"
         return out_md
 
-
+############## Line Magic Functions
 
     def clearCache(self, reload_line):
         reload = True
@@ -480,6 +487,11 @@ class Sharedfx(Addon):
             self.load_fx_docs()
         else:
             print("No reload - Things could get weird")
+
+    def fq(self, line):
+        this_func = line.replace("fq ", "").replace("display ", "").strip()
+        func_md = self.formatFXDocs(this_func)
+        return func_md
 
     # This is the magic name.
     @line_cell_magic
