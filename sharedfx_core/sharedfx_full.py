@@ -338,11 +338,11 @@ class Sharedfx(Addon):
         out += "---------------\n"
         out += "Interacting with specfics parts of the shared function system\n\n"
         out += table_header
-        out += f"| %{m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
-        out += f"| %{m} reloadfx | Reload the Functions Dir (Nice if Shared FX are updated and you don't want to reload kernel)|\n"
-        out += f"| %{m} list | Show all documented functions handled by shared funcs |\n"
-        out += f"| %{m} list modname | Show all documented functions in the 'modname' module |\n"
-        out += f"| %{m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
+        out += f"| {m} clearcache <noreload> | Clears local fx doc cache. If you specify noreload it won't auto reload (dangerous) |\n"
+        out += f"| {m} reloadfx | Reload the Functions Dir (Nice if Shared FX are updated and you don't want to reload kernel)|\n"
+        out += f"| {m} list | Show all documented functions handled by shared funcs |\n"
+        out += f"| {m} list modname | Show all documented functions in the 'modname' module |\n"
+        out += f"| {m} list `fxname` | Show the documentation for the 'fxname' function as formatted in list |\n"
         out += "\n\n"
        # out += "### %s cell magic\n" % (mq)
        # out += "-------------------\n"
