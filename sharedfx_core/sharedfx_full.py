@@ -697,7 +697,7 @@ class Sharedfx(Addon):
         out = f"** Search Results for {search_term} **\n"
         out += "---------------\n\n"
 
-        if results is not None:
+        if results is not None and len(results) > 0:
             out += table_header
             for hit in results:
                 out += f"| {hit['score']} | fq({hit['name']}) | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
