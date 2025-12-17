@@ -696,7 +696,7 @@ class Sharedfx(Addon):
         out += "---------------\n\n"
         out += table_header
         for hit in hits['results']:
-            out += f"| {hit['score']} | {hit['name']} | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
+            out += f"| {hit['score']} | fq({hit['name']}) | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
 
 
         jiu.displayMD(out)
