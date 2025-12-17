@@ -608,7 +608,7 @@ class Sharedfx(Addon):
 
 
     def suggest_terms(self, query, vocabulary, limit=5):
-        terms = tokenize(query)
+        terms = self.tokenize(query)
         suggestions = set()
 
         for term in terms:
