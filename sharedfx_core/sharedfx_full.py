@@ -50,8 +50,9 @@ FUZZY_THRESHOLD = 0.78       # similarity ratio for fuzzy matches
 FUZZY_WEIGHT_FACTOR = 0.6    # fuzzy matches score less than exact
 PARTIAL_WEIGHT_FACTOR = 0.4
 
-TOKEN_RE = re.compile(r"[a-zA-Z0-9_]+")
-
+TOKEN_RE = re.compile(
+    r'"([^"]+)"|([a-zA-Z0-9_]+)'
+)
 
 
 @magics_class
@@ -489,8 +490,15 @@ class Sharedfx(Addon):
     def tokenize(self, text):
         if not text:
             return []
-        return TOKEN_RE.findall(text.lower())
 
+        tokens = []
+        for quoted, unquoted in TOKEN_RE.findall(text):
+            if quoted:
+            # keep phrase intact, lowercase, normalize spaces
+                tokens.append(quoted.lower().strip())
+            else:
+                tokens.append(unquoted.lower())
+        return tokens
 
     def flatten_doc_fields(self, doc):
         """
