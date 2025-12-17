@@ -531,7 +531,9 @@ class Sharedfx(Addon):
         - name:get args:date
         """
         parsed = []
-        for part in query.split():
+
+        query_tokens = self.tokenize(query)
+        for part in query_tokens:
             if ":" in part:
                 field, term = part.split(":", 1)
                 parsed.append((field.lower(), term.lower()))
@@ -539,6 +541,10 @@ class Sharedfx(Addon):
                 for field in default_fields:
                     parsed.append((field, part.lower()))
         return parsed
+
+
+
+
 
 
 # -------------------------------------------------------------------
