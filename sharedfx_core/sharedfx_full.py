@@ -24,14 +24,35 @@ import jupyter_integrations_utility as jiu
 
 from jupyter_integrations_utility.funcdoc import print_query, get_func_doc_item, main_help
 
-
-
 import importlib
 from sharedfx_core._version import __desc__
-
-
-
 from addon_core import Addon
+
+
+import re
+import difflib
+from collections import Counter, defaultdict
+from typing import Dict, List, Tuple
+
+# -------------------------------------------------------------------
+# Configuration
+# -------------------------------------------------------------------
+
+FIELD_WEIGHTS = {
+    "name": 5.0,
+    "desc": 3.0,
+    "examples": 2.0,
+    "limitations": 1.5,
+    "args": 1.0,
+}
+
+FUZZY_THRESHOLD = 0.78       # similarity ratio for fuzzy matches
+FUZZY_WEIGHT_FACTOR = 0.6    # fuzzy matches score less than exact
+PARTIAL_WEIGHT_FACTOR = 0.4
+
+TOKEN_RE = re.compile(r"[a-zA-Z0-9_]+")
+
+
 
 @magics_class
 class Sharedfx(Addon):
@@ -459,6 +480,211 @@ class Sharedfx(Addon):
         else:
             out_md = f"Function {func_name} not found in doc index"
         return out_md
+
+############## Search Functions
+# -------------------------------------------------------------------
+# Text utilities
+# -------------------------------------------------------------------
+
+    def tokenize(self, text):
+        if not text:
+            return []
+        return TOKEN_RE.findall(text.lower())
+
+
+    def flatten_doc_fields(self, doc):
+        """
+        Normalize documentation into searchable text fields.
+        """
+        return {
+            "name": doc.get("name", ""),
+            "desc": doc.get("desc", ""),
+            "examples": " ".join(
+                " ".join(ex) if isinstance(ex, list) else str(ex)
+                for ex in doc.get("examples", [])
+            ),
+            "limitations": " ".join(doc.get("limitations", [])),
+            "args": " ".join(
+                f"{a.get('name','')} {a.get('desc','')}"
+                for a in doc.get("args", [])
+            ),
+        }
+
+
+# -------------------------------------------------------------------
+# Query parsing
+# -------------------------------------------------------------------
+
+    def parse_query(self, query, default_fields):
+        """
+        Supports:
+        - splunk
+        - desc:splunk
+        - name:get args:date
+        """
+        parsed = []
+        for part in query.split():
+            if ":" in part:
+                field, term = part.split(":", 1)
+                parsed.append((field.lower(), term.lower()))
+            else:
+                for field in default_fields:
+                    parsed.append((field, part.lower()))
+        return parsed
+
+
+# -------------------------------------------------------------------
+# Scoring logic
+# -------------------------------------------------------------------
+
+    def fuzzy_similarity(self, a, b):
+        return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+    def score_field(self, tokens, term, weight):
+        """
+        Returns (score, matched_flag)
+        """
+        score = 0.0
+        matched = False
+
+        token_counts = Counter(tokens)
+
+        # Exact token match
+        if term in token_counts:
+            hits = token_counts[term]
+            score += hits * weight
+            matched = True
+
+        # Partial substring match
+        for t in tokens:
+            if term != t and term in t:
+                score += weight * PARTIAL_WEIGHT_FACTOR
+                matched = True
+
+        # Fuzzy match
+        for t in tokens:
+            ratio = self.fuzzy_similarity(term, t)
+            if FUZZY_THRESHOLD <= ratio < 1.0:
+                score += weight * FUZZY_WEIGHT_FACTOR * ratio
+                matched = True
+
+        return score, matched
+
+
+    def score_function(self, doc_fields,parsed_query, field_weights):
+        score = 0.0
+        matched_on = set()
+
+        for field, term in parsed_query:
+            if field not in doc_fields:
+                continue
+
+            tokens = self.tokenize(doc_fields[field])
+            if not tokens:
+                continue
+
+            field_score, matched = self.score_field(tokens, term, field_weights.get(field, 1.0))
+
+            if matched:
+                matched_on.add(f"{field}:{term}")
+
+            score += field_score
+
+        return score, sorted(matched_on)
+
+
+# -------------------------------------------------------------------
+# Did-you-mean suggestions
+# -------------------------------------------------------------------
+
+    def collect_vocabulary(self, docs):
+        vocab = set()
+        for doc in docs.values():
+            fields = self.flatten_doc_fields(doc)
+            for text in fields.values():
+                vocab.update(self.tokenize(text))
+        return vocab
+
+
+    def suggest_terms(self, query, vocabulary, limit=5):
+        terms = tokenize(query)
+        suggestions = set()
+
+        for term in terms:
+            matches = difflib.get_close_matches(term, vocabulary, n=limit, cutoff=0.8)
+            suggestions.update(matches)
+
+        return sorted(suggestions)
+
+
+# -------------------------------------------------------------------
+# Main search API
+# -------------------------------------------------------------------
+
+    def search_functions(self, docs, query, top_n=10, field_weights=FIELD_WEIGHTS, enable_suggestions=True):
+        default_fields = set(field_weights.keys())
+        parsed_query = self.parse_query(query, default_fields)
+
+        results = []
+        vocabulary = self.collect_vocabulary(docs) if enable_suggestions else set()
+
+        for func_name, doc in docs.items():
+            fields = self.flatten_doc_fields(doc)
+            score, matched_on = self.score_function(fields, parsed_query, field_weights)
+
+            if score > 0:
+                results.append({
+                    "name": func_name,
+                    "score": round(score, 2),
+                    "matched_on": matched_on,
+                    "desc": doc.get("desc", ""),
+                    "group": doc.get("group"),
+                    "file": doc.get("file_src"),
+                })
+
+        results.sort(key=lambda x: x["score"], reverse=True)
+        results = results[:top_n]
+
+        output = {"results": results}
+
+        if enable_suggestions and not results:
+            output["did_you_mean"] = suggest_terms(query, vocabulary)
+
+        return output
+
+
+# -------------------------------------------------------------------
+# Example usage
+# -------------------------------------------------------------------
+#
+# hits = search_functions(FUNC_DOCS, "splnk date")
+#
+# hits = search_functions(FUNC_DOCS, "desc:splunk")
+#
+# hits = search_functions(FUNC_DOCS, "name:get args:date")
+#
+
+
+
+
+
+    def cell_search(self, line, cell):
+
+    # Do some stuff with the line to add modifiers
+    
+        top_n = 10
+
+        field_weights=FIELD_WEIGHTS
+
+        enable_suggestions=True
+
+        hits = self.search_functions(self.sharedfx_doc_index, cell, top_n=top_n, field_weights=field_weights, enable_suggestions=enable_suggestions)
+        
+        # Format this
+        print(hits)
+
+
 
 ############## Line Magic Functions
 
