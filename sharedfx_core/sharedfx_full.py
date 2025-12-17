@@ -669,21 +669,37 @@ class Sharedfx(Addon):
 
 
 
-    def cell_search(self, line, cell):
+    def handleSearch(self, line, cell):
 
     # Do some stuff with the line to add modifiers
-    
+
+        search_term = cell
         top_n = 10
 
         field_weights=FIELD_WEIGHTS
 
         enable_suggestions=True
 
-        hits = self.search_functions(self.sharedfx_doc_index, cell, top_n=top_n, field_weights=field_weights, enable_suggestions=enable_suggestions)
-        
+        hits = self.search_functions(self.sharedfx_doc_index, search_term, top_n=top_n, field_weights=field_weights, enable_suggestions=enable_suggestions)
         # Format this
-        print(hits)
 
+        self.display_hits(hits, search_term)
+
+
+
+    def display_hits(self, hits, search_term):
+
+        table_header =  "| Score | Function | Description | Group | Matched On | Source File |\n"
+        table_header += "| ----- | -------- | ----------  | ----- | ---------- | ----------- |\n"
+
+        out = f"** Search Results for {search_term} **\n"
+        out += "---------------\n\n"
+        out += table_header
+        for hit in hits['results']:
+            out += f"| {hit['score']} | {hit['name']} | {hit['desc']} | {hit['group']} | {hit['matched_on']} | {hit['file'].split("\\")[-1]} |\n"
+
+
+        jiu.displayMD(out)
 
 
 ############## Line Magic Functions
@@ -739,6 +755,6 @@ class Sharedfx(Addon):
                 else:
                     print("Unknown line magic for sharedfx")
         else: # This is a cell (or a cell + line) call
-            jiu.displayMD(self.handleSearch(line, cell))
+            self.handleSearch(line, cell)
 
 
