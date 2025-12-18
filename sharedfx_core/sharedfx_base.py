@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic, line_cell_magic)
-from sharedfunc_core._version import __desc__
+from sharedfx_core._version import __desc__
 @magics_class
 class Sharedfx(Magics):
     # Static Variables
