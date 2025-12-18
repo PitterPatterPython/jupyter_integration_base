@@ -37,7 +37,6 @@ class Helloworld(Addon):
         "pivot",
         "profile",
         "pyvis",
-#        "sharedfunc",
         "sharedfx",
         "updater",
         "vis"
