@@ -54,7 +54,7 @@ class Integration(Magics):
 
     # Variables Dictionary
     opts = {}
-    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfunc', 'vis', 'namedpw']
+    req_addons = ['helloworld', 'display', 'persist', 'profile', 'sharedfx', 'vis', 'namedpw']
  #   integration_evars = ['_conn_url_'] # These are per integration env vars checked. They will have self.name_str prepended to them for each integration"
     integration_evars = ['_conn_url_'] + ['_' + i for i in global_evars] + ['_' + i + '_' for i in global_evars]
 
