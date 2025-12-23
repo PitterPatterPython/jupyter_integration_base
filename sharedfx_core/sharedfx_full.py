@@ -555,12 +555,29 @@ class Sharedfx(Addon):
         return difflib.SequenceMatcher(None, a, b).ratio()
 
 
-    def score_field(self, tokens, term, weight):
+    def score_field(self, tokens, field_text, term, weight):
         """
         Returns (score, matched_flag)
+
+        Supports:
+        - exact token matches (from tokens)
+        - quoted multi-word phrase matching via substring on original field_text
+        - partial substring matches within tokens
+        - fuzzy matches
         """
         score = 0.0
         matched = False
+
+        # If the term is a multi-word phrase (from quoted query), check
+        # directly against the original field text for a substring match.
+        if term and (" " in term):
+            try:
+                if term in (field_text or "").lower():
+                    score += weight
+                    matched = True
+                    # return early? continue to allow additional fuzzy/partial scoring
+            except Exception:
+                pass
 
         token_counts = Counter(tokens)
 
@@ -594,11 +611,12 @@ class Sharedfx(Addon):
             if field not in doc_fields:
                 continue
 
-            tokens = self.tokenize(doc_fields[field])
-            if not tokens:
+            field_text = doc_fields[field]
+            tokens = self.tokenize(field_text)
+            if not tokens and not field_text:
                 continue
 
-            field_score, matched = self.score_field(tokens, term, field_weights.get(field, 1.0))
+            field_score, matched = self.score_field(tokens, field_text, term, field_weights.get(field, 1.0))
 
             if matched:
                 matched_on.add(f"{field}:{term}")
