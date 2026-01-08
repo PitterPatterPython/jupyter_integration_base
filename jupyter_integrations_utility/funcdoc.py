@@ -451,7 +451,7 @@ def parse_docs(func_name, myglobals, debug=False):
         out_md  += "\n"
 
         if len(doc_dict['limitations']) > 0:
-            out_md += "### Limitations\n"
+            out_md += "### Limitations and Notes\n"
             out_md += "------------\n"
             for l in doc_dict['limitations']:
                 out_md += f"- {l}\n"
