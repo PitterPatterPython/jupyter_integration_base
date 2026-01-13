@@ -311,10 +311,18 @@ class Sharedfx(Addon):
                     out_dict[node.name] = {"name": node.name, "file_group": file_group, "group": "Unparse", "file_src": str(shared_file_path), "desc": "No doc strings"}
                     if self.debug:
                         print(f"No docs: {node.name}")
-                        continue
+                    continue
+
                 try:
+                    # attach any detected base_query initial value
+                    base_q_val = self.get_initial_base_query(node)
+            
                     if doc.strip().find('{"name":') == 0:
                         meta = json.loads(doc)
+                        if base_q_val is not None:
+                            meta['base_query'] = base_q_val
+                        else:
+                            meta['base_query'] = None
                         func_name = meta.get("name", None)
                         func_group = meta.get("group", None)
                         if func_group is None:
@@ -329,11 +337,45 @@ class Sharedfx(Addon):
                         if self.debug:
                             print("No 'name' found at the beginning of doc strings in {node.name}")
                             out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": "Non-compatible Docstrings"}
+                       
                 except Exception as e:
                     if self.debug:
                         print(f"Error parsing docstring for {node.name}: {str(e)}")
                     out_dict[node.name] = {"name": node.name, "group": "Unparse", "file_group": file_group, "file_src": str(shared_file_path), "desc": f"Exception Parsing: {str(e)}"}
+                 
         return out_dict
+
+
+    def get_initial_base_query(self, func_node: ast.FunctionDef):
+        """Return the initial value assigned to `base_query` inside a function.
+
+        Returns a Python literal when possible (via ast.literal_eval), otherwise
+        returns the source expression as a string (via ast.unparse) or a marker
+        for complex expressions.
+        """
+        candidates = []
+        for node in ast.walk(func_node):
+            if isinstance(node, ast.Assign):
+                for t in node.targets:
+                    if isinstance(t, ast.Name) and t.id == 'base_query':
+                        candidates.append((getattr(node, 'lineno', 0), node.value))
+            elif isinstance(node, ast.AnnAssign):
+                t = node.target
+                if isinstance(t, ast.Name) and t.id == 'base_query':
+                    candidates.append((getattr(node, 'lineno', 0), node.value))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda x: x[0])
+        value_node = candidates[0][1]
+        try:
+            return ast.literal_eval(value_node)
+        except Exception:
+            try:
+                return ast.unparse(value_node)
+            except Exception:
+                return '<complex-expression>'
 
 
 ## Cache/Hash File Helpers
