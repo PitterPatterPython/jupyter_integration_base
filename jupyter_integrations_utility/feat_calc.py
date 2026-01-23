@@ -207,8 +207,8 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, rerun_only=None, stop
                         s = v["func_df"](apply_df)
                     else: # Default to func which is essentially func_row
                         s = apply_df.apply(lambda row: v['func'](row), axis=1)
-                    out[k] = s.astype("int8")
-                        #apply_df[k] = apply_df.apply(lambda row: v['func'](row), axis=1)
+                    if v['group'] != 'non_calc':
+                        out[k] = s.astype("int8")
 
                 except Exception as e:
                     print(f"Exception applying feature {k}")
