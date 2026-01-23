@@ -277,10 +277,13 @@ def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False,
                 if proc_clause:
                     if not dry_run:
                         try:
+                            feat_frame = apply_df[feats]
                             if clause_op == "_AND_":
-                                apply_df[i] = apply_df.apply(lambda r: 1 if all([r[f] for f in feats]) else 0, axis=1)
+                                #apply_df[i] = apply_df.apply(lambda r: 1 if all([r[f] for f in feats]) else 0, axis=1)
+                                apply_df[i] = feat_frame.all(axis=1).astype("int8")
                             elif clause_op == "_OR_":
-                                apply_df[i] = apply_df.apply(lambda r: 1 if any([r[f] for f in feats]) else 0, axis=1)
+                                #apply_df[i] = apply_df.apply(lambda r: 1 if any([r[f] for f in feats]) else 0, axis=1)
+                                apply_df[i] = feat_frame.any(axis=1).astype("int8")
                             else:
                                 print("Oh boy we shouldn't be here")
                         except Exception as e:
