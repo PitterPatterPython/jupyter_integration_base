@@ -195,14 +195,21 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, rerun_only=None, stop
     if rerun_only is not None and not isinstance(rerun_only, list):
         print(f"rerun_only passed and it should be a list but is not... this will cause errors")
     # I could maybe multi thread this? Or Multi Process?
-    cur_cols = apply_df.columns.tolist()  
+    cur_cols = apply_df.columns.tolist()
+    out = {}  
     for k, v in feat_dict.items():
         if k not in cur_cols or rerun_apply or (rerun_only is not None and isinstance(rerun_only, list) and k in rerun_only):
             if debug:
                 print(f"Applying {k} - {v['desc']}")
             if not dry_run:
                 try:
-                    apply_df[k] = apply_df.apply(lambda row: v['func'](row), axis=1)
+                    if 'func_df' in v:
+                        s = v["func_df"](apply_df)
+                    else: # Default to func which is essentially func_row
+                        s = apply_df.apply(lambda row: v['func'](row), axis=1)
+                    out[k] = s.astype("int8")
+                        #apply_df[k] = apply_df.apply(lambda row: v['func'](row), axis=1)
+
                 except Exception as e:
                     print(f"Exception applying feature {k}")
                     print(f"Exception: {str(e)}")
@@ -220,7 +227,7 @@ def apply_features(apply_df, feat_dict, rerun_apply=False, rerun_only=None, stop
 
     if not show_copy_errors:
         pd.options.mode.chained_assignment = 'warn'
-
+    apply_df.assign(**out)
     return apply_df
 
 def apply_custom_clauses(apply_df, feat_dict, custom_clauses, rerun_apply=False, rerun_only=None, stop_on_fail=False, dry_run=False, debug=False, show_copy_errors=False):
