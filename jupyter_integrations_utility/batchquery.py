@@ -166,10 +166,6 @@ def batch_list_in(batchlist,
          }
     """
 
-    if base_query.find("<curdate>") >= 0:
-        cur_date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-        base_query = base_query.replace("<curdate>", cur_date_str)
-
 
 
     vol_dict = {
@@ -387,10 +383,8 @@ def batch_by_date(base_query, integration, instance, list_items,
          "limitations": []
          }
     """
-    if date_start == "<curdate>":
-        date_start = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    
+
 
     vol_dict = {
                     "table_name": None,
@@ -645,8 +639,17 @@ def resolve_start_date(s_date):
     """
     ret_date = ""
     if s_date is not None:
-        if s_date == "<curdate>":
-            ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        if s_date.find("<curdate") >= 0:
+            if s_date.replace("<curdate", "").strip() == ">":
+                ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            elif s_date.replace("<curdate", "").strip() == "1d>
+                ret_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            elif s_date.replace("<curdate", "").strip() == "1w>":
+                ret_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+            elif s_date.replace("<curdate", "").strip() == "1m>":
+                ret_date = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime("%Y-%m-%d")                
+            else:
+                ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
         else:
             ret_date = s_date
     else:
