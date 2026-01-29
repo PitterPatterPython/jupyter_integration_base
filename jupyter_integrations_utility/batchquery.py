@@ -645,7 +645,10 @@ def resolve_start_date(s_date):
     """
     ret_date = ""
     if s_date is not None:
-        ret_date = s_date
+        if s_date == "<curdate>":
+            ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        else:
+            ret_date = s_date
     else:
         x_days = 90
         str_x_date = (datetime.datetime.now() - datetime.timedelta(days=x_days)).strftime("%Y-%m-%d")
