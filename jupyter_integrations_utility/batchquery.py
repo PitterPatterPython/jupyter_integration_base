@@ -650,6 +650,7 @@ def resolve_start_date(s_date):
                 ret_date = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime("%Y-%m-%d")                
             else:
                 ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            print(f"{s_date} replaced with {ret_date}")
         else:
             ret_date = s_date
     else:
