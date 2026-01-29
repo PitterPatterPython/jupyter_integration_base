@@ -642,7 +642,7 @@ def resolve_start_date(s_date):
         if s_date.find("<curdate") >= 0:
             if s_date.replace("<curdate", "").strip() == ">":
                 ret_date = datetime.datetime.now().strftime("%Y-%m-%d")
-            elif s_date.replace("<curdate", "").strip() == "1d>
+            elif s_date.replace("<curdate", "").strip() == "1d>":
                 ret_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
             elif s_date.replace("<curdate", "").strip() == "1w>":
                 ret_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
