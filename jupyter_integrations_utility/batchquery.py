@@ -166,6 +166,12 @@ def batch_list_in(batchlist,
          }
     """
 
+    if base_query.find("<curdate>") >= 0:
+        cur_date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        base_query = base_query.replace("<curdate>", cur_date_str)
+
+
+
     vol_dict = {
                     "table_name": None,
                     "pre_create": "CREATE MULTISET VOLATILE TABLE ~~tname~~ AS(\n",
@@ -381,7 +387,10 @@ def batch_by_date(base_query, integration, instance, list_items,
          "limitations": []
          }
     """
+    if date_start == "<curdate>":
+        date_start = datetime.datetime.now().strftime("%Y-%m-%d")
 
+    
 
     vol_dict = {
                     "table_name": None,
