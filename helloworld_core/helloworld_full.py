@@ -35,7 +35,6 @@ class Helloworld(Addon):
         "namedpw",
         "persist",
         "pivot",
-        "profile",
         "pyvis",
         "sharedfx",
         "updater",
