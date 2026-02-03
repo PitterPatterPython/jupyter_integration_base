@@ -634,7 +634,14 @@ def resolve_start_date(s_date):
          "integration": "na",
          "instance": "na",
          "access_instructions": "na",
-         "limitations": ["Does not validate the date (if not None) as a proper date"]
+         "limitations": ["Does not validate the date (if not None) as a proper date",
+                         "Will resolve <curdate> tags based on real current date",
+                         "<curdate> - current date",
+                         "<curdate1d> - current date minus 1 day",
+                         "<curdate1w> - current date minus 1 week",
+                         "<curdate1m> - current date minus 1 month"
+                         "<curdate*> - Any other tag after <curdate is treated as the current date"
+                         ]
          }
     """
     ret_date = ""
