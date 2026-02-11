@@ -375,7 +375,34 @@ class Persist(Addon):
                 if self.col_has_mixed_types(mydf[col], sample_size):
                     coercion_warnings.append(f"Column '{col}' had mixed types and was coerced to string.")
                     df_fixed[col] = mydf[col].astype(str)
+                else:
+                    # Check if column contains dicts with mixed value types
+                    if self.col_has_mixed_dict_values(mydf[col], sample_size):
+                        coercion_warnings.append(f"Column '{col}' contained dicts with mixed value types and was converted to string.")
+                        df_fixed[col] = mydf[col].astype(str)
             return df_fixed, coercion_warnings
+
+    def col_has_mixed_dict_values(self, myseries, sample_size=100):
+            """Check if a column contains dictionaries with mixed types in a specific key (usually 'value')"""
+            try:
+                sample = myseries.dropna().iloc[:sample_size]
+                for item in sample:
+                    if isinstance(item, dict) and 'value' in item:
+                        # Collect all types of values across dicts
+                        pass
+                # Check if any dict has mixed types in values
+                all_value_types = set()
+                for item in sample:
+                    if isinstance(item, dict) and 'value' in item:
+                        val = item['value']
+                        # Empty string is problematic for int conversion
+                        if val == '' or (isinstance(val, float) and pd.isna(val)):
+                            all_value_types.add('null_like')
+                        else:
+                            all_value_types.add(type(val).__name__)
+                return len(all_value_types) > 1
+            except Exception:
+                return False
 
 
 
