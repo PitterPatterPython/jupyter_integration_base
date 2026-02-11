@@ -243,7 +243,8 @@ class Display(Addon):
         if self.opts['display_qg_autofit_cols'][0] == True:
             maxColumnLenghts = []
             for col in range(len(result_df.columns)):
-                max_len = result_df.iloc[:,col].apply(lambda x: len(str(x)) if pd.notnull(x) else 0).max()
+                lengths = result_df.iloc[:,col].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)
+                max_len = lengths.max() if len(lengths) > 0 else 0
                 maxColumnLenghts.append(max_len)
 #                maxColumnLenghts.append(max(result_df.iloc[:,col].astype(str).apply(len)))
             dict_size = dict(zip(result_df.columns.tolist(), maxColumnLenghts))
